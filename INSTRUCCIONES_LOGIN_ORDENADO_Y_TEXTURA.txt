@@ -1,0 +1,1 @@
+Sube todo a la raíz del repositorio. Incluye login corregido, panel ordenado y textura de fondo también en la vista de acceso. Luego recarga con Ctrl + F5.

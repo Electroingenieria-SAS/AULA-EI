@@ -1,0 +1,25 @@
+AULA EI · PAQUETE GITHUB PAGES ROOT CORREGIDO
+
+Corrección aplicada:
+- La app se quedaba en "Cargando Aula EI..." porque el build exigía variables VITE_* que no existen cuando se publica por Branch / Root.
+- Se agregó fallback público para la URL de Supabase y la publishable key.
+- La service_role / secret key NO está en el frontend; sigue únicamente en Edge Functions como SERVICE_ROLE_KEY.
+
+Publicación:
+1. Descomprime este ZIP.
+2. Borra del repositorio los archivos anteriores, especialmente assets viejos.
+3. Sube todo el contenido de este paquete a la raíz del repositorio.
+4. En GitHub Pages usa:
+   Settings > Pages > Deploy from a branch > main > /root
+5. Espera 1 o 2 minutos y abre la app.
+
+Estructura correcta en la raíz:
+- index.html
+- 404.html
+- .nojekyll
+- assets/
+- brand/
+- SUPABASE_SQL_PARCHE_FENOMENAL_AULA_EI.sql
+- EDGE_FUNCTION_create-managed-user_index.ts
+
+Si el navegador mantiene cache, abre con Ctrl + F5 o en incógnito.

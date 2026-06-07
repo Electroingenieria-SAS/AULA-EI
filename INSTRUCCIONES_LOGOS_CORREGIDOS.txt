@@ -1,0 +1,8 @@
+Sube todo el contenido de esta carpeta a la raíz del repositorio.
+
+Ajustes incluidos:
+- Ícono pequeño reemplazado por VIÑETA-removebg-preview (1)
+- Logo grande reemplazado por Logos Electroingenieria-01
+- Logo más grande y legible en login, sidebar, dashboard y certificados
+
+Después de subir, recarga con Ctrl + F5.

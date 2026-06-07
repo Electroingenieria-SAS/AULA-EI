@@ -1,0 +1,1 @@
+Sube todo a la raíz del repositorio. Esta versión agrega recuadro blanco al logo en las zonas azules, según manual de marca. Luego recarga con Ctrl + F5.

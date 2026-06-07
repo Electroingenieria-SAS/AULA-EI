@@ -1,0 +1,14 @@
+Sube todo el contenido de esta carpeta a la raíz del repositorio de GitHub.
+
+Configuración de GitHub Pages:
+- Source: Deploy from a branch
+- Branch: main
+- Folder: /root
+
+Este paquete incluye:
+- Login con fondo azul institucional
+- Sidebar azul con logo completo
+- Dashboard con textura de fondo
+- Logo más grande y con sombra
+
+Si ya tenías una versión anterior, borra los archivos viejos antes de subir estos y luego recarga con Ctrl + F5.

@@ -1,0 +1,23 @@
+AULA EI - PAQUETE GITHUB PAGES
+
+Reemplazar en la raíz del repositorio:
+- index.html
+- 404.html
+- .nojekyll
+- favicon.svg
+- assets/
+- brand/
+
+Después abrir la página con Ctrl + F5.
+
+Cambios de esta versión:
+- Examen final más fácil de crear: pregunta + opciones A, B, C, D.
+- Selección visual de respuesta correcta sin índices.
+- Importar preguntas pegando plantilla: Pregunta;A;B;C;D;Correcta.
+- Descargar plantilla CSV.
+- Exportar preguntas actuales.
+- Editar preguntas ya creadas.
+- Reordenar preguntas.
+- Editar fases ya creadas.
+- Editar contenidos/bloques ya agregados.
+- Reemplazar imagen, video, presentación, audio o archivo sin borrar todo el módulo.

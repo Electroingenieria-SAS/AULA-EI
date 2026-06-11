@@ -9,15 +9,15 @@
     <meta http-equiv="Expires" content="0" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>Aula EI</title>
-    <script type="module" crossorigin src="./assets/index-BKulfG2-.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-y-K_mFlB.css">
+    <script type="module" crossorigin src="./assets/index-C9oegT6U.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DlDjTyZi.css">
   </head>
   <body>
     <div id="root">
-      <main id="aula-startup" style="min-height:100vh;display:grid;place-items:center;font-family:Century Gothic,Segoe UI,sans-serif;background:linear-gradient(135deg,#eef5ff,#fff9d9);color:#0f274d;padding:24px">
+      <main id="aula-startup" style="min-height:100vh;display:grid;place-items:center;font-family:Century Gothic,Segoe UI,sans-serif;background:linear-gradient(180deg,rgba(245,247,251,.9),rgba(245,247,251,.95)),url('./brand/fondo.jpg') center/cover no-repeat;color:#0f274d;padding:24px">
         <section style="max-width:680px;background:rgba(255,255,255,.9);border-radius:30px;padding:34px;text-align:center;box-shadow:0 24px 70px rgba(15,23,42,.12)">
-          <div style="width:66px;height:66px;margin:auto;border-radius:24px;display:grid;place-items:center;background:#003b8e;color:white;font-weight:900;font-size:22px">EI</div>
-          <h1 style="margin:18px 0 8px">Cargando Aula EI…</h1>
+          <img src="./brand/logo-aula-ei.png" alt="Aula EI" style="width:min(360px,92%);height:auto;object-fit:contain;display:block;margin:0 auto 18px" />
+          <h1 style="margin:18px 0 8px">Cargando plataforma…</h1>
           <p style="color:#64748b;line-height:1.6;margin:0">Preparando la plataforma. Si algún recurso de GitHub Pages tarda, se mostrará un diagnóstico en pantalla.</p>
         </section>
       </main>
@@ -34,7 +34,7 @@
         var startup = document.getElementById('aula-startup');
         if (root && startup) {
           var missing = window.__AULA_EI_RESOURCE_ERROR__ || 'No se detectó el recurso exacto. Revisa que index.html, 404.html, .nojekyll y assets estén en la raíz.';
-          root.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;font-family:Century Gothic,Segoe UI,sans-serif;background:#f5f7fb;color:#0f274d;padding:24px"><section style="max-width:760px;background:white;border-radius:28px;padding:32px;box-shadow:0 22px 55px rgba(15,23,42,.12)"><div style="width:58px;height:58px;border-radius:20px;display:grid;place-items:center;background:#003b8e;color:white;font-weight:900">EI</div><h1>Aula EI tardó demasiado en iniciar</h1><p style="color:#64748b;line-height:1.6">Esto ya no debe quedar en pantalla blanca. Puede ocurrir por caché viejo, carpeta <b>assets</b> incompleta o un archivo 404 en GitHub Pages.</p><p style="background:#f8fafc;border-radius:16px;padding:12px"><b>Recurso detectado:</b><br>' + missing + '</p><button onclick="location.reload()" style="border:0;border-radius:16px;background:#003b8e;color:white;padding:12px 16px;font-weight:900">Reintentar carga</button></section></main>';
+          root.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;font-family:Century Gothic,Segoe UI,sans-serif;background:#f5f7fb;color:#0f274d;padding:24px"><section style="max-width:760px;background:white;border-radius:28px;padding:32px;box-shadow:0 22px 55px rgba(15,23,42,.12)"><img src="./brand/logo-aula-ei.png" alt="Aula EI" style="width:min(320px,92%);height:auto;object-fit:contain;display:block;margin:0 0 18px"><h1>La plataforma tardó demasiado en iniciar</h1><p style="color:#64748b;line-height:1.6">Esto ya no debe quedar en pantalla blanca. Puede ocurrir por caché viejo, carpeta <b>assets</b> incompleta o un archivo 404 en GitHub Pages.</p><p style="background:#f8fafc;border-radius:16px;padding:12px"><b>Recurso detectado:</b><br>' + missing + '</p><button onclick="location.reload()" style="border:0;border-radius:16px;background:#003b8e;color:white;padding:12px 16px;font-weight:900">Reintentar carga</button></section></main>';
         }
       }, 12000);
     </script>

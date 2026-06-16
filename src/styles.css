@@ -1431,3 +1431,143 @@ input:focus,textarea:focus,select:focus{
 .clean-certificate {
   transform-origin: top left !important;
 }
+
+
+/* ============================================================
+   FIX DEFINITIVO CERTIFICADO: SVG RESPONSIVE
+   Elimina el problema de recorte del canvas 3300x2550.
+============================================================ */
+
+.svg-certificate-wrapper {
+  width: min(1200px, 100%);
+  margin: 22px auto 36px;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 26px 82px rgba(15, 23, 42, .22);
+}
+
+.svg-certificate {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  font-family: "Century Gothic", "Aptos", "Montserrat", Arial, sans-serif;
+}
+
+.svg-pretitle {
+  font-size: 46px;
+  fill: #4d5564;
+  font-weight: 400;
+}
+
+.svg-title {
+  font-size: 132px;
+  fill: #0030A0;
+  font-weight: 700;
+  letter-spacing: 22px;
+}
+
+.svg-to {
+  font-size: 42px;
+  fill: #4d5564;
+  font-weight: 400;
+}
+
+.svg-participant {
+  fill: #0030A0;
+  font-weight: 400;
+}
+
+.svg-achievement {
+  font-size: 43px;
+  fill: #22283A;
+  font-weight: 400;
+}
+
+.svg-course {
+  fill: #0030A0;
+  font-weight: 700;
+}
+
+.svg-detail {
+  font-size: 42px;
+  fill: #333b4d;
+  font-weight: 400;
+}
+
+.svg-date {
+  font-size: 42px;
+  fill: #0030A0;
+  font-weight: 400;
+}
+
+.svg-signature line {
+  stroke: #0030A0;
+  stroke-width: 4;
+}
+
+.svg-signature-placeholder {
+  font-size: 32px;
+  fill: #8a94a6;
+  opacity: .75;
+  font-weight: 400;
+}
+
+.svg-signature-name {
+  font-size: 36px;
+  fill: #0030A0;
+  font-weight: 700;
+}
+
+.svg-signature-role {
+  font-size: 31px;
+  fill: #4d5564;
+  font-weight: 400;
+}
+
+.svg-code-label {
+  font-size: 32px;
+  fill: #0030A0;
+  font-weight: 400;
+}
+
+.svg-code-value {
+  font-size: 40px;
+  fill: #0030A0;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+.svg-footer {
+  font-size: 31px;
+  fill: #0030A0;
+  font-weight: 400;
+}
+
+@media print {
+  .certificate-toolbar,
+  .signature-warning {
+    display: none !important;
+  }
+
+  .svg-certificate-wrapper {
+    width: 3300px !important;
+    height: 2550px !important;
+    margin: 0 !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  .svg-certificate {
+    width: 3300px !important;
+    height: 2550px !important;
+  }
+
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+}

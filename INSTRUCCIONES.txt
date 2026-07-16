@@ -1,23 +1,16 @@
-AULA EI - PAQUETE GITHUB PAGES
+Paquete GitHub Pages con fix para usuarios utilizables.
 
-Reemplazar en la raíz del repositorio:
-- index.html
-- 404.html
-- .nojekyll
-- favicon.svg
-- assets/
-- brand/
+Sube:
+index.html
+404.html
+.nojekyll
+favicon.svg
+assets/
+brand/
 
-Después abrir la página con Ctrl + F5.
+Además:
+1. Ejecuta Aula-EI-SQL-REPARAR-USUARIOS-ASIGNACIONES.sql en Supabase SQL Editor.
+2. Despliega la función:
+   supabase functions deploy create-managed-user --project-ref ipoidimevokogptydbvt
 
-Cambios de esta versión:
-- Examen final más fácil de crear: pregunta + opciones A, B, C, D.
-- Selección visual de respuesta correcta sin índices.
-- Importar preguntas pegando plantilla: Pregunta;A;B;C;D;Correcta.
-- Descargar plantilla CSV.
-- Exportar preguntas actuales.
-- Editar preguntas ya creadas.
-- Reordenar preguntas.
-- Editar fases ya creadas.
-- Editar contenidos/bloques ya agregados.
-- Reemplazar imagen, video, presentación, audio o archivo sin borrar todo el módulo.
+No subas archivos src/ a GitHub Pages si estás usando build estático.

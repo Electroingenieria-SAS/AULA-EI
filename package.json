@@ -1,0 +1,16 @@
+{
+  "name": "aula-ei-static-deployment",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Paquete estático de despliegue y soporte de Aula EI",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve-static.mjs",
+    "verify": "node scripts/verify-static.mjs",
+    "sync:404": "node scripts/sync-404.mjs",
+    "patch:user-deletion": "node scripts/patch-user-deletion.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -2,70 +2,77 @@
 
 Aula EI es la plataforma interna de capacitaciones, evaluaciones y certificados de Electroingeniería S.A.S.
 
-Este repositorio contiene una **versión estática ya compilada** para GitHub Pages o Vercel. La aplicación funcional se ejecuta desde `index.html`, `assets/` y `brand/`. El paquete recibido no incluía el proyecto React/Vite completo, por lo que no es posible recompilarlo desde estas fuentes sin recuperar el repositorio fuente original.
+> **Importante:** este paquete es una **versión estática compilada**. El ZIP recibido no contiene el proyecto React/Vite fuente completo. Para desarrollo estructural debe recuperarse el repositorio fuente `Electroingenieria-SAS/AULA-EI` con su `src/` original si existe.
 
-## Ejecutar en el computador
-
-Requisito: [Node.js 18 o superior](https://nodejs.org/).
+## Verificación rápida
 
 ```bash
-git clone <URL-DEL-REPOSITORIO>
-cd <CARPETA-DEL-REPOSITORIO>
 npm run verify
 npm run dev
 ```
 
-Después abre `http://127.0.0.1:4173`.
+Node.js 18+ es suficiente; no hay dependencias npm del paquete estático.
 
-No es necesario ejecutar `npm install`: los comandos de soporte usan únicamente funciones incluidas en Node.js.
+## Entrega para dominio y seguridad
+
+La documentación principal está en **[docs/ENTREGA_TECNICA_DOMINIO_SEGURIDAD.md](docs/ENTREGA_TECNICA_DOMINIO_SEGURIDAD.md)**. Incluye inventario de servicios/credenciales, GitHub + Vercel + dominio, Supabase, RLS, migraciones, variables y controles pendientes.
 
 ## Estructura
 
 | Ruta | Uso |
 | --- | --- |
-| `index.html`, `404.html` | Entrada principal y respaldo para rutas en GitHub Pages. Deben permanecer iguales. |
-| `assets/` | JavaScript y CSS compilados que usa la versión publicada. |
-| `brand/` | Imágenes institucionales realmente utilizadas por la aplicación. |
-| `supabase/functions/` | Código mantenible de las Edge Functions. |
-| `supabase/reference-sql/` | SQL histórico recibido. Es referencia, no una cadena de migraciones validada. |
-| `supabase/diagnostics/` | Consultas de solo lectura para soporte. |
-| `legacy/source-fragments/` | Fragmentos React/CSS incompletos; no forman un proyecto compilable. |
-| `docs/` | Arquitectura, publicación, soporte, edición y auditoría. |
-| `scripts/` | Verificación y servidor local sin dependencias. |
+| `index.html`, `404.html`, `.nojekyll` | Entrada SPA y compatibilidad GitHub Pages |
+| `assets/` | JS/CSS compilados activos |
+| `brand/` | Assets institucionales |
+| `supabase/functions/` | Edge Functions mantenibles |
+| `supabase/migrations/` | Migraciones validadas/aplicadas |
+| `supabase/reference-sql/` | SQL histórico; **no ejecutar en bloque** |
+| `supabase/diagnostics/` | Consultas de diagnóstico |
+| `docs/` | Arquitectura, despliegue, soporte y handoff técnico |
+| `scripts/` | Servidor/verificación sin dependencias externas |
 
-## Eliminación jerárquica de usuarios
+## Seguridad aplicada el 26/08/2026
 
-La pantalla **Usuarios y roles** aplica la misma regla en la interfaz y en la Edge Function autenticada `delete-managed-user`:
+- grants `anon` retirados de las tablas de Aula EI;
+- privilegios `authenticated` reducidos al mínimo funcional;
+- respuestas correctas del examen ocultas detrás de RPC server-side;
+- cierre de autoescalamiento de rol mediante metadata editable;
+- separación estricta de firmas de participante y responsable;
+- ejecución anónima de RPC sensibles revocada;
+- bucket `course-assets` privado con MIME allowlist y límite de 100 MB;
+- headers de seguridad y CSP añadidos para Vercel;
+- `.env.example` + `.gitignore` incluidos.
 
-| Usuario actual | Puede eliminar |
-| --- | --- |
-| Super Admin | Admin, Revisor, Creador de contenido y Colaborador |
-| Admin | Revisor, Creador de contenido y Colaborador |
-| Demás roles | Nadie |
+Migración remota registrada: `20260826163217_aula_ei_security_hardening_20260826`.
 
-Nadie puede eliminarse a sí mismo ni eliminar a una persona de su mismo nivel o de un nivel superior. La comprobación definitiva se hace en Supabase; ocultar el botón en la interfaz no se usa como medida de seguridad.
 
-## Cambios seguros y frecuentes
+## Entrega simplificada al administrador del dominio
 
-- Para cambiar un logo o fondo, reemplaza el archivo correspondiente en `brand/` conservando su nombre y formato.
-- Si editas `index.html`, ejecuta `npm run sync:404` para actualizar `404.html`.
-- Antes de subir cualquier cambio, ejecuta `npm run verify`.
-- No edites manualmente los archivos minificados de `assets/`. Para cambiar la aplicación se necesita recuperar el proyecto fuente completo y generar un build nuevo.
-- La mejora de eliminación jerárquica es una excepción controlada y reproducible mediante `npm run patch:user-deletion`; no apliques otros cambios manuales al bundle.
-- Nunca subas llaves secretas, `service_role`, contraseñas ni archivos `.env`.
-- No ejecutes en bloque los archivos de `supabase/reference-sql/`; contienen parches históricos que se reemplazan entre sí.
+Para una entrega directa, empiece por **[LEEME-PRIMERO.md](LEEME-PRIMERO.md)** y **[INVENTARIO-DE-ENTREGA.md](INVENTARIO-DE-ENTREGA.md)**.
+
+En Windows puede ejecutar `PREPARAR-Y-DESPLEGAR-WINDOWS.cmd` con doble clic. El asistente valida el proyecto, permite levantarlo localmente y puede iniciar el flujo interactivo oficial de Vercel. El DNS no se modifica automáticamente: debe copiarse exactamente la configuración que Vercel muestre para el dominio.
 
 ## Publicación
 
-La guía completa está en [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Para GitHub Pages, la configuración actual esperada es `main` + `/ (root)`.
+- **GitHub** debe conservarse como fuente/versionado.
+- **Vercel** puede ser el hosting productivo con dominio personalizado.
+- **GitHub Pages** puede seguir funcionando como espejo desde `github.io`.
 
-## Documentación del equipo
+Antes de cada entrega: `npm run verify`.
 
-- [Cómo editar y entregar cambios](docs/TEAM_EDITING.md)
-- [Arquitectura y mapa de carpetas](docs/ARCHITECTURE.md)
-- [Publicación y reversión](docs/DEPLOYMENT.md)
-- [Solución de problemas frecuentes](docs/TROUBLESHOOTING.md)
-- [Soporte de Supabase](docs/SUPABASE_SUPPORT.md)
-- [Resultado de la auditoría](docs/AUDIT_REPORT.md)
-- [Reglas para contribuir](CONTRIBUTING.md)
+## Más documentación
+
+- [Entrega técnica, dominio y seguridad](docs/ENTREGA_TECNICA_DOMINIO_SEGURIDAD.md)
+- [Arquitectura](docs/ARCHITECTURE.md)
+- [Publicación](docs/DEPLOYMENT.md)
+- [Soporte Supabase](docs/SUPABASE_SUPPORT.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Auditoría previa](docs/AUDIT_REPORT.md)
 - [Política de seguridad](SECURITY.md)
+- [Validación de seguridad 26/08/2026](docs/VALIDACION_SEGURIDAD_2026-08-26.md)
+
+## Asistente visual de dominio
+
+Para facilitar la entrega a infraestructura se incluye una mini app local que **no solicita secretos**. En Windows abra `ABRIR-INSTALADOR-DOMINIO.cmd`; en cualquier sistema puede abrir `instalador-dominio/index.html`. El asistente guía GitHub → Vercel → dominio → Supabase, mantiene un checklist local y genera un resumen de instalación para el administrador.
+
+Consulte también `INSTALACION-DOMINIO.md`.

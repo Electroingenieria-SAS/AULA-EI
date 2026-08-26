@@ -16,6 +16,12 @@ const required = [
   '.nojekyll',
   'favicon.svg',
   'vercel.json',
+  '.gitignore',
+  '.env.example',
+  'ABRIR-INSTALADOR-DOMINIO.cmd',
+  'INSTALACION-DOMINIO.md',
+  'instalador-dominio/index.html',
+  'supabase/migrations/20260826163217_aula_ei_security_hardening_20260826.sql',
   'assets/index-BZBNDslB.js',
   'assets/index-B-4jmJ6C.css',
   'brand/logo-aula-ei.png',
@@ -58,6 +64,20 @@ for (const asset of activeAssets) {
     if (!existsSync(target)) errors.push(`${asset} referencia un archivo inexistente: ${relative(root, target)}`)
   }
 }
+
+
+const gitignore = await readFile(resolve(root, '.gitignore'), 'utf8')
+if (!gitignore.includes('.env')) errors.push('.gitignore debe excluir archivos .env reales.')
+
+const vercelConfig = JSON.parse(await readFile(resolve(root, 'vercel.json'), 'utf8'))
+const globalHeaders = (vercelConfig.headers || []).flatMap((rule) => rule.headers || [])
+const headerNames = new Set(globalHeaders.map((header) => String(header.key || '').toLowerCase()))
+for (const requiredHeader of ['content-security-policy', 'strict-transport-security', 'x-content-type-options', 'referrer-policy', 'permissions-policy']) {
+  if (!headerNames.has(requiredHeader)) errors.push(`Falta header de seguridad en vercel.json: ${requiredHeader}`)
+}
+
+const envExample = await readFile(resolve(root, '.env.example'), 'utf8')
+if (/sb_secret_[A-Za-z0-9_-]+/.test(envExample)) errors.push('.env.example contiene una secret key real.')
 
 const deployText = await Promise.all(
   ['index.html', '404.html', ...activeAssets].map((file) => readFile(resolve(root, file), 'utf8')),

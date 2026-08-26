@@ -1,39 +1,37 @@
-# Seguridad
+# Política de seguridad — Aula EI
 
-## Información que nunca debe publicarse
+## Secretos
 
-- llaves `service_role` o secret keys de Supabase;
-- contraseñas de usuarios;
-- tokens personales de GitHub o Supabase;
-- archivos `.env` reales;
-- copias de base de datos con información personal;
-- capturas de pantalla que expongan sesiones o credenciales.
+Nunca publicar: Supabase `service_role`/secret keys, tokens de administración, PAT de GitHub, tokens de Vercel, credenciales DNS, contraseñas, `.env` reales ni backups con datos personales.
 
-La URL del proyecto y la publishable key pueden existir en el frontend, pero solo son seguras si todas las tablas expuestas usan RLS y privilegios mínimos.
+La URL de Supabase y la **publishable key** del frontend son públicas por diseño. No deben tener poder por sí mismas: RLS, grants mínimos y autorización server-side son obligatorios.
 
-## Eliminación de usuarios
+## Controles vigentes
 
-- La autorización se valida dentro de `delete-managed-user` consultando el rol vigente de quien solicita y de la cuenta objetivo.
-- El navegador nunca recibe la llave de servicio.
-- La función exige JWT, bloquea autoeliminación y rechaza roles iguales o superiores.
-- Para pruebas de producción no se deben borrar cuentas reales: usa usuarios de prueba controlados y confirma primero sus dependencias y objetos de Storage.
+- RLS habilitado en las tablas de Aula EI expuestas.
+- `anon` sin grants directos sobre las tablas auditadas de Aula EI.
+- lectura de `questions/question_options` restringida a roles internos; alumnos usan `get_exam_questions` sin `is_correct`.
+- `profiles` no se inserta/actualiza directamente desde el navegador.
+- roles sensibles derivados de `app_metadata`, no de metadata editable por el usuario.
+- Edge Functions administrativas requieren JWT y vuelven a comprobar rol server-side.
+- eliminación de usuarios respeta jerarquía y bloquea autoeliminación.
+- firmas de certificado separadas por identidad/rol.
+- Storage de cursos privado.
+- CSP y headers de seguridad definidos para Vercel.
 
-## Reportar una vulnerabilidad
+## Pendiente de configuración de cuenta
 
-No publiques credenciales ni detalles explotables en un Issue abierto. Comunica el hallazgo de forma privada al responsable técnico del repositorio e incluye:
+Supabase Security Advisor reporta **Leaked Password Protection desactivada**. Debe habilitarse desde Auth. También se recomienda MFA para administradores, signup público desactivado si no se necesita, bot/CAPTCHA protection, rate limits y revisión de sesiones.
 
-- descripción y alcance;
-- pasos mínimos para reproducir;
-- rol afectado;
-- evidencia sin datos personales;
-- recomendación de contención;
-- versión o commit afectado.
+## Reporte de vulnerabilidades
 
-## Respuesta inicial
+No publiques una vulnerabilidad explotable en Issues públicos. Reporta de forma privada al responsable técnico, incluyendo alcance, reproducción mínima, rol afectado, evidencia sin datos personales y recomendación de contención.
 
-1. Revocar o rotar cualquier secreto expuesto.
+## Incidente
+
+1. Rotar/revocar cualquier secreto expuesto.
 2. Preservar logs y evidencia.
-3. Bloquear temporalmente la función o ruta afectada si existe riesgo activo.
-4. Corregir primero en un entorno de prueba.
-5. Validar RLS, funciones, logs y sesiones existentes.
-6. Publicar el arreglo y documentar lo ocurrido sin revelar información sensible.
+3. Contener la ruta/función afectada.
+4. Corregir y probar fuera de producción.
+5. Revalidar RLS, grants, funciones, Storage y sesiones.
+6. Ejecutar Security Advisor antes del cierre.

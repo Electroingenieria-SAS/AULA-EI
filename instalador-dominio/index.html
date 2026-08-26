@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Asistente de dominio · Aula EI</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#14213d;background:#eef4fb;line-height:1.45}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top right,#dcecff 0,transparent 38%),#eef4fb;color:#17233b}.shell{max-width:1120px;margin:auto;padding:28px 18px 54px}
+    header{background:linear-gradient(135deg,#12284a,#175b9f);color:white;border-radius:24px;padding:28px;box-shadow:0 18px 50px rgba(23,91,159,.18)}
+    header h1{margin:0 0 8px;font-size:clamp(28px,5vw,46px);line-height:1.04} header p{margin:0;max-width:820px;opacity:.9}
+    .tag{display:inline-flex;border:1px solid rgba(255,255,255,.26);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.03em;margin-bottom:16px;background:rgba(255,255,255,.08)}
+    .grid{display:grid;grid-template-columns:1.35fr .65fr;gap:18px;margin-top:18px}.card{background:white;border:1px solid #dbe6f2;border-radius:20px;padding:20px;box-shadow:0 10px 35px rgba(26,63,104,.07)}
+    h2{font-size:19px;margin:0 0 14px} h3{font-size:15px;margin:0 0 8px}.muted{color:#62738a;font-size:13px}.danger{border-left:4px solid #bd2f2f;background:#fff6f6;padding:12px 14px;border-radius:10px;margin:14px 0;font-size:13px}.ok{border-left:4px solid #238058;background:#f4fbf7;padding:12px 14px;border-radius:10px;margin:14px 0;font-size:13px}
+    label{display:block;font-size:12px;font-weight:800;color:#536780;margin-bottom:6px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}input,select,textarea{width:100%;border:1px solid #cad8e7;background:#fbfdff;color:#17233b;padding:11px 12px;border-radius:11px;font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:#3976ae;box-shadow:0 0 0 3px rgba(57,118,174,.1)}textarea{min-height:112px;resize:vertical}
+    .steps{display:grid;gap:10px}.step{display:flex;gap:12px;align-items:flex-start;border:1px solid #dfe8f2;padding:13px;border-radius:14px;background:#fbfdff}.step input{width:18px;height:18px;margin-top:2px}.step strong{display:block;font-size:14px}.step span{font-size:12px;color:#6b7d92}.step.done{background:#f3fbf7;border-color:#b9dfcd}.step.blocked{background:#fff9ed;border-color:#ead397}
+    .bar{height:10px;background:#e6edf5;border-radius:99px;overflow:hidden;margin-top:10px}.bar>div{height:100%;width:0;background:linear-gradient(90deg,#1d6cac,#1d8a61);transition:.25s}.progressText{font-size:12px;font-weight:800;margin-top:7px;color:#476078}
+    button,.button{border:0;border-radius:11px;background:#155c9d;color:white;padding:10px 14px;font-weight:800;cursor:pointer;font:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}button.secondary{background:#e8f0f8;color:#254d72}button.ghost{background:transparent;color:#1f5f98;border:1px solid #bfd1e4}button:hover{filter:brightness(.98)}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    code{background:#edf3f9;padding:2px 5px;border-radius:5px;color:#254662}.command{background:#102039;color:#eaf5ff;border-radius:12px;padding:12px;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;margin-top:8px}.mini{font-size:11px;color:#75879b}.separator{height:1px;background:#e4ebf3;margin:18px 0}.list{margin:0;padding-left:18px;font-size:13px;color:#455a71}.pill{font-size:11px;padding:5px 8px;border-radius:999px;background:#e8f3ff;color:#1c629e;font-weight:800}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .summary{white-space:pre-wrap;background:#f6f9fc;border:1px solid #dbe6f2;padding:14px;border-radius:12px;font-size:12px;color:#334961;max-height:320px;overflow:auto}.footer{font-size:12px;color:#6a7b8f;text-align:center;margin-top:20px}
+    @media(max-width:820px){.grid{grid-template-columns:1fr}.fields{grid-template-columns:1fr}header{padding:22px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="tag">AULA EI · ENTREGA TÉCNICA</div>
+  <h1>Asistente de dominio</h1>
+  <p>Guía el despliegue sin reemplazar GitHub ni Supabase. El flujo recomendado es <strong>GitHub → Vercel → dominio</strong>, manteniendo Supabase como base de datos, Auth, Storage y API.</p>
+</header>
+
+<div class="grid">
+  <main class="card">
+    <div class="row"><h2>1. Datos de la instalación</h2><span class="pill">No guarda secretos</span></div>
+    <div class="fields">
+      <div><label>Dominio principal</label><input id="domain" placeholder="aula.empresa.com" /></div>
+      <div><label>Proveedor DNS</label><input id="dns" placeholder="Cloudflare, GoDaddy, Hostinger..." /></div>
+      <div><label>Repositorio GitHub</label><input id="repo" value="https://github.com/Electroingenieria-SAS/AULA-EI.git" /></div>
+      <div><label>Proyecto Vercel</label><select id="vercel"><option value="aula-ei">aula-ei</option><option value="aula-ei-1z4d">aula-ei-1z4d</option><option value="otro">Otro / por definir</option></select></div>
+      <div><label>URL Supabase</label><input id="supabase" value="https://ipoidimevokogptydbvt.supabase.co" /></div>
+      <div><label>Hosting principal</label><select id="hosting"><option>Vercel</option><option>Otro compatible con SPA</option></select></div>
+    </div>
+    <div class="danger"><strong>Nunca pegues aquí:</strong> <code>service_role</code>, <code>sb_secret_...</code>, contraseñas, tokens de GitHub/Vercel, claves privadas o credenciales del registrador. Esos secretos se configuran exclusivamente en los paneles oficiales o variables de entorno privadas.</div>
+
+    <div class="separator"></div>
+    <h2>2. Checklist guiado</h2>
+    <div class="steps" id="steps">
+      <label class="step"><input type="checkbox" data-step><div><strong>Repositorio fuente disponible</strong><span>Confirmar que existe el repositorio Git completo. Este paquete compilado no reemplaza el <code>src/</code> original.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>Paquete verificado</strong><span>Ejecutar <code>npm run verify</code> o la opción 1 del asistente de Windows.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>Proyecto correcto de Vercel vinculado</strong><span>No crear duplicados innecesarios. Verificar organización y repositorio.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>Deploy de producción correcto</strong><span>Publicar y comprobar que login, cursos, recursos y certificados funcionen.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>Dominio agregado en Vercel</strong><span>Settings → Domains. Vercel indicará los registros DNS exactos.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>DNS configurado en el proveedor</strong><span>Copiar exactamente los valores que Vercel indique. No inventar IP, A, AAAA o CNAME.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>HTTPS y redirección canónica validados</strong><span>Comprobar certificado TLS, dominio con y sin www si aplica, y evitar loops.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>Supabase Auth actualizado para el dominio</strong><span>Agregar el dominio final en Site URL / Redirect URLs si el flujo Auth lo requiere.</span></div></label>
+      <label class="step"><input type="checkbox" data-step><div><strong>Prueba funcional final</strong><span>Probar alumno, administrador, Storage, examen, certificados y Edge Functions.</span></div></label>
+    </div>
+    <div class="bar"><div id="bar"></div></div><div class="progressText" id="progress">0% completado</div>
+  </main>
+
+  <aside class="card">
+    <h2>Comandos útiles</h2>
+    <h3>Clonar código fuente</h3><div class="command" id="cloneCmd">git clone https://github.com/Electroingenieria-SAS/AULA-EI.git</div>
+    <div class="actions"><button class="secondary" data-copy="cloneCmd">Copiar</button></div>
+    <h3 style="margin-top:16px">Verificar paquete</h3><div class="command" id="verifyCmd">npm run verify</div>
+    <div class="actions"><button class="secondary" data-copy="verifyCmd">Copiar</button></div>
+    <h3 style="margin-top:16px">Desplegar en Vercel</h3><div class="command" id="deployCmd">npx vercel@latest --prod</div>
+    <div class="actions"><button class="secondary" data-copy="deployCmd">Copiar</button></div>
+    <div class="ok"><strong>Supabase:</strong> no se “instala” dentro del hosting. Se mantiene como servicio externo y el frontend se conecta mediante URL + clave publicable, protegido por Auth/RLS.</div>
+    <ul class="list"><li>Vercel: frontend/hosting.</li><li>GitHub: fuente y control de versiones.</li><li>Supabase: BD, Auth, Storage, RPC y Edge Functions.</li><li>Firebase: no detectado como dependencia activa en este paquete.</li></ul>
+  </aside>
+</div>
+
+<div class="grid">
+  <section class="card">
+    <h2>3. Configuración de dominio</h2>
+    <p class="muted">El asistente no modifica DNS automáticamente porque los valores cambian según el dominio y el proveedor. La fuente válida es siempre la pantalla <strong>Domains</strong> del proyecto de Vercel.</p>
+    <div class="fields">
+      <div><label>Registro / host indicado por Vercel</label><input id="dnsHost" placeholder="@ / www / aula" /></div>
+      <div><label>Tipo indicado por Vercel</label><select id="dnsType"><option>CNAME</option><option>A</option><option>AAAA</option><option>TXT</option></select></div>
+      <div style="grid-column:1/-1"><label>Valor / destino indicado por Vercel</label><input id="dnsValue" placeholder="Pegar solamente el valor mostrado por Vercel" /></div>
+    </div>
+    <div class="actions"><button id="generate">Generar resumen de entrega</button><button class="ghost" id="reset">Limpiar progreso</button></div>
+  </section>
+  <section class="card">
+    <h2>4. Resumen para el administrador</h2>
+    <div class="summary" id="summary">Completa los datos y pulsa “Generar resumen de entrega”.</div>
+    <div class="actions"><button class="secondary" id="copySummary">Copiar resumen</button></div>
+    <p class="mini">El progreso se guarda solo en el almacenamiento local del navegador. No se envía a ningún servidor.</p>
+  </section>
+</div>
+
+<div class="footer">Aula EI · Asistente técnico local · No contiene ni solicita secretos.</div>
+</div>
+<script>
+const qs=s=>document.querySelector(s), qsa=s=>[...document.querySelectorAll(s)];
+const ids=['domain','dns','repo','vercel','supabase','hosting','dnsHost','dnsType','dnsValue'];
+function save(){ const data={}; ids.forEach(id=>data[id]=qs('#'+id).value); data.steps=qsa('[data-step]').map(x=>x.checked); localStorage.setItem('aulaEiInstaller',JSON.stringify(data)); update(); }
+function load(){try{const d=JSON.parse(localStorage.getItem('aulaEiInstaller')||'{}');ids.forEach(id=>{if(d[id]!=null)qs('#'+id).value=d[id]});(d.steps||[]).forEach((v,i)=>{if(qsa('[data-step]')[i])qsa('[data-step]')[i].checked=v});}catch{} update();}
+function update(){ const s=qsa('[data-step]'); const done=s.filter(x=>x.checked).length; s.forEach(x=>x.closest('.step').classList.toggle('done',x.checked)); const p=Math.round(done/s.length*100); qs('#bar').style.width=p+'%'; qs('#progress').textContent=`${p}% completado · ${done}/${s.length} pasos`; qs('#cloneCmd').textContent='git clone '+qs('#repo').value.trim(); }
+qsa('input,select').forEach(el=>el.addEventListener('input',save));
+qsa('[data-copy]').forEach(b=>b.addEventListener('click',()=>navigator.clipboard.writeText(qs('#'+b.dataset.copy).textContent)));
+qs('#generate').onclick=()=>{ const d=qs('#domain').value.trim()||'[DOMINIO PENDIENTE]'; const txt=`AULA EI — RESUMEN DE INSTALACIÓN / DOMINIO\n\nDominio: ${d}\nProveedor DNS: ${qs('#dns').value||'[pendiente]'}\nRepositorio: ${qs('#repo').value}\nProyecto Vercel: ${qs('#vercel').value}\nHosting: ${qs('#hosting').value}\nSupabase: ${qs('#supabase').value}\n\nDNS (usar solo si coincide con lo mostrado por Vercel):\nTipo: ${qs('#dnsType').value}\nHost: ${qs('#dnsHost').value||'[pendiente]'}\nValor: ${qs('#dnsValue').value||'[pendiente]'}\n\nArquitectura:\nGitHub → Vercel → ${d}\nSupabase → Database / Auth / Storage / RPC / Edge Functions\n\nSeguridad:\n- No colocar service_role, sb_secret, tokens ni contraseñas en frontend o Git.\n- Mantener RLS y privilegios mínimos.\n- Validar Auth Redirect URLs para el dominio final.\n- Verificar HTTPS y pruebas funcionales después del cambio DNS.\n\nEstado checklist: ${qs('#progress').textContent}.`;
+qs('#summary').textContent=txt; save(); };
+qs('#copySummary').onclick=()=>navigator.clipboard.writeText(qs('#summary').textContent);
+qs('#reset').onclick=()=>{localStorage.removeItem('aulaEiInstaller');qsa('[data-step]').forEach(x=>x.checked=false);ids.forEach(id=>{if(!['repo','vercel','supabase','hosting','dnsType'].includes(id))qs('#'+id).value=''});qs('#repo').value='https://github.com/Electroingenieria-SAS/AULA-EI.git';qs('#vercel').value='aula-ei';qs('#supabase').value='https://ipoidimevokogptydbvt.supabase.co';qs('#hosting').value='Vercel';qs('#dnsType').value='CNAME';qs('#summary').textContent='Completa los datos y pulsa “Generar resumen de entrega”.';update();};
+load();
+</script>
+</body>
+</html>

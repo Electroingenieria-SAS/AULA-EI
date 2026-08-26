@@ -1,3 +1,13 @@
+## 2026-08-26 — Hardening de seguridad y handoff de dominio
+
+- migración Supabase `20260826163217_aula_ei_security_hardening_20260826` aplicada;
+- cierre de exposición de respuestas correctas del examen;
+- cierre de escalamiento de rol por metadata editable;
+- mínimos privilegios/grants y restricción de RPC;
+- controles de firma de certificados;
+- Storage privado con allowlist;
+- CSP/headers de Vercel, `.env.example`, `.gitignore` y documentación de dominio/credenciales.
+
 # Historial de cambios
 
 ## 2026-08-23 — Eliminación jerárquica de usuarios

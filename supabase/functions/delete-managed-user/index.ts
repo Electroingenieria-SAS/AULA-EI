@@ -15,13 +15,43 @@ type Profile = {
   role: string;
 };
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json",
-};
+const DEFAULT_ORIGINS = [
+  "https://aulaei.electroingenieria.com",
+  "https://aula-ei.vercel.app",
+  "https://aula-ei-1z4d.vercel.app",
+  "https://electroingenieria-sas.github.io",
+];
+
+function getAdminKey() {
+  const newKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
+  if (newKeys) {
+    try {
+      const parsed = JSON.parse(newKeys);
+      if (typeof parsed?.default === "string" && parsed.default) return parsed.default;
+    } catch (_error) {
+      // Fallback a la variable legacy si el JSON no es válido.
+    }
+  }
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SERVICE_ROLE_KEY") || "";
+}
+
+function corsHeadersFor(req: Request) {
+  const configured = (Deno.env.get("ALLOWED_ORIGINS") || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const allowed = new Set(configured.length ? configured : DEFAULT_ORIGINS);
+  const origin = req.headers.get("origin");
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json",
+    "Cache-Control": "no-store",
+    "Vary": "Origin",
+  };
+  if (origin && allowed.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return { headers, allowed: !origin || allowed.has(origin) };
+}
 
 const roleRank: Record<AppRole, number> = {
   colaborador: 10,
@@ -31,10 +61,10 @@ const roleRank: Record<AppRole, number> = {
   super_admin: 50,
 };
 
-function jsonResponse(body: unknown, status = 200) {
+function jsonResponse(req: Request, body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: corsHeaders,
+    headers: corsHeadersFor(req).headers,
   });
 }
 
@@ -74,11 +104,14 @@ function isUuid(value: string) {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { status: 200, headers: corsHeaders });
+    const c = corsHeadersFor(req);
+    return new Response(c.allowed ? "ok" : "forbidden", { status: c.allowed ? 204 : 403, headers: c.headers });
   }
 
+  if (!corsHeadersFor(req).allowed) return jsonResponse(req, { ok: false, error: "Origen no autorizado." }, 403);
+
   if (req.method !== "POST") {
-    return jsonResponse(
+    return jsonResponse(req, 
       { ok: false, error: "Método no permitido. Usa POST." },
       405
     );
@@ -86,12 +119,10 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey =
-      Deno.env.get("SERVICE_ROLE_KEY") ||
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const serviceRoleKey = getAdminKey();
 
     if (!supabaseUrl || !serviceRoleKey) {
-      return jsonResponse(
+      return jsonResponse(req, 
         {
           ok: false,
           error:
@@ -104,7 +135,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
 
     if (!authHeader) {
-      return jsonResponse(
+      return jsonResponse(req, 
         { ok: false, error: "Sesión requerida. Inicia sesión primero." },
         401
       );
@@ -119,7 +150,7 @@ serve(async (req) => {
       await adminClient.auth.getUser(token);
 
     if (authUserError || !authUserData?.user) {
-      return jsonResponse(
+      return jsonResponse(req, 
         { ok: false, error: "No se pudo validar la sesión actual." },
         401
       );
@@ -130,14 +161,14 @@ serve(async (req) => {
     const targetUserId = String(body.user_id || body.userId || "").trim();
 
     if (!isUuid(targetUserId)) {
-      return jsonResponse(
+      return jsonResponse(req, 
         { ok: false, error: "El identificador del usuario no es válido." },
         400
       );
     }
 
     if (targetUserId === callerId) {
-      return jsonResponse(
+      return jsonResponse(req, 
         { ok: false, error: "No puedes eliminar tu propia cuenta." },
         403
       );
@@ -158,14 +189,14 @@ serve(async (req) => {
       ]);
 
     if (callerError || !callerProfile) {
-      return jsonResponse(
+      return jsonResponse(req, 
         { ok: false, error: "No se encontró el perfil del usuario actual." },
         403
       );
     }
 
     if (targetError || !targetProfile) {
-      return jsonResponse(
+      return jsonResponse(req, 
         { ok: false, error: "El usuario que intentas eliminar no existe." },
         404
       );
@@ -175,7 +206,7 @@ serve(async (req) => {
     const targetRole = normalizeRole(targetProfile.role);
 
     if (!callerRole || !["admin", "super_admin"].includes(callerRole)) {
-      return jsonResponse(
+      return jsonResponse(req, 
         {
           ok: false,
           error:
@@ -186,14 +217,14 @@ serve(async (req) => {
     }
 
     if (!targetRole) {
-      return jsonResponse(
+      return jsonResponse(req, 
         { ok: false, error: "El usuario tiene un rol que no se puede administrar." },
         409
       );
     }
 
     if (roleRank[callerRole] <= roleRank[targetRole]) {
-      return jsonResponse(
+      return jsonResponse(req, 
         {
           ok: false,
           error: "Solo puedes eliminar usuarios con un nivel inferior al tuyo.",
@@ -224,7 +255,7 @@ serve(async (req) => {
         courses.length > 0 || assignments.length > 0 || auditLogs.length > 0;
 
       if (!hasKnownReferences) {
-        return jsonResponse(
+        return jsonResponse(req, 
           {
             ok: false,
             error:
@@ -268,7 +299,7 @@ serve(async (req) => {
       const referenceError = updates.find((result) => result.error)?.error;
 
       if (referenceError) {
-        return jsonResponse(
+        return jsonResponse(req, 
           {
             ok: false,
             error:
@@ -312,7 +343,7 @@ serve(async (req) => {
             : Promise.resolve(),
         ]);
 
-        return jsonResponse(
+        return jsonResponse(req, 
           {
             ok: false,
             error:
@@ -341,13 +372,13 @@ serve(async (req) => {
       // La auditoría no bloquea una eliminación ya completada.
     }
 
-    return jsonResponse({
+    return jsonResponse(req, {
       ok: true,
       message: "Usuario eliminado correctamente.",
       deleted_user_id: targetUserId,
     });
   } catch (error) {
-    return jsonResponse(
+    return jsonResponse(req, 
       {
         ok: false,
         error:

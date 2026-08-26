@@ -1,12 +1,9 @@
-# Migraciones futuras
+# Migraciones
 
-Esta carpeta queda intencionalmente sin SQL automático porque el paquete recibido no contiene la historia completa y los parches existentes se contradicen.
+La migración validada y aplicada en producción para Aula EI está incluida aquí:
 
-Agrega aquí únicamente migraciones que:
+- `20260826163217_aula_ei_security_hardening_20260826.sql`
 
-1. se creen después de comparar contra el proyecto Supabase correcto;
-2. tengan nombre y marca de tiempo generados por la CLI;
-3. hayan sido probadas en una rama o proyecto de desarrollo;
-4. incluyan validación de RLS, funciones, permisos y reversión;
-5. figuren como aplicadas en el historial remoto después del despliegue.
+Fue registrada en el historial remoto de Supabase el 26 de agosto de 2026. Los SQL de `../reference-sql/` siguen siendo históricos y **no** deben ejecutarse en bloque.
 
+Para nuevas migraciones: generar el nombre con Supabase CLI, probar primero fuera de producción, revisar RLS/grants/functions/Storage, ejecutar los Advisors y confirmar el historial remoto antes de hacer commit.

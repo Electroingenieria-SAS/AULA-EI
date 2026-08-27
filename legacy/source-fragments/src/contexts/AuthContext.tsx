@@ -63,7 +63,9 @@ function fallbackProfileFromUser(user: User): Profile {
     email: user.email ?? null,
     full_name: fullName,
     avatar_url: null,
-    role: normalizeRole(user.user_metadata?.managed_role),
+    // Los roles de autorización nunca deben depender de user_metadata porque el usuario
+    // puede modificarlo. app_metadata es administrado por el backend de Supabase.
+    role: normalizeRole(user.app_metadata?.aula_ei_role),
   }
 }
 
@@ -136,18 +138,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (active) setLoading(false)
       })
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    // Supabase procesa onAuthStateChange de forma síncrona. No se debe esperar aquí otra
+    // operación de Supabase porque puede competir con el lock interno de Auth y bloquearse.
+    // Diferimos la carga del perfil al siguiente turno del event loop.
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!active) return
+
       setSession(nextSession)
       setAuthError(null)
+
       if (nextSession?.user) {
-        await loadProfile(nextSession.user).catch((error) => {
-          console.warn('Aula EI: error al actualizar perfil.', error)
-          setProfile(fallbackProfileFromUser(nextSession.user))
-          setAuthError(getErrorMessage(error, 'No fue posible actualizar el perfil. Se usó perfil temporal.'))
-        })
+        const nextUser = nextSession.user
+        setTimeout(() => {
+          if (!active) return
+          void loadProfile(nextUser).catch((error) => {
+            if (!active) return
+            console.warn('Aula EI: error al actualizar perfil.', error)
+            setProfile(fallbackProfileFromUser(nextUser))
+            setAuthError(getErrorMessage(error, 'No fue posible actualizar el perfil. Se usó perfil temporal.'))
+          })
+        }, 0)
       } else {
         setProfile(null)
       }
+
       setLoading(false)
     })
 

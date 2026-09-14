@@ -1,149 +1,105 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.107.0";
 
-type AppRole =
-  | "colaborador"
-  | "creador_contenido"
-  | "revisor"
-  | "admin"
-  | "super_admin";
+type AppRole = "colaborador" | "creador_contenido" | "revisor" | "admin" | "super_admin";
 
-const corsHeaders = {
+const headers = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
 };
 
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: corsHeaders });
-}
+const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+const fail = (error: string, code = "VALIDATION_ERROR") => reply({ ok: false, code, error });
 
 function generateTemporaryPassword() {
   return `${crypto.randomUUID().replaceAll("-", "").slice(0, 16)}Aa1$`;
 }
 
 function passwordError(password: string) {
-  if (password.length < 10 || password.length > 128) {
-    return "La contraseña debe tener entre 10 y 128 caracteres.";
+  if (password.length < 6 || password.length > 128) {
+    return "La contraseña temporal debe tener entre 6 y 128 caracteres.";
   }
-  if (/\s/.test(password)) return "La contraseña no debe contener espacios.";
-  if (!/[a-z]/.test(password)) return "La contraseña debe incluir una minúscula.";
-  if (!/[A-Z]/.test(password)) return "La contraseña debe incluir una mayúscula.";
-  if (!/[0-9]/.test(password)) return "La contraseña debe incluir un número.";
-  if (!/[^A-Za-z0-9]/.test(password)) return "La contraseña debe incluir un símbolo.";
+  if (/\s/.test(password)) return "La contraseña temporal no debe contener espacios.";
   return null;
 }
 
 function normalizeRole(rawRole: string): AppRole | null {
   const role = String(rawRole || "colaborador").trim().toLowerCase();
-  const roleMap: Record<string, AppRole> = {
-    visitor: "colaborador",
-    visitante: "colaborador",
-    worker: "colaborador",
-    trabajador: "colaborador",
-    learner: "colaborador",
-    estudiante: "colaborador",
-    usuario: "colaborador",
-    colaborador: "colaborador",
-    content_creator: "creador_contenido",
-    creador: "creador_contenido",
-    creador_contenido: "creador_contenido",
-    "creador de contenido": "creador_contenido",
-    "creador-contenido": "creador_contenido",
-    reviewer: "revisor",
-    revisor: "revisor",
-    admin: "admin",
-    administrador: "admin",
-    super_admin: "super_admin",
-    superadmin: "super_admin",
-    "super admin": "super_admin",
-    "super-administrador": "super_admin",
-    "super administrador": "super_admin",
+  const map: Record<string, AppRole> = {
+    visitor: "colaborador", visitante: "colaborador", worker: "colaborador",
+    trabajador: "colaborador", learner: "colaborador", estudiante: "colaborador",
+    usuario: "colaborador", colaborador: "colaborador",
+    content_creator: "creador_contenido", creador: "creador_contenido",
+    creador_contenido: "creador_contenido", "creador de contenido": "creador_contenido",
+    "creador-contenido": "creador_contenido", reviewer: "revisor", revisor: "revisor",
+    admin: "admin", administrador: "admin", super_admin: "super_admin",
+    superadmin: "super_admin", "super admin": "super_admin",
+    "super-administrador": "super_admin", "super administrador": "super_admin",
   };
-  return roleMap[role] || null;
+  return map[role] || null;
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { status: 200, headers: corsHeaders });
-  }
-  if (req.method !== "POST") {
-    return jsonResponse({ ok: false, error: "Método no permitido. Usa POST." }, 405);
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers });
+  if (req.method !== "POST") return reply({ ok: false, error: "Método no permitido." }, 405);
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey =
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SERVICE_ROLE_KEY");
-    if (!supabaseUrl || !serviceRoleKey) {
-      return jsonResponse({ ok: false, error: "Faltan variables seguras del servidor." }, 500);
-    }
+    const url = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SERVICE_ROLE_KEY");
+    if (!url || !serviceKey) return reply({ ok: false, code: "SERVER_CONFIG", error: "Configuración segura del servidor incompleta." }, 500);
 
-    const token = (req.headers.get("Authorization") || "")
-      .replace(/^Bearer\s+/i, "")
-      .trim();
-    if (!token) return jsonResponse({ ok: false, error: "Sesión requerida." }, 401);
+    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+    if (!token) return fail("Tu sesión no está disponible. Cierra sesión e ingresa nuevamente.", "SESSION_REQUIRED");
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
+    const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const { data: authData, error: authError } = await admin.auth.getUser(token);
+    const caller = authData?.user;
+    if (authError || !caller) return fail("Tu sesión venció o no pudo validarse. Cierra sesión e ingresa nuevamente.", "SESSION_INVALID");
 
-    const { data: authUserData, error: authUserError } = await adminClient.auth.getUser(token);
-    if (authUserError || !authUserData?.user) {
-      return jsonResponse({ ok: false, error: "No se pudo validar la sesión actual." }, 401);
-    }
-
-    const callerId = authUserData.user.id;
-    const { data: callerProfile, error: callerProfileError } = await adminClient
+    const { data: profile, error: profileError } = await admin
       .from("profiles")
       .select("id,email,full_name,role,is_active")
-      .eq("id", callerId)
+      .eq("id", caller.id)
       .single();
 
-    if (callerProfileError || !callerProfile || callerProfile.is_active !== true) {
-      return jsonResponse({ ok: false, error: "La cuenta administradora no está activa en Aula EI." }, 403);
+    if (profileError || !profile || profile.is_active !== true) {
+      return fail("Tu cuenta administradora no está activa en Aula EI.", "ADMIN_INACTIVE");
     }
 
-    const callerRole = normalizeRole(String(callerProfile.role || ""));
+    const callerRole = normalizeRole(String(profile.role || ""));
     if (!callerRole || !["admin", "super_admin"].includes(callerRole)) {
-      return jsonResponse({ ok: false, error: "Solo Admin o Super Admin pueden crear usuarios." }, 403);
+      return fail("Solo Admin o Super Admin pueden crear usuarios.", "FORBIDDEN");
     }
 
     const body = await req.json();
     const email = String(body.email || "").trim().toLowerCase();
     const fullName = String(body.full_name || body.fullName || "").trim();
-    const passwordFromBody = String(body.password || "").trim();
+    const requestedPassword = String(body.password || "").trim();
     const role = normalizeRole(String(body.role || "colaborador"));
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return jsonResponse({ ok: false, error: "Correo inválido." }, 400);
-    }
-    if (fullName.length < 3 || fullName.length > 160) {
-      return jsonResponse({ ok: false, error: "El nombre completo debe tener entre 3 y 160 caracteres." }, 400);
-    }
-    if (!role) {
-      return jsonResponse({ ok: false, error: "Rol inválido para Aula EI." }, 400);
-    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Correo inválido.", "INVALID_EMAIL");
+    if (fullName.length < 3 || fullName.length > 160) return fail("El nombre completo debe tener entre 3 y 160 caracteres.", "INVALID_NAME");
+    if (!role) return fail("Rol inválido para Aula EI.", "INVALID_ROLE");
     if (callerRole === "admin" && ["admin", "super_admin"].includes(role)) {
-      return jsonResponse({ ok: false, error: "Un Admin no puede crear usuarios Admin ni Super Admin." }, 403);
+      return fail("Un Admin no puede crear usuarios Admin ni Super Admin.", "ROLE_FORBIDDEN");
     }
     if (callerRole !== "super_admin" && role === "super_admin") {
-      return jsonResponse({ ok: false, error: "Solo un Super Admin puede crear otro Super Admin." }, 403);
+      return fail("Solo un Super Admin puede crear otro Super Admin.", "ROLE_FORBIDDEN");
     }
 
-    const finalPassword = passwordFromBody || generateTemporaryPassword();
+    const finalPassword = requestedPassword || generateTemporaryPassword();
     const invalidPassword = passwordError(finalPassword);
-    if (invalidPassword) return jsonResponse({ ok: false, error: invalidPassword }, 400);
+    if (invalidPassword) return fail(invalidPassword, "INVALID_PASSWORD");
 
-    const { data: createdUserData, error: createUserError } = await adminClient.auth.admin.createUser({
+    const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
       password: finalPassword,
       email_confirm: true,
       user_metadata: {
         full_name: fullName,
-        created_by: callerId,
+        created_by: caller.id,
         managed_role: role,
         must_change_password: true,
       },
@@ -154,16 +110,18 @@ serve(async (req) => {
       },
     });
 
-    if (createUserError || !createdUserData?.user) {
-      return jsonResponse({
-        ok: false,
-        error: createUserError?.message || "No fue posible crear el usuario en Authentication.",
-      }, 400);
+    if (createError || !created?.user) {
+      const raw = String(createError?.message || "No fue posible crear el usuario en Authentication.");
+      const duplicate = /already|registered|exists|duplicate/i.test(raw);
+      return fail(
+        duplicate ? "Ya existe una cuenta con ese correo. Revísala en Usuarios y roles antes de volver a crearla." : raw,
+        duplicate ? "USER_EXISTS" : "AUTH_CREATE_FAILED"
+      );
     }
 
-    const newUserId = createdUserData.user.id;
-    const { error: profileError } = await adminClient.from("profiles").upsert({
-      id: newUserId,
+    const userId = created.user.id;
+    const { error: upsertError } = await admin.from("profiles").upsert({
+      id: userId,
       email,
       full_name: fullName,
       role,
@@ -173,41 +131,31 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
     }, { onConflict: "id" });
 
-    if (profileError) {
-      const { error: rollbackError } = await adminClient.auth.admin.deleteUser(newUserId, false);
-      return jsonResponse({
+    if (upsertError) {
+      const { error: rollbackError } = await admin.auth.admin.deleteUser(userId, false);
+      return reply({
         ok: false,
-        error: "Falló la creación del perfil: " + profileError.message +
-          (rollbackError
-            ? " Además, no fue posible revertir Authentication: " + rollbackError.message
-            : " La cuenta de Authentication fue revertida."),
+        code: "PROFILE_CREATE_FAILED",
+        error: "Falló la creación del perfil: " + upsertError.message +
+          (rollbackError ? " No fue posible revertir Authentication: " + rollbackError.message : " La cuenta de Authentication fue revertida."),
       }, 500);
     }
 
-    await adminClient.from("audit_logs").insert({
-      actor_id: callerId,
+    await admin.from("audit_logs").insert({
+      actor_id: caller.id,
       action: "create_managed_user",
       entity_type: "profile",
-      entity_id: newUserId,
-      metadata: {
-        email,
-        full_name: fullName,
-        role,
-        password_change_required: true,
-        created_by_email: callerProfile.email,
-      },
+      entity_id: userId,
+      metadata: { email, full_name: fullName, role, password_change_required: true, created_by_email: profile.email },
     });
 
-    return jsonResponse({
+    return reply({
       ok: true,
-      message: "Usuario creado correctamente. Deberá cambiar la contraseña en el primer acceso.",
+      message: "Usuario creado correctamente.",
       temporary_password: finalPassword,
-      user: { id: newUserId, email, full_name: fullName, role },
+      user: { id: userId, email, full_name: fullName, role },
     });
   } catch (error) {
-    return jsonResponse({
-      ok: false,
-      error: error instanceof Error ? error.message : "Error inesperado creando usuario.",
-    }, 500);
+    return reply({ ok: false, code: "UNEXPECTED_ERROR", error: error instanceof Error ? error.message : "Error inesperado creando usuario." }, 500);
   }
 });

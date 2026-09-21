@@ -55,6 +55,7 @@ export default function Formation360({ profiles = [], courses = [], enrollments 
   const [positions, setPositions] = useState(PREVIEW_POSITIONS)
   const [competencies, setCompetencies] = useState(PREVIEW_COMPETENCIES)
   const [positionCompetencies, setPositionCompetencies] = useState(PREVIEW_POSITION_COMPETENCIES)
+  const [courseCompetencies, setCourseCompetencies] = useState([])
   const [paths, setPaths] = useState(PREVIEW_PATHS)
   const [automations, setAutomations] = useState(PREVIEW_AUTOMATIONS)
   const [connectors, setConnectors] = useState(PREVIEW_CONNECTORS)
@@ -110,6 +111,7 @@ export default function Formation360({ profiles = [], courses = [], enrollments 
       ] = await Promise.all([
         supabase.from('competencies').select('*').order('category').order('name'),
         supabase.from('job_position_competencies').select('*'),
+        supabase.from('course_competencies').select('*'),
         supabase.from('learning_paths').select('*').order('name'),
         supabase.from('learning_path_steps').select('*').order('path_id').order('sort_order'),
         supabase.from('learning_automation_rules').select('*').order('priority'),
@@ -123,7 +125,7 @@ export default function Formation360({ profiles = [], courses = [], enrollments 
       ])
 
       const errors = [
-        competencyResult.error, mappingResult.error, pathResult.error, stepResult.error,
+        competencyResult.error, mappingResult.error, courseCompetencyResult.error, pathResult.error, stepResult.error,
         automationResult.error, connectorResult.error, missionResult.error, peopleResult.error,
       ].filter(Boolean)
       if (errors.length) throw errors[0]
@@ -132,6 +134,7 @@ export default function Formation360({ profiles = [], courses = [], enrollments 
       setPositions(positionsResult.data || [])
       setCompetencies(competencyResult.data || [])
       setPositionCompetencies(mappingResult.data || [])
+      setCourseCompetencies(courseCompetencyResult.data || [])
       setPaths((pathResult.data || []).map((path) => ({
         ...path,
         steps: steps.filter((step) => step.path_id === path.id),
@@ -213,6 +216,55 @@ export default function Formation360({ profiles = [], courses = [], enrollments 
       await refresh?.()
     } catch (error) {
       setMessage?.(getError(error, 'No fue posible asignar el cargo.'))
+    } finally {
+      setWorking('')
+    }
+  }
+
+  const addCourseCompetency = async (courseId, competencyId, grantedLevel = 1) => {
+    if (!courseId || !competencyId) return
+    setWorking('course-competency:' + courseId)
+    try {
+      if (!persistent) {
+        setCourseCompetencies((current) => {
+          const filtered = current.filter((item) => !(item.course_id === courseId && item.competency_id === competencyId))
+          return [...filtered, {
+            id: 'preview-course-competency-' + courseId + '-' + competencyId,
+            course_id: courseId,
+            competency_id: competencyId,
+            granted_level: Number(grantedLevel) || 1,
+          }]
+        })
+        setMessage?.('Competencia vinculada al curso en modo provisional.')
+        return
+      }
+      const { error } = await supabase.from('course_competencies').upsert({
+        course_id: courseId,
+        competency_id: competencyId,
+        granted_level: Number(grantedLevel) || 1,
+      }, { onConflict: 'course_id,competency_id' })
+      if (error) throw error
+      await load()
+      setMessage?.('Capacitación vinculada a la competencia.')
+    } catch (error) {
+      setMessage?.(getError(error, 'No fue posible vincular la competencia.'))
+    } finally {
+      setWorking('')
+    }
+  }
+
+  const removeCourseCompetency = async (mapping) => {
+    setWorking('remove-course-competency:' + mapping.id)
+    try {
+      if (!persistent) {
+        setCourseCompetencies((current) => current.filter((item) => item.id !== mapping.id))
+        return
+      }
+      const { error } = await supabase.from('course_competencies').delete().eq('id', mapping.id)
+      if (error) throw error
+      await load()
+    } catch (error) {
+      setMessage?.(getError(error, 'No fue posible eliminar la relación.'))
     } finally {
       setWorking('')
     }
@@ -441,6 +493,8 @@ export default function Formation360({ profiles = [], courses = [], enrollments 
       allPositions={positions}
       competencies={competencies}
       mappings={positionCompetencies}
+      courseCompetencies={courseCompetencies}
+      courses={courses}
       competencyById={competencyById}
       counts={positionCounts}
       people={filteredPeople}
@@ -451,6 +505,8 @@ export default function Formation360({ profiles = [], courses = [], enrollments 
       setPersonSearch={setPersonSearch}
       assignPosition={assignPosition}
       validatePosition={validatePosition}
+      addCourseCompetency={addCourseCompetency}
+      removeCourseCompetency={removeCourseCompetency}
       working={working}
     />}
 
@@ -572,8 +628,9 @@ function Overview({ snapshot, positions, paths, automations, missions, dueRows, 
 }
 
 function Positions({
-  positions, allPositions, competencies, mappings, competencyById, counts, people, localAssignments,
-  positionSearch, setPositionSearch, personSearch, setPersonSearch, assignPosition, validatePosition, working,
+  positions, allPositions, competencies, mappings, courseCompetencies, courses, competencyById, counts, people, localAssignments,
+  positionSearch, setPositionSearch, personSearch, setPersonSearch, assignPosition, validatePosition,
+  addCourseCompetency, removeCourseCompetency, working,
 }) {
   return <div className="formation360-section">
     <section className="formation360-section-head">
@@ -620,7 +677,57 @@ function Positions({
         })}
       </div>
     </section>
+
+    <CourseCompetencyBridge
+      courses={courses}
+      competencies={competencies}
+      mappings={courseCompetencies}
+      competencyById={competencyById}
+      add={addCourseCompetency}
+      remove={removeCourseCompetency}
+      working={working}
+    />
   </div>
+}
+
+function CourseCompetencyBridge({ courses, competencies, mappings, competencyById, add, remove, working }) {
+  const [courseId, setCourseId] = useState(courses.find((item) => item.status === 'published')?.id || '')
+  const [competencyId, setCompetencyId] = useState(competencies[0]?.id || '')
+  const [level, setLevel] = useState(1)
+
+  return <section className="formation360-panel formation360-course-competencies">
+    <header>
+      <div><span className="eyebrow">Cierre de brecha</span><h3>Capacitación → competencia</h3><p>Define qué competencia evidencia una capacitación aprobada y qué nivel otorga.</p></div>
+      <Target size={22} />
+    </header>
+
+    <div className="formation360-bridge-form">
+      <select value={courseId} onChange={(event) => setCourseId(event.target.value)}>
+        <option value="">Selecciona capacitación</option>
+        {courses.filter((item) => item.status === 'published').map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
+      </select>
+      <select value={competencyId} onChange={(event) => setCompetencyId(event.target.value)}>
+        {competencies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+      </select>
+      <label>Nivel <select value={level} onChange={(event) => setLevel(Number(event.target.value))}>{[1,2,3,4,5].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+      <button className="primary-button compact" disabled={!courseId || !competencyId || working === 'course-competency:' + courseId} onClick={() => add(courseId, competencyId, level)}>
+        {working === 'course-competency:' + courseId ? <Loader2 className="spin" size={15} /> : <Link2 size={15} />} Vincular
+      </button>
+    </div>
+
+    <div className="formation360-bridge-list">
+      {mappings.map((mapping) => {
+        const course = courses.find((item) => item.id === mapping.course_id)
+        const competency = competencyById.get(mapping.competency_id)
+        return <div key={mapping.id}>
+          <BookOpen size={15} />
+          <div><strong>{course?.title || 'Capacitación'}</strong><small>{competency?.name || 'Competencia'} · Nivel {mapping.granted_level || 1}</small></div>
+          <button className="icon-button" title="Eliminar relación" disabled={working === 'remove-course-competency:' + mapping.id} onClick={() => remove(mapping)}><X size={14} /></button>
+        </div>
+      })}
+      {!mappings.length && <small>Aún no hay capacitaciones vinculadas a competencias.</small>}
+    </div>
+  </section>
 }
 
 function Paths({ paths, courses, positions, pathSearch, setPathSearch, linkCourse, working }) {

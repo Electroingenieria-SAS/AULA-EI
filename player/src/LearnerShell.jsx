@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { BookOpen, Gamepad2, Home, LogOut, Route, ShieldCheck, Sparkles } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'
@@ -11,6 +11,23 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     return (parts.slice(0, 2).map((part) => part[0]).join('') || 'EI').toUpperCase()
   }, [displayName])
   const canManage = ['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))
+  const [unread, setUnread] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        const { count, error } = await supabase
+          .from('learning_notifications')
+          .select('id', { count: 'exact', head: true })
+          .is('read_at', null)
+        if (!error && alive) setUnread(count || 0)
+      } catch {
+        // Formación 360 puede no estar migrado todavía.
+      }
+    })()
+    return () => { alive = false }
+  }, [activeRoute])
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -31,7 +48,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
 
       <nav className="learner-sidebar-nav" aria-label="Navegación principal">
         <SidebarLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
-        <SidebarLink icon={Route} label="Mi Ruta 360" active={activeRoute === 'journey'} onClick={() => navigateLearner('/journey')} />
+        <SidebarLink icon={Route} label="Mi Ruta 360" badge={unread} active={activeRoute === 'journey'} onClick={() => navigateLearner('/journey')} />
         <SidebarLink icon={BookOpen} label="Mis capacitaciones" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
         <SidebarLink icon={Gamepad2} label="Juegos EI" active={activeRoute === 'games'} onClick={() => navigateLearner('/games')} />
         {canManage && <SidebarLink icon={ShieldCheck} label="Gestión Aula EI" active={activeRoute === 'studio'} onClick={() => navigateLearner('/studio')} />}
@@ -47,7 +64,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
 
     <nav className="learner-mobile-global-nav">
       <MobileLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
-      <MobileLink icon={Route} label="Mi ruta" active={activeRoute === 'journey'} onClick={() => navigateLearner('/journey')} />
+      <MobileLink icon={Route} label="Mi ruta" badge={unread} active={activeRoute === 'journey'} onClick={() => navigateLearner('/journey')} />
       <MobileLink icon={BookOpen} label="Cursos" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
       <MobileLink icon={Gamepad2} label="Juegos" onClick={() => navigateLearner('/games')} />
       {canManage && <MobileLink icon={ShieldCheck} label="Gestión" onClick={() => navigateLearner('/studio')} />}
@@ -55,12 +72,12 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
   </div>
 }
 
-function SidebarLink({ icon: Icon, label, active = false, onClick }) {
-  return <button className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={onClick}><Icon size={18} /><span>{label}</span></button>
+function SidebarLink({ icon: Icon, label, badge = 0, active = false, onClick }) {
+  return <button className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={onClick}><Icon size={18} /><span>{label}</span>{badge > 0 && <b className="learner-nav-badge">{badge > 99 ? '99+' : badge}</b>}</button>
 }
 
-function MobileLink({ icon: Icon, label, active = false, onClick }) {
-  return <button className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={onClick}><Icon size={18} /><span>{label}</span></button>
+function MobileLink({ icon: Icon, label, badge = 0, active = false, onClick }) {
+  return <button className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={onClick}><Icon size={18} /><span>{label}</span>{badge > 0 && <b className="learner-mobile-badge">{badge > 9 ? '9+' : badge}</b>}</button>
 }
 
 function roleLabel(role) {

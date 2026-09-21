@@ -750,3 +750,58 @@ button:disabled,
 @media(max-width:760px){
   .certificate-loading-skeleton{grid-template-columns:1fr 1fr}
 }
+
+
+/* Botones y controles administrativos: misma respuesta táctil */
+.primary-button:hover:not(:disabled),
+.secondary-button:hover:not(:disabled),
+.danger-button:hover:not(:disabled),
+.file-button:hover,
+.icon-button:hover:not(:disabled){
+  transform:translateY(-1px);
+}
+.icon-button:hover:not(:disabled) svg{
+  transform:scale(1.06);
+}
+.icon-button svg,
+.primary-button svg,
+.secondary-button svg,
+.danger-button svg,
+.text-action svg{
+  transition:transform var(--ux-normal) var(--ux-ease);
+}
+.text-action:hover svg{
+  transform:translateX(2px);
+}
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled{
+  box-shadow:none;
+}
+
+/* El refresco de Gestión no congela el contenido: solo lo comunica */
+.studio-tab-stage[aria-busy="true"]{
+  position:relative;
+}
+.studio-tab-stage[aria-busy="true"]:before{
+  content:"";
+  position:absolute;
+  z-index:20;
+  top:0;
+  left:0;
+  width:100%;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,#0d65c6,#ffd200,transparent);
+  background-size:200% 100%;
+  animation:uxSyncLine 1.15s linear infinite;
+}
+@keyframes uxSyncLine{to{background-position:-200% 0}}
+
+/* Toolbars stay calm while their content changes */
+.users-toolbar,
+.certificate-toolbar,
+.filters-grid,
+.courses-library-toolbar{
+  transition:opacity var(--ux-normal) ease,transform var(--ux-normal) var(--ux-ease);
+}

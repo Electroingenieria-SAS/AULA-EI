@@ -722,3 +722,19 @@ h1,h2,h3,h4{color:#173b69}
   .publish-action-buttons{flex-direction:column;align-items:stretch}
   .publish-action-buttons button{width:100%}
 }
+
+
+/* Embedded Gestión Aula EI: the global learner shell owns navigation. */
+.embedded-studio .sidebar,
+.embedded-studio .mobile-nav{
+  display:none !important;
+}
+.embedded-studio .main-area{
+  margin-left:0 !important;
+  padding-bottom:0 !important;
+  min-height:100vh;
+}
+.embedded-studio .page{
+  max-width:none;
+  margin:0;
+}

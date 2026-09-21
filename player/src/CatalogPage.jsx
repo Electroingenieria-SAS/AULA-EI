@@ -90,7 +90,7 @@ export default function CatalogPage() {
         const blocks = phaseMap.get(course.id) || []
         const required = blocks.filter((block) => block.required)
         const requiredDone = required.filter((block) => completed.has(block.id)).length
-        const progress = required.length ? Math.round((requiredDone / required.length) * 100) : (blocks.length ? 0 : 0)
+        const progress = required.length ? Math.round((requiredDone / required.length) * 100) : 100
         const certificate = certificates.find((item) =>
           item.course_id === course.id ||
           (item.course_title && String(item.course_title).trim().toLowerCase() === String(course.title).trim().toLowerCase())

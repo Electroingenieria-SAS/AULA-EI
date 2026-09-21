@@ -136,6 +136,9 @@ export default function CoursePlayer() {
   const loadPracticeQuestion = async (seed = crypto.randomUUID()) => {
     if (!courseId || !sessionUser?.id) return
     setPracticeLoading(true)
+    setPracticeQuestion(null)
+    setPracticeAnswer(null)
+    setPracticeMarked(false)
     try {
       const { data, error } = await supabase.rpc('get_course_practice_question', {
         p_course_id: courseId,

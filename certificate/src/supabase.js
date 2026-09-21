@@ -1,0 +1,13 @@
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  'https://ipoidimevokogptydbvt.supabase.co',
+  'sb_publishable_T2MmUM_SxiMAtGpp8mQ1NA_ZR6JWuwp',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+    },
+  },
+)

@@ -9,10 +9,9 @@ import UsersManager from './UsersManager.jsx'
 import CertificatesManager from './CertificatesManager.jsx'
 import { ADMIN_ROLES, ROLE_LABELS, STAFF_ROLES, fetchAllPages, getError, supabase } from './shared.js'
 
-export default function App() {
-  const embedded = new URLSearchParams(window.location.search).get('embedded') === '1'
+export default function App({ embedded = false, initialProfile = null }) {
   const [booting, setBooting] = useState(true)
-  const [profile, setProfile] = useState(null)
+  const [profile, setProfile] = useState(initialProfile)
   const [tab, setTab] = useState('courses')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -58,6 +57,16 @@ export default function App() {
     let active = true
     ;(async () => {
       try {
+        if (embedded && initialProfile) {
+          if (!STAFF_ROLES.has(initialProfile.role)) {
+            throw new Error('Tu rol no tiene acceso a Gestión Aula EI.')
+          }
+          if (!active) return
+          setProfile(initialProfile)
+          await loadCore(initialProfile)
+          return
+        }
+
         const { data, error } = await supabase.auth.getSession()
         if (error) throw error
         const session = data.session
@@ -69,6 +78,7 @@ export default function App() {
           goTo('/#/')
           return
         }
+
         const { data: result, error: profileError } = await supabase.functions.invoke('get-my-profile', { body: {} })
         if (profileError) throw new Error(result?.error || profileError.message)
         if (!result?.ok || !result.profile) throw new Error(result?.error || 'Esta cuenta no está habilitada para Aula EI.')
@@ -85,8 +95,9 @@ export default function App() {
         if (active) setBooting(false)
       }
     })()
+
     return () => { active = false }
-  }, [])
+  }, [embedded, initialProfile?.id])
 
   useEffect(() => {
     if (!message) return
@@ -99,8 +110,17 @@ export default function App() {
     goTo('/#/login')
   }
 
-  if (booting) return <Startup text="Validando acceso administrativo…" />
-  if (!profile) return <Startup error={message || 'No fue posible cargar tu perfil.'} text="Acceso no disponible" />
+  if (booting) {
+    return embedded
+      ? <StudioInlineLoading />
+      : <Startup text="Validando acceso administrativo…" />
+  }
+
+  if (!profile || !STAFF_ROLES.has(profile.role)) {
+    return embedded
+      ? <StudioInlineError text={message || 'Acceso no disponible para este rol.'} />
+      : <Startup error={message || 'No fue posible cargar tu perfil.'} text="Acceso no disponible" />
+  }
 
   const tabs = [
     ['courses', 'Capacitaciones', BookOpen],
@@ -111,9 +131,43 @@ export default function App() {
     ] : []),
   ]
 
-  return <div className={`app-shell integrated-studio${embedded ? ' embedded-studio' : ''}`}>
+  const content = <div className="page admin-page studio-single-page">
+    <section className="admin-hero integrated-admin-hero">
+      <div>
+        <span className="eyebrow-light">Gestión de formación</span>
+        <h1>Gestión Aula EI</h1>
+        <p>Administra capacitaciones, asignaciones, usuarios y certificados desde la misma experiencia de Aula EI.</p>
+      </div>
+      <div className="admin-role">
+        <strong>{courses.length}</strong>
+        <span>Capacitaciones registradas</span>
+      </div>
+    </section>
+
+    <div className="studio-control-row">
+      <nav className="tab-bar integrated-tab-bar">
+        {tabs.map(([id, label, Icon]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>
+          <Icon size={17} /> {label}
+        </button>)}
+      </nav>
+      <button className="secondary-button compact studio-refresh" title="Actualizar información" onClick={() => loadCore()} disabled={loading}>
+        <RefreshCw size={16} className={loading ? 'spin' : ''} /> Actualizar
+      </button>
+    </div>
+
+    {message && <div className="message-banner"><Sparkles size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={16} /></button></div>}
+
+    {tab === 'courses' && <CoursesManager courses={courses} refresh={() => loadCore()} setMessage={setMessage} />}
+    {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
+    {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
+    {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
+  </div>
+
+  if (embedded) return <section className="embedded-studio studio-single-content">{content}</section>
+
+  return <div className="app-shell integrated-studio">
     <aside className="sidebar">
-      <button className="brand app-brand-logo integrated-brand" onClick={() => goTo('/#/', true)}>
+      <button className="brand app-brand-logo integrated-brand" onClick={() => goTo('/#/')}>
         <img src="/brand/logo-aula-ei.png" alt="Aula EI" />
         <span>Academia interna</span>
       </button>
@@ -127,9 +181,9 @@ export default function App() {
       </div>
 
       <nav>
-        <button onClick={() => goTo('/#/', true)}><Home size={18} /> Inicio</button>
-        <button onClick={() => goTo('/#/catalog', true)}><BookOpen size={18} /> Mis capacitaciones</button>
-        <button onClick={() => goTo('/#/games', true)}><Gamepad2 size={18} /> Juegos EI</button>
+        <button onClick={() => goTo('/#/')}><Home size={18} /> Inicio</button>
+        <button onClick={() => goTo('/#/catalog')}><BookOpen size={18} /> Mis capacitaciones</button>
+        <button onClick={() => goTo('/#/games')}><Gamepad2 size={18} /> Juegos EI</button>
         <button className="active"><ShieldCheck size={18} /> Gestión Aula EI</button>
       </nav>
 
@@ -137,47 +191,31 @@ export default function App() {
       <div className="security-note"><ShieldCheck size={20} /><span>Contenido protegido con Supabase Auth y RLS.</span></div>
     </aside>
 
-    <main className="main-area">
-      <div className="page admin-page">
-        <section className="admin-hero integrated-admin-hero">
-          <div>
-            <span className="eyebrow-light">Gestión de formación</span>
-            <h1>Gestión Aula EI</h1>
-            <p>Administra capacitaciones, asignaciones, usuarios y certificados desde la misma experiencia de Aula EI.</p>
-          </div>
-          <div className="admin-role">
-            <strong>{courses.length}</strong>
-            <span>Capacitaciones registradas</span>
-          </div>
-        </section>
-
-        <div className="studio-control-row">
-          <nav className="tab-bar integrated-tab-bar">
-            {tabs.map(([id, label, Icon]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>
-              <Icon size={17} /> {label}
-            </button>)}
-          </nav>
-          <button className="secondary-button compact studio-refresh" title="Actualizar información" onClick={() => loadCore()} disabled={loading}>
-            <RefreshCw size={16} className={loading ? 'spin' : ''} /> Actualizar
-          </button>
-        </div>
-
-        {message && <div className="message-banner"><Sparkles size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={16} /></button></div>}
-
-        {tab === 'courses' && <CoursesManager courses={courses} refresh={() => loadCore()} setMessage={setMessage} />}
-        {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
-        {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
-        {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
-      </div>
-    </main>
+    <main className="main-area">{content}</main>
 
     <nav className="mobile-nav integrated-mobile-nav">
-      <button onClick={() => goTo('/#/', true)}><Home size={18} /><span>Inicio</span></button>
-      <button onClick={() => goTo('/#/catalog', true)}><BookOpen size={18} /><span>Cursos</span></button>
-      <button onClick={() => goTo('/#/games', true)}><Gamepad2 size={18} /><span>Juegos</span></button>
+      <button onClick={() => goTo('/#/')}><Home size={18} /><span>Inicio</span></button>
+      <button onClick={() => goTo('/#/catalog')}><BookOpen size={18} /><span>Cursos</span></button>
+      <button onClick={() => goTo('/#/games')}><Gamepad2 size={18} /><span>Juegos</span></button>
       <button className="active"><ShieldCheck size={18} /><span>Gestión</span></button>
     </nav>
   </div>
+}
+
+function StudioInlineLoading() {
+  return <section className="studio-inline-state">
+    <Loader2 className="spin" size={28} />
+    <strong>Preparando Gestión Aula EI…</strong>
+    <span>La navegación principal permanece disponible.</span>
+  </section>
+}
+
+function StudioInlineError({ text }) {
+  return <section className="studio-inline-state error">
+    <ShieldCheck size={28} />
+    <strong>Gestión Aula EI no está disponible</strong>
+    <span>{text}</span>
+  </section>
 }
 
 function goTo(url) {
@@ -185,5 +223,5 @@ function goTo(url) {
 }
 
 function Startup({ text, error }) {
-  return <main className="startup-page"><section className="startup-card"><img src="/brand/logo-aula-ei.png" alt="Aula EI" />{!error && <Loader2 className="spin" size={28} />}<h1>{text}</h1>{error && <p className="danger-text">{error}</p>}{error && <button className="primary-button" onClick={() => goTo('/#/', true)}>Volver a Aula EI</button>}</section></main>
+  return <main className="startup-page"><section className="startup-card"><img src="/brand/logo-aula-ei.png" alt="Aula EI" />{!error && <Loader2 className="spin" size={28} />}<h1>{text}</h1>{error && <p className="danger-text">{error}</p>}{error && <button className="primary-button" onClick={() => goTo('/#/')}>Volver a Aula EI</button>}</section></main>
 }

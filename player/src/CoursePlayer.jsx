@@ -253,6 +253,27 @@ export default function CoursePlayer() {
     else window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
+  const continueWithoutPractice = async () => {
+    if (!currentBlockId || practiceAdvanceBusy) return
+
+    setPracticeAdvanceBusy(true)
+    await completeBlock(currentBlockId, {
+      transition_practice: true,
+      practice_unavailable: true,
+    })
+
+    const target = practiceNextBlockId
+    setPracticeGateOpen(false)
+    setPracticeQuestion(null)
+    setPracticeAnswer(null)
+    setPracticeMarked(false)
+    setPracticeNextBlockId(null)
+    setPracticeAdvanceBusy(false)
+
+    if (target) selectBlock(target)
+    else window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+
   const goPrevious = () => {
     if (currentIndex <= 0) return
     selectBlock(allBlocks[currentIndex - 1].id)
@@ -473,6 +494,7 @@ export default function CoursePlayer() {
         targetTitle={allBlocks.find((block) => block.id === practiceNextBlockId)?.title || 'Examen final'}
         retry={() => loadPracticeQuestion(crypto.randomUUID())}
         continueForward={continueAfterPractice}
+        continueWithoutQuestion={continueWithoutPractice}
       />
     )}
 
@@ -713,7 +735,7 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
   </div>
 }
 
-function PracticeGateModal({ question, selected, setSelected, loading, advancing, targetTitle, retry, continueForward }) {
+function PracticeGateModal({ question, selected, setSelected, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion }) {
   return <div className="practice-gate-backdrop" role="presentation">
     <section className="practice-gate-modal" role="dialog" aria-modal="true" aria-labelledby="practice-gate-title">
       <div className="practice-gate-accent" />
@@ -773,7 +795,13 @@ function PracticeGateModal({ question, selected, setSelected, loading, advancing
           <CircleAlert size={28} />
           <strong>No pudimos cargar la pregunta rápida.</strong>
           <span>Inténtalo otra vez para continuar con la capacitación.</span>
-          <button onClick={retry}><RotateCcw size={16} /> Cargar otra pregunta</button>
+          <div className="practice-gate-error-actions">
+            <button onClick={retry} disabled={advancing}><RotateCcw size={16} /> Cargar otra pregunta</button>
+            <button className="practice-gate-skip" onClick={continueWithoutQuestion} disabled={advancing}>
+              {advancing ? <Loader2 className="spin" size={16} /> : <ArrowRight size={16} />}
+              Continuar por ahora
+            </button>
+          </div>
         </div>
       )}
     </section>

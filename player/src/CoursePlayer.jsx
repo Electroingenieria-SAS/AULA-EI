@@ -19,9 +19,9 @@ const ACHIEVEMENTS = [
   { key: 'mastery', title: 'Contenido dominado', description: 'Completaste todos los contenidos obligatorios.', icon: BadgeCheck, unlock: ({ progress }) => progress >= 100 },
 ]
 
-export default function CoursePlayer() {
+export default function CoursePlayer({ suppliedSessionUser = null }) {
   const stageRef = useRef(null)
-  const [sessionUser, setSessionUser] = useState(null)
+  const [sessionUser, setSessionUser] = useState(suppliedSessionUser)
   const [course, setCourse] = useState(null)
   const [enrollment, setEnrollment] = useState(null)
   const [completed, setCompleted] = useState(new Set())
@@ -52,9 +52,12 @@ export default function CoursePlayer() {
     setLoading(true)
     setMessage('')
     try {
-      const { data: sessionResult, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError) throw sessionError
-      const user = sessionResult.session?.user
+      let user = suppliedSessionUser
+      if (!user) {
+        const { data: sessionResult, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError) throw sessionError
+        user = sessionResult.session?.user
+      }
       if (!user) {
         window.location.replace('/#/login')
         return
@@ -105,7 +108,7 @@ export default function CoursePlayer() {
     }
   }
 
-  useEffect(() => { load() }, [courseId])
+  useEffect(() => { load() }, [courseId, suppliedSessionUser?.id])
 
   const allBlocks = useMemo(() => course ? flattenBlocks(course) : [], [course])
   const requiredBlocks = useMemo(() => allBlocks.filter((block) => block.required && block.status !== 'draft'), [allBlocks])

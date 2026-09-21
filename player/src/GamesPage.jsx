@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrainCircuit, Cards, Gamepad2, ListOrdered, Search, Shapes, Sparkles } from 'lucide-react'
+import { BrainCircuit, Gamepad2, Layers3, ListOrdered, Search, Shapes, Sparkles } from 'lucide-react'
 
 const GAMES = [
   ['Memoria de conceptos', BrainCircuit, 'Une conceptos y definiciones configuradas por el creador.'],
@@ -7,7 +7,7 @@ const GAMES = [
   ['Ordenar pasos', ListOrdered, 'Ordena procedimientos y protocolos.'],
   ['Búsqueda visual', Search, 'Encuentra riesgos o elementos dentro de una imagen.'],
   ['Mini RPG', Gamepad2, 'Recorre zonas y completa misiones de capacitación.'],
-  ['Cartas de decisión', Cards, 'Resuelve casos prácticos y recibe retroalimentación.'],
+  ['Cartas de decisión', Layers3, 'Resuelve casos prácticos y recibe retroalimentación.'],
 ]
 
 export default function GamesPage() {

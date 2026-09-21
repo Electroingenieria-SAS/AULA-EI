@@ -1,27 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { BookOpen, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'
 
-export default function LearnerShell({ children, activeRoute = 'catalog', profile: suppliedProfile = null }) {
-  const [profile, setProfile] = useState(suppliedProfile)
-
-  useEffect(() => {
-    if (suppliedProfile) {
-      setProfile(suppliedProfile)
-      return
-    }
-
-    let alive = true
-    supabase.rpc('get_my_profile').then(({ data, error }) => {
-      if (!alive || error) return
-      const value = Array.isArray(data) ? data[0] : data
-      if (value) setProfile(value)
-    })
-
-    return () => { alive = false }
-  }, [suppliedProfile])
-
+export default function LearnerShell({ children, activeRoute = 'catalog', profile = null }) {
   const displayName = profile?.full_name || 'Colaborador EI'
   const role = roleLabel(profile?.role)
   const initials = useMemo(() => {

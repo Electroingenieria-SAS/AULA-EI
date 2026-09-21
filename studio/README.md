@@ -1,22 +1,34 @@
-# Gestión Aula EI · fuente mantenible
+# Gestión Aula EI · módulo administrativo integrado
 
-Este directorio contiene el panel administrativo fuente de Aula EI. Se publica en `/studio/` y utiliza el mismo proyecto Supabase y los mismos contratos de datos del frontend operativo.
+Este directorio contiene el código fuente mantenible del módulo de Gestión de Aula EI.
+
+## Integración
+
+Gestión **no es una segunda aplicación visible**. El usuario entra por la ruta normal de Aula EI:
+
+```
+/#/studio
+```
+
+El build genera internamente los recursos React/Vite del módulo en `dist/studio/assets`. `scripts/wire-studio.mjs` decide qué bundle montar en el mismo `#root`:
+
+- cualquier ruta normal de Aula EI carga el frontend operativo endurecido;
+- `#/studio` carga el módulo administrativo fuente;
+- al cruzar entre ambos contextos, el bootstrap recarga únicamente una vez para evitar dos árboles React simultáneos.
+
+El módulo administrativo reproduce el mismo shell de Aula EI: sidebar, tarjeta de usuario, Inicio, Mis capacitaciones, Juegos EI, Gestión y navegación móvil.
 
 ## Centro de Asignaciones
 
-El módulo reemplaza el flujo unitario anterior por un flujo masivo y reversible:
+El flujo masivo permite:
 
 1. seleccionar una capacitación publicada;
-2. buscar o filtrar personas por nombre, correo, rol, estado de cuenta y estado de matrícula;
+2. buscar y filtrar personas por nombre, correo, rol, estado de cuenta y estado de matrícula;
 3. seleccionar una página, todos los resultados filtrados o importar una lista de correos/CSV;
-4. definir cómo tratar la fecha límite;
-5. asignar/actualizar en lote.
+4. decidir cómo tratar la fecha límite;
+5. asignar o actualizar en lote.
 
-Las matrículas existentes mantienen su `status` cuando están activas, por lo que una actualización de fecha no reinicia progreso. Las escrituras se dividen en lotes para evitar solicitudes excesivamente grandes. Las matrículas `completed` no se cancelan desde el Centro de Asignaciones.
-
-## Integración con el frontend operativo
-
-El build conserva el bundle endurecido actual para la experiencia de colaboradores. Después de construir ambos frontends, `scripts/wire-studio.mjs` genera un bootstrap pequeño: `#/studio` se deriva a `/studio/`; el resto de rutas carga el bundle operativo sin cambios funcionales.
+Las matrículas existentes preservan su `status` y progreso. Las matrículas `completed` no se cancelan desde este módulo.
 
 ## Build
 
@@ -24,4 +36,4 @@ El build conserva el bundle endurecido actual para la experiencia de colaborador
 npm run build
 ```
 
-El resultado completo se genera en `dist/`.
+El resultado completo se publica desde `dist/`.

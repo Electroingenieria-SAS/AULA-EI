@@ -7,6 +7,8 @@ import {
   PartyPopper, PlayCircle, Presentation, RotateCcw, Search, ShieldCheck, Sparkles,
   Shuffle, BrainCircuit, Trophy, Video, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
+import LearnerTopbar from './LearnerTopbar.jsx'
+import { navigateLearner } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
 const ACHIEVEMENTS = [
@@ -359,22 +361,14 @@ export default function CoursePlayer() {
   if (!course) return <StateView title="No fue posible abrir la capacitación" text={message || 'No encontramos información disponible.'} icon={CircleAlert} error />
 
   return <main className="learner-course-app">
-    <header className="learner-topbar">
-      <button className="learner-brand" onClick={() => navigate('/#/catalog')}>
-        <img src="/brand/logo-aula-ei.png" alt="Aula EI" />
-        <span><strong>Aula EI</strong><small>Experiencia de aprendizaje</small></span>
-      </button>
-
-      <div className="learner-topbar-progress">
+    <LearnerTopbar
+      center={<div className="learner-topbar-progress">
         <div><span>Progreso obligatorio</span><strong>{progress}%</strong></div>
         <div className="topbar-progress-track"><span style={{ width: progress + '%' }} /></div>
-      </div>
-
-      <div className="learner-topbar-actions">
-        <button className="mobile-outline-button" onClick={() => setOutlineOpen(true)}><Menu size={18} /> Ruta</button>
-        <button className="secondary-action" onClick={() => navigate('/#/catalog')}><ArrowLeft size={17} /> Mis capacitaciones</button>
-      </div>
-    </header>
+      </div>}
+      mobileAction={<button className="mobile-outline-button" onClick={() => setOutlineOpen(true)}><Menu size={18} /> Ruta</button>}
+      actions={<button className="secondary-action" onClick={() => navigateLearner('/catalog')}><ArrowLeft size={17} /> Mis capacitaciones</button>}
+    />
 
     <section className="learner-course-hero">
       <div className="hero-motion-field" aria-hidden="true">
@@ -923,7 +917,7 @@ function ExamResult({ result, course, retry }) {
     <p>{passed ? 'Completaste la ruta y aprobaste el examen final. Tu certificado oficial ya está disponible.' : `Necesitas mínimo ${course.passing_score || 80}%. Puedes repasar los contenidos y volver a intentarlo.`}</p>
     <div className="result-actions">
       {passed && code ? <button className="result-primary" onClick={openCertificate}><Award size={17} /> Abrir certificado</button> : <button className="result-primary" onClick={retry}><RotateCcw size={17} /> Volver a intentar</button>}
-      <button className="result-secondary" onClick={() => navigate('/#/catalog')}><ArrowLeft size={17} /> Mis capacitaciones</button>
+      <button className="result-secondary" onClick={() => navigateLearner('/catalog')}><ArrowLeft size={17} /> Mis capacitaciones</button>
     </div>
     {passed && <CelebrationBurst />}
   </section>
@@ -944,7 +938,7 @@ function CelebrationBurst({ mini = false }) {
 }
 
 function StateView({ title, text, icon: Icon, spin, error }) {
-  return <main className="learner-state-view"><section><img src="/brand/logo-aula-ei.png" alt="Aula EI" /><Icon size={34} className={spin ? 'spin' : error ? 'error' : ''} /><h1>{title}</h1><p>{text}</p>{error && <button onClick={() => navigate('/#/catalog')}>Volver a mis capacitaciones</button>}</section></main>
+  return <main className="learner-state-view"><section><img src="/brand/logo-aula-ei.png" alt="Aula EI" /><Icon size={34} className={spin ? 'spin' : error ? 'error' : ''} /><h1>{title}</h1><p>{text}</p>{error && <button onClick={() => navigateLearner('/catalog')}>Volver a mis capacitaciones</button>}</section></main>
 }
 
 function normalizeCourse(course) {
@@ -1055,6 +1049,3 @@ function dateLabel(value) {
   try { return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)) } catch { return String(value) }
 }
 
-function navigate(url) {
-  window.location.assign(url)
-}

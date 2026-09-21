@@ -4,6 +4,7 @@ import LearnerApp from './LearnerApp.jsx'
 import '../../studio/src/styles.css'
 import './styles.css'
 import './experience.css'
+import './formation360.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

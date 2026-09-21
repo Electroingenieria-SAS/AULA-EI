@@ -22,8 +22,7 @@ const SORTS = [
   { key: 'title', label: 'A–Z' },
 ]
 
-export default function CatalogPage({ profile = null }) {
-  const [user, setUser] = useState(null)
+export default function CatalogPage({ profile = null, sessionUser = null }) {
   const [courses, setCourses] = useState([])
   const [hiddenCount, setHiddenCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -39,16 +38,7 @@ export default function CatalogPage({ profile = null }) {
     setMessage('')
 
     try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError) throw sessionError
-      const sessionUser = sessionData.session?.user
-
-      if (!sessionUser) {
-        window.location.replace('/#/login')
-        return
-      }
-
-      setUser(sessionUser)
+      if (!sessionUser?.id) return
 
       const [enrollmentsResult, phasesResult, progressResult, certificatesResult] = await Promise.all([
         supabase
@@ -124,7 +114,7 @@ export default function CatalogPage({ profile = null }) {
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (sessionUser?.id) load() }, [sessionUser?.id])
 
   const counts = useMemo(() => ({
     all: courses.length,
@@ -165,9 +155,9 @@ export default function CatalogPage({ profile = null }) {
   , [courses])
 
   const displayName = useMemo(() => {
-    const raw = profile?.full_name || user?.user_metadata?.full_name || ''
+    const raw = profile?.full_name || sessionUser?.user_metadata?.full_name || ''
     return String(raw).trim()
-  }, [profile?.full_name, user?.user_metadata?.full_name])
+  }, [profile?.full_name, sessionUser?.user_metadata?.full_name])
 
   const firstName = useMemo(() => displayName.split(/\s+/).filter(Boolean)[0] || 'Colaborador', [displayName])
 

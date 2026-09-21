@@ -11,7 +11,6 @@ const staticPrefixes = [
   'bootstrap.js',
   'brand/',
   'player/',
-  'studio/',
   'certificate/',
   'assets/',
   'favicon',
@@ -29,7 +28,7 @@ function patchText(source) {
   }
 
   output = output.replace(
-    /url\((['"]?)\/(brand\/|player\/|studio\/|certificate\/|assets\/|favicon)/g,
+    /url\((['"]?)\/(brand\/|player\/|certificate\/|assets\/|favicon)/g,
     (_match, quote, prefix) => 'url(' + quote + base + '/' + prefix,
   )
 

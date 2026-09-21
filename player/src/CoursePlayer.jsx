@@ -5,7 +5,7 @@ import {
   File, FileAudio, FileText, Gamepad2, GraduationCap, Image as ImageIcon, Images,
   Link2, Loader2, LockKeyhole, Maximize2, Medal, Menu, Minimize2, MonitorPlay,
   PartyPopper, PlayCircle, Presentation, RotateCcw, Search, ShieldCheck, Sparkles,
-  Trophy, Video, X, ZoomIn, ZoomOut,
+  Shuffle, BrainCircuit, Trophy, Video, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import { signedAsset, supabase } from './supabase.js'
 
@@ -33,6 +33,10 @@ export default function CoursePlayer() {
   const [examResult, setExamResult] = useState(null)
   const [examLoading, setExamLoading] = useState(false)
   const [achievementToast, setAchievementToast] = useState(null)
+  const [practiceQuestion, setPracticeQuestion] = useState(null)
+  const [practiceAnswer, setPracticeAnswer] = useState(null)
+  const [practiceMarked, setPracticeMarked] = useState(false)
+  const [practiceLoading, setPracticeLoading] = useState(false)
 
   const courseId = useMemo(() => {
     const match = window.location.hash.match(/^#\/course\/([^/?#]+)/)
@@ -128,6 +132,43 @@ export default function CoursePlayer() {
     const percent = required.length ? Math.round((requiredDone.length / required.length) * 100) : (blocks.length && done.length === blocks.length ? 100 : 0)
     return { blocks, required, done, percent, complete: required.length ? requiredDone.length === required.length : blocks.length > 0 && done.length === blocks.length }
   }
+
+  const loadPracticeQuestion = async (seed = crypto.randomUUID()) => {
+    if (!courseId || !sessionUser?.id) return
+    setPracticeLoading(true)
+    try {
+      const { data, error } = await supabase.rpc('get_course_practice_question', {
+        p_course_id: courseId,
+        p_seed: String(seed),
+      })
+
+      if (error) {
+        // Compatibility fallback while the dedicated practice RPC is not yet
+        // available: only the already-unlocked final exam can be sampled.
+        if (examUnlocked) {
+          const fallback = await supabase.rpc('get_exam_questions', { p_course_id: courseId })
+          if (!fallback.error && Array.isArray(fallback.data) && fallback.data.length) {
+            const index = seededIndex(String(seed), fallback.data.length)
+            setPracticeQuestion(fallback.data[index])
+            setPracticeAnswer(null)
+            setPracticeMarked(false)
+          }
+        }
+        return
+      }
+
+      setPracticeQuestion(data || null)
+      setPracticeAnswer(null)
+      setPracticeMarked(false)
+    } finally {
+      setPracticeLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!courseId || !sessionUser?.id || !currentBlockId || examQuestions || examResult) return
+    loadPracticeQuestion(currentBlockId)
+  }, [courseId, sessionUser?.id, currentBlockId])
 
   const selectBlock = (blockId) => {
     const index = allBlocks.findIndex((block) => block.id === blockId)
@@ -324,6 +365,12 @@ export default function CoursePlayer() {
               block={currentBlock}
               completed={completed.has(currentBlock.id)}
               complete={(data) => completeBlock(currentBlock.id, data)}
+              previousTitle={allBlocks[currentIndex - 1]?.title || 'Inicio'}
+              nextTitle={allBlocks[currentIndex + 1]?.title || 'Examen final'}
+              canPrevious={currentIndex > 0}
+              canNext={currentIndex < allBlocks.length - 1 && !isLockedAtIndex(currentIndex + 1)}
+              previous={goPrevious}
+              next={goNext}
             />
           ) : (
             <div className="learner-empty-stage"><BookOpen size={38} /><h2>Esta capacitación aún no tiene contenido visible.</h2><p>Cuando el equipo publique contenidos aparecerán aquí.</p></div>
@@ -350,6 +397,18 @@ export default function CoursePlayer() {
       </section>
 
       <aside className="learner-progress-panel">
+        {!examQuestions && !examResult && practiceQuestion && (
+          <PracticeQuestionCard
+            question={practiceQuestion}
+            selected={practiceAnswer}
+            setSelected={(value) => { setPracticeAnswer(value); setPracticeMarked(false) }}
+            marked={practiceMarked}
+            mark={() => setPracticeMarked(true)}
+            refresh={() => loadPracticeQuestion(crypto.randomUUID())}
+            loading={practiceLoading}
+          />
+        )}
+
         <section className="learner-side-card">
           <div className="side-card-title"><Trophy size={18} /><div><strong>Tus logros</strong><small>{unlockedAchievements.length} de {ACHIEVEMENTS.length} desbloqueados</small></div></div>
           <div className="achievement-mini-grid">
@@ -435,7 +494,7 @@ function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnloc
   </>
 }
 
-function ContentExperience({ block, completed, complete }) {
+function ContentExperience({ block, completed, complete, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
   const [assetUrl, setAssetUrl] = useState(null)
   const [assetError, setAssetError] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -519,7 +578,18 @@ function ContentExperience({ block, completed, complete }) {
             <span><Images size={16} /> Haz clic sobre la imagen para verla a pantalla completa y hacer zoom.</span>
             {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Abrir original</a>}
           </div>
-          {lightboxOpen && <ImageLightbox src={displayUrl} alt={block.title} originalUrl={originalUrl} close={() => setLightboxOpen(false)} />}
+          {lightboxOpen && <ImageLightbox
+            src={displayUrl}
+            alt={block.title}
+            originalUrl={originalUrl}
+            close={() => setLightboxOpen(false)}
+            previousTitle={previousTitle}
+            nextTitle={nextTitle}
+            canPrevious={canPrevious}
+            canNext={canNext}
+            previous={previous}
+            next={next}
+          />}
         </div>
       )}
 
@@ -589,24 +659,89 @@ function ReadingContent({ value }) {
   return <div className="reading-experience">{text.split(/\n{2,}/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
 }
 
-function ImageLightbox({ src, alt, originalUrl, close }) {
+function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
   const [zoom, setZoom] = useState(1)
+
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key === 'Escape') close()
+      if (event.key === 'ArrowLeft' && canPrevious) previous()
+      if (event.key === 'ArrowRight' && canNext) next()
+      if ((event.key === '+' || event.key === '=') && !event.ctrlKey) setZoom((value) => Math.min(3, value + .2))
+      if (event.key === '-' && !event.ctrlKey) setZoom((value) => Math.max(.6, value - .2))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [canPrevious, canNext, previous, next, close])
+
   return <div className="image-lightbox" onMouseDown={(event) => { if (event.target === event.currentTarget) close() }}>
     <div className="lightbox-toolbar">
       <div><Images size={17} /><strong>{alt}</strong></div>
       <div>
-        <button onClick={() => setZoom((value) => Math.max(.6, value - .2))}><ZoomOut size={18} /></button>
+        <button onClick={() => setZoom((value) => Math.max(.6, value - .2))} title="Alejar"><ZoomOut size={18} /></button>
         <span>{Math.round(zoom * 100)}%</span>
-        <button onClick={() => setZoom((value) => Math.min(3, value + .2))}><ZoomIn size={18} /></button>
-        <button onClick={() => setZoom(1)}><RotateCcw size={17} /></button>
-        {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /></a>}
-        <button onClick={close}><X size={19} /></button>
+        <button onClick={() => setZoom((value) => Math.min(3, value + .2))} title="Acercar"><ZoomIn size={18} /></button>
+        <button onClick={() => setZoom(1)} title="Restablecer zoom"><RotateCcw size={17} /></button>
+        {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer" title="Abrir original"><ExternalLink size={17} /></a>}
+        <button onClick={close} title="Cerrar"><X size={19} /></button>
       </div>
     </div>
+
     <div className="lightbox-canvas">
       <img src={src} alt={alt} style={{ transform: `scale(${zoom})` }} />
     </div>
+
+    <nav className="lightbox-course-nav" aria-label="Navegación de la capacitación">
+      <button disabled={!canPrevious} onClick={previous}>
+        <ArrowLeft size={19} />
+        <span><small>Contenido anterior</small><strong>{previousTitle}</strong></span>
+      </button>
+      <div>
+        <span>Vista ampliada</span>
+        <small>También puedes usar ← y → para navegar.</small>
+      </div>
+      <button disabled={!canNext} onClick={next}>
+        <span><small>Siguiente contenido</small><strong>{nextTitle}</strong></span>
+        <ArrowRight size={19} />
+      </button>
+    </nav>
   </div>
+}
+
+function PracticeQuestionCard({ question, selected, setSelected, marked, mark, refresh, loading }) {
+  return <section className="learner-side-card practice-question-card">
+    <div className="practice-question-top">
+      <div className="practice-question-icon"><BrainCircuit size={19} /></div>
+      <div><span>Reto rápido</span><strong>Pregunta de práctica</strong></div>
+      <button onClick={refresh} disabled={loading} title="Mostrar otra pregunta">{loading ? <Loader2 className="spin" size={15} /> : <Shuffle size={15} />}</button>
+    </div>
+
+    <p>{question.prompt}</p>
+
+    <div className="practice-answer-list">
+      {(question.options || []).map((option, index) => (
+        <button
+          key={option.id}
+          className={(selected === option.id ? 'selected ' : '') + (marked && selected === option.id ? 'marked' : '')}
+          onClick={() => setSelected(option.id)}
+        >
+          <span>{String.fromCharCode(65 + index)}</span>
+          <strong>{option.label}</strong>
+          {selected === option.id && <CheckCircle2 size={15} />}
+        </button>
+      ))}
+    </div>
+
+    <button className="practice-mark-button" disabled={!selected || loading} onClick={mark}>
+      {marked ? <CheckCircle2 size={16} /> : <Sparkles size={16} />}
+      {marked ? 'Respuesta marcada' : 'Marcar respuesta'}
+    </button>
+
+    <div className="practice-safety-note">
+      <ShieldCheck size={14} />
+      <span>{marked ? 'Tu elección quedó marcada solo como práctica.' : 'No afecta tu nota y no revela la respuesta correcta.'}</span>
+    </div>
+  </section>
 }
 
 function ExamExperience({ questions, answers, setAnswers, passingScore, submit, loading }) {
@@ -779,6 +914,13 @@ function normalizeExternalUrl(url, type) {
 
 function isEmbedProvider(url) {
   return /drive\.google\.com|onedrive\.live\.com|1drv\.ms|youtube\.com\/embed/i.test(url)
+}
+
+function seededIndex(seed, length) {
+  if (!length) return 0
+  let hash = 0
+  for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0
+  return Math.abs(hash) % length
 }
 
 function dateLabel(value) {

@@ -54,11 +54,11 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
 }
 
 function SidebarLink({ icon: Icon, label, active = false, onClick }) {
-  return <button className={active ? 'active' : ''} onClick={onClick}><Icon size={18} /><span>{label}</span></button>
+  return <button className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={onClick}><Icon size={18} /><span>{label}</span></button>
 }
 
 function MobileLink({ icon: Icon, label, active = false, onClick }) {
-  return <button className={active ? 'active' : ''} onClick={onClick}><Icon size={18} /><span>{label}</span></button>
+  return <button className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={onClick}><Icon size={18} /><span>{label}</span></button>
 }
 
 function roleLabel(role) {

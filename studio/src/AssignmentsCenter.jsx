@@ -7,8 +7,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BookOpen, CheckCircle2,
-  Download, Filter, Loader2, Search, Upload, UserCheck, UserMinus, Users,
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BookOpen, CalendarClock, CheckCircle2,
+  Download, Filter, Loader2, Search, Upload, UserCheck, UserMinus, Users, X,
 } from 'lucide-react'
 import { ASSIGNMENT_STATUS, ROLE_LABELS, chunks, dateLabel, getError, supabase } from './shared.js'
 
@@ -303,17 +303,37 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
       </div>
     </section>
 
-    <section className={'bulk-action-bar ' + (selectedRows.length ? 'visible' : '')}>
-      <div className="bulk-selection"><span>{selectedRows.length}</span><div><strong>persona(s) seleccionadas</strong><small>{selectedCourse?.title || 'Sin capacitación seleccionada'}</small></div></div>
+    {selectedRows.length > 0 && <section className="bulk-action-bar" aria-label="Acciones para personas seleccionadas">
+      <div className="bulk-selection">
+        <span>{selectedRows.length}</span>
+        <div>
+          <strong>{selectedRows.length === 1 ? 'Persona seleccionada' : 'Personas seleccionadas'}</strong>
+          <small>{selectedCourse?.title || 'Sin capacitación seleccionada'}</small>
+        </div>
+        <button className="bulk-clear-selection" onClick={() => setRowSelection({})} disabled={busy} title="Limpiar selección"><X size={14} /> Limpiar</button>
+      </div>
+
       <div className="deadline-controls">
-        <label>Fecha límite<select value={deadlinePolicy} onChange={(event) => setDeadlinePolicy(event.target.value)}><option value="keep">Conservar las existentes</option><option value="set">Aplicar una fecha</option><option value="clear">Dejar sin vencimiento</option></select></label>
-        {deadlinePolicy === 'set' && <label>Fecha<input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label>}
+        <div className="deadline-title"><CalendarClock size={16} /><span>Vencimiento</span></div>
+        <label>
+          <span>Política de fecha</span>
+          <select value={deadlinePolicy} onChange={(event) => setDeadlinePolicy(event.target.value)}>
+            <option value="keep">Conservar las existentes</option>
+            <option value="set">Aplicar una fecha</option>
+            <option value="clear">Dejar sin vencimiento</option>
+          </select>
+        </label>
+        {deadlinePolicy === 'set' && <label>
+          <span>Fecha</span>
+          <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+        </label>}
       </div>
+
       <div className="bulk-buttons">
-        <button className="secondary-button" onClick={cancelAssignments} disabled={busy}><UserMinus size={17} /> Cancelar matrícula</button>
-        <button className="primary-button" onClick={applyAssignments} disabled={busy || !selectedRows.length}>{busy ? <Loader2 className="spin" size={17} /> : <UserCheck size={17} />} Asignar / actualizar</button>
+        <button className="secondary-button bulk-cancel-button" onClick={cancelAssignments} disabled={busy}><UserMinus size={17} /> Cancelar matrícula</button>
+        <button className="primary-button bulk-apply-button" onClick={applyAssignments} disabled={busy}>{busy ? <Loader2 className="spin" size={17} /> : <UserCheck size={17} />} Asignar / actualizar</button>
       </div>
-    </section>
+    </section>}
   </div>
 }
 

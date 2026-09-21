@@ -111,10 +111,11 @@ export default function CoursePlayer() {
   const currentBlock = currentIndex >= 0 ? allBlocks[currentIndex] : null
   const currentPhase = course?.phases.find((phase) => (phase.blocks || []).some((block) => block.id === currentBlockId)) || null
   const requiredCompleted = requiredBlocks.filter((block) => completed.has(block.id)).length
+  const courseCompletedCount = allBlocks.filter((block) => completed.has(block.id)).length
   const progress = requiredBlocks.length ? Math.round((requiredCompleted / requiredBlocks.length) * 100) : 100
   const examUnlocked = requiredBlocks.every((block) => completed.has(block.id))
 
-  const achievementContext = useMemo(() => ({ progress, completedCount: completed.size }), [progress, completed.size])
+  const achievementContext = useMemo(() => ({ progress, completedCount: courseCompletedCount }), [progress, courseCompletedCount])
   const unlockedAchievements = useMemo(() => ACHIEVEMENTS.filter((item) => item.unlock(achievementContext)), [achievementContext])
 
   const isLockedAtIndex = (index) => allBlocks.slice(0, index).some((block) => block.required && block.status !== 'draft' && !completed.has(block.id))
@@ -141,7 +142,7 @@ export default function CoursePlayer() {
   const completeBlock = async (blockId, data = {}) => {
     if (!sessionUser?.id || completed.has(blockId)) return true
     const beforeProgress = progress
-    const beforeCount = completed.size
+    const beforeCount = allBlocks.filter((block) => completed.has(block.id)).length
     const { error } = await supabase.from('block_progress').upsert({
       user_id: sessionUser.id,
       block_id: blockId,
@@ -162,7 +163,7 @@ export default function CoursePlayer() {
     const afterRequiredDone = requiredBlocks.filter((block) => next.has(block.id)).length
     const afterProgress = requiredBlocks.length ? Math.round((afterRequiredDone / requiredBlocks.length) * 100) : 100
     const contextBefore = { progress: beforeProgress, completedCount: beforeCount }
-    const contextAfter = { progress: afterProgress, completedCount: next.size }
+    const contextAfter = { progress: afterProgress, completedCount: allBlocks.filter((block) => next.has(block.id)).length }
     const newlyUnlocked = ACHIEVEMENTS.filter((item) => !item.unlock(contextBefore) && item.unlock(contextAfter))
     const blockPhase = course?.phases.find((phase) => (phase.blocks || []).some((block) => block.id === blockId))
     if (blockPhase) {

@@ -179,13 +179,8 @@ export default function App() {
   </div>
 }
 
-function goTo(url, reload = false) {
-  if (reload) {
-    window.location.href = url
-    window.location.reload()
-    return
-  }
-  window.location.replace(url)
+function goTo(url) {
+  window.location.assign(url)
 }
 
 function Startup({ text, error }) {

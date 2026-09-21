@@ -2539,3 +2539,6 @@ a{text-decoration:none;color:inherit}
   .catalog-resume-cover{min-height:98px}
   .catalog-resume-meta{grid-column:1/-1;padding:0 0 11px 12px}
 }
+
+.catalog-skeleton-grid .skeleton-visual{height:172px}
+.learner-route-transition{transform-origin:top center}

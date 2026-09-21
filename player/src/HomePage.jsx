@@ -3,7 +3,7 @@ import { BookOpen, Gamepad2, GraduationCap, Medal, PlayCircle, ShieldCheck, Spar
 import { navigateLearner, openLearnerCourse } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
-export default function HomePage({ profile }) {
+export default function HomePage({ profile, sessionUser }) {
   const [enrollments, setEnrollments] = useState([])
   const [certificates, setCertificates] = useState([])
   const [hiddenCount, setHiddenCount] = useState(0)
@@ -13,8 +13,7 @@ export default function HomePage({ profile }) {
     let alive = true
     ;(async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession()
-        const userId = sessionData.session?.user?.id
+        const userId = sessionUser?.id
         if (!userId) return
 
         const [enrollmentResult, certificateResult] = await Promise.all([
@@ -38,7 +37,7 @@ export default function HomePage({ profile }) {
     })()
 
     return () => { alive = false }
-  }, [])
+  }, [sessionUser?.id])
 
   const firstName = useMemo(() => String(profile?.full_name || 'Colaborador').trim().split(/\s+/)[0] || 'Colaborador', [profile?.full_name])
 

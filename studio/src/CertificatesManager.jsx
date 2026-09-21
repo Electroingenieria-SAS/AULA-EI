@@ -15,7 +15,7 @@ export default function CertificatesManager({ setMessage }) {
   const [search, setSearch] = useState('')
   const [courseFilter, setCourseFilter] = useState('all')
   const [scoreFilter, setScoreFilter] = useState('all')
-  const [sort, setSort] = useState('newest')
+  const [sort, setSort] = useState('rank')
   const [pageSize, setPageSize] = useState(25)
   const [page, setPage] = useState(0)
   const [detailCode, setDetailCode] = useState(null)
@@ -65,6 +65,7 @@ export default function CertificatesManager({ setMessage }) {
       return true
     })
     return [...result].sort((a, b) => {
+      if (sort === 'rank') return a.position - b.position
       if (sort === 'oldest') return a.issued_time - b.issued_time
       if (sort === 'score_desc') return b.score_number - a.score_number || b.issued_time - a.issued_time
       if (sort === 'score_asc') return a.score_number - b.score_number || b.issued_time - a.issued_time
@@ -192,7 +193,7 @@ export default function CertificatesManager({ setMessage }) {
           <div className="search-field certificate-main-search"><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por persona, correo, capacitación o código…" /></div>
           <label className="filter-select"><BookOpen size={15} /><select value={courseFilter} onChange={(event) => setCourseFilter(event.target.value)}><option value="all">Todas las capacitaciones</option>{courses.map((course) => <option key={course} value={course}>{course}</option>)}</select></label>
           <label className="filter-select"><GraduationCap size={15} /><select value={scoreFilter} onChange={(event) => setScoreFilter(event.target.value)}><option value="all">Todos los puntajes</option><option value="100">100%</option><option value="90plus">90% o más</option><option value="below90">Menos de 90%</option></select></label>
-          <label className="filter-select"><CalendarDays size={15} /><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option><option value="score_desc">Mayor puntaje</option><option value="score_asc">Menor puntaje</option><option value="person">Persona A-Z</option><option value="course">Capacitación A-Z</option></select></label>
+          <label className="filter-select"><CalendarDays size={15} /><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="rank">Ranking original</option><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option><option value="score_desc">Mayor puntaje</option><option value="score_asc">Menor puntaje</option><option value="person">Persona A-Z</option><option value="course">Capacitación A-Z</option></select></label>
         </div>
 
         <div className="certificate-results-meta">
@@ -203,8 +204,9 @@ export default function CertificatesManager({ setMessage }) {
         {loading ? <LoadingState text="Cargando certificados…" /> : !pagedIssued.length ? <EmptyState icon={Search} title="No hay coincidencias" text="Ajusta la búsqueda o los filtros para revisar otros certificados." /> :
           <div className="data-table-wrap certificates-data-wrap">
             <table className="data-table certificates-data-table">
-              <thead><tr><th>Persona</th><th>Capacitación</th><th>Puntaje</th><th>Emisión</th><th>Código</th><th></th></tr></thead>
+              <thead><tr><th>#</th><th>Persona</th><th>Capacitación</th><th>Puntaje</th><th>Emisión</th><th>Código</th><th></th></tr></thead>
               <tbody>{pagedIssued.map((item) => <tr key={item.certificate_code}>
+                <td><span className="certificate-rank-pill">#{item.position}</span></td>
                 <td><button className="certificate-person-button" onClick={() => setDetailCode(item.certificate_code)}><span className="certificate-avatar">{initials(item.person)}</span><span><strong>{item.person}</strong><small>{item.user_email || 'Sin correo registrado'}</small></span></button></td>
                 <td><div className="certificate-course-cell"><strong>{item.course}</strong><small>Certificado oficial</small></div></td>
                 <td><ScorePill score={item.score_number} /></td>

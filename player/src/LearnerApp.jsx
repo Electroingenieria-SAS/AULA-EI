@@ -5,6 +5,7 @@ import CoursePlayer from './CoursePlayer.jsx'
 import GamesPage from './GamesPage.jsx'
 import HomePage from './HomePage.jsx'
 import LearnerShell from './LearnerShell.jsx'
+import LearningJourneyPage from './LearningJourneyPage.jsx'
 import { supabase } from './supabase.js'
 
 function readRoute() {
@@ -12,6 +13,7 @@ function readRoute() {
   const courseMatch = hash.match(/^#\/course\/([^/?#]+)/)
   if (courseMatch?.[1]) return { key: 'course:' + courseMatch[1], type: 'course' }
   if (/^#\/catalog(?:\/|$)/.test(hash)) return { key: 'catalog', type: 'catalog' }
+  if (/^#\/journey(?:\/|$)/.test(hash)) return { key: 'journey', type: 'journey' }
   if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games' }
   if (/^#\/studio(?:\/|$)/.test(hash)) return { key: 'studio', type: 'studio' }
   return { key: 'home', type: 'home' }
@@ -46,6 +48,10 @@ export default function LearnerApp() {
 
         if (alive) setSessionUser(data.session.user)
 
+        // Formación 360 usa este pulso para rachas e inactividad. Si la migración
+        // todavía no existe, el error se ignora para mantener compatibilidad.
+        supabase.rpc('touch_learning_activity').catch(() => {})
+
         const { data: profileData, error: profileError } = await supabase.rpc('get_my_profile')
         if (profileError) throw profileError
         const value = Array.isArray(profileData) ? profileData[0] : profileData
@@ -64,6 +70,7 @@ export default function LearnerApp() {
     if (!sessionReady) return <ModuleLoading label="Preparando Aula EI…" />
     if (route.type === 'course') return <CoursePlayer suppliedSessionUser={sessionUser} />
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
+    if (route.type === 'journey') return <LearningJourneyPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage />
     if (route.type === 'studio') {
       return profile

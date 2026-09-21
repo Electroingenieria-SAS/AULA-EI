@@ -3921,3 +3921,111 @@ html,#root{
     align-self:flex-end;
   }
 }
+
+
+/* =========================================================
+   Mi ruta formativa
+   ========================================================= */
+.home-training-route-card{
+  margin-top:22px;
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:28px;
+  background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(246,250,255,.90));
+  box-shadow:0 22px 55px rgba(15,23,42,.09);
+  overflow:hidden;
+}
+.home-training-route-head{
+  padding:18px;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+  border-bottom:1px solid #e8eef5;
+  background:linear-gradient(135deg,rgba(237,245,255,.94),rgba(255,252,236,.80));
+}
+.home-training-route-icon{
+  width:46px;
+  height:46px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#003b8e,#176cc5);
+  color:#fff;
+  box-shadow:0 10px 24px rgba(0,59,142,.16);
+}
+.home-training-route-head>div{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.home-training-route-head>div>span{
+  color:#075bb9;
+  font-size:.57rem;
+  letter-spacing:1.7px;
+  font-weight:900;
+}
+.home-training-route-head h2{
+  margin:0;
+  color:#173b69;
+  font-size:1.12rem;
+  letter-spacing:-.025em;
+}
+.home-training-route-head p{
+  margin:0;
+  color:#6f8297;
+  font-size:.65rem;
+}
+.home-training-route-content{
+  padding:16px 18px 18px;
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:18px;
+}
+.home-training-route-content>div{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.home-training-route-content>div>strong{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#375d7e;
+  font-size:.66rem;
+}
+.home-training-chip-list,
+.home-training-path-list{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.home-training-chip-list>span,
+.home-training-path-list>span{
+  min-height:31px;
+  padding:6px 9px;
+  border:1px solid #d9e5f0;
+  border-radius:10px;
+  background:#fff;
+  color:#526b84;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:.57rem;
+  font-weight:800;
+}
+.home-training-chip-list>span b{
+  padding:2px 5px;
+  border-radius:999px;
+  background:#edf5ff;
+  color:#075bb9;
+  font-size:.49rem;
+}
+.home-training-route-content small{
+  color:#7a8c9e;
+  font-size:.57rem;
+}
+@media(max-width:760px){
+  .home-training-route-content{grid-template-columns:1fr}
+}

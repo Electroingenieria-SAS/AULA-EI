@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import {
-  BookOpen, ClipboardList, Gamepad2, GraduationCap, Home, Loader2,
+  BookOpen, Briefcase, ClipboardList, Gamepad2, GraduationCap, Home, Loader2,
   LogOut, RefreshCw, ShieldCheck, Sparkles, Users, X,
 } from 'lucide-react'
 import AssignmentsCenter from './AssignmentsCenter.jsx'
 import CoursesManager from './CoursesManager.jsx'
 import UsersManager from './UsersManager.jsx'
 import CertificatesManager from './CertificatesManager.jsx'
+import ComplianceCenter from './ComplianceCenter.jsx'
 import { ADMIN_ROLES, ROLE_LABELS, STAFF_ROLES, fetchAllPages, getError, supabase } from './shared.js'
 
 export default function App({ embedded = false, initialProfile = null }) {
@@ -127,6 +128,7 @@ export default function App({ embedded = false, initialProfile = null }) {
     ...(canAdmin ? [
       ['assignments', 'Asignaciones', ClipboardList],
       ['users', 'Usuarios y roles', Users],
+      ['compliance', 'Formación y cumplimiento', Briefcase],
       ['certificates', 'Ranking y certificados', GraduationCap],
     ] : []),
   ]
@@ -136,7 +138,7 @@ export default function App({ embedded = false, initialProfile = null }) {
       <div>
         <span className="eyebrow-light">Gestión de formación</span>
         <h1>Gestión Aula EI</h1>
-        <p>Administra capacitaciones, asignaciones, usuarios y certificados desde la misma experiencia de Aula EI.</p>
+        <p>Administra capacitaciones, asignaciones, usuarios, cumplimiento, competencias y certificados desde la misma experiencia de Aula EI.</p>
       </div>
       <div className="admin-role">
         <strong>{courses.length}</strong>
@@ -163,6 +165,7 @@ export default function App({ embedded = false, initialProfile = null }) {
       {tab === 'courses' && <CoursesManager courses={courses} refresh={() => loadCore()} setMessage={setMessage} />}
       {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
       {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
+      {tab === 'compliance' && canAdmin && <ComplianceCenter courses={courses} profiles={profiles} setMessage={setMessage} />}
       {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
     </div>
   </div>

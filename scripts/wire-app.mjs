@@ -205,6 +205,10 @@ window.addEventListener('popstate',enforceBoundary);
 installGlobalMotion();
 installRevealMotion();
 
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}),{once:true});
+}
+
 if(bootMode==='certificate'){
   addStyles('${certificateStyles}');
   import('${certificateBundle}');
@@ -218,6 +222,89 @@ if(bootMode==='certificate'){
 
 await writeFile(path.join(dist, 'bootstrap.js'), bootstrap, 'utf8')
 
+const manifest = {
+  name: 'Aula EI · Academia Interna',
+  short_name: 'Aula EI',
+  description: 'Plataforma corporativa de formación, cumplimiento y certificación de Electroingeniería.',
+  start_url: './#/',
+  scope: './',
+  display: 'standalone',
+  background_color: '#f4f7fb',
+  theme_color: '#003b8e',
+  orientation: 'any',
+  categories: ['education','business','productivity'],
+  icons: [
+    { src: './brand/logo-aula-ei.png', sizes: 'any', type: 'image/png', purpose: 'any' }
+  ],
+  shortcuts: [
+    { name: 'Mi Ruta 360', short_name: 'Mi ruta', url: './#/journey' },
+    { name: 'Mis capacitaciones', short_name: 'Cursos', url: './#/catalog' },
+    { name: 'Juegos EI', short_name: 'Juegos', url: './#/games' }
+  ]
+}
+
+const serviceWorker = `const CACHE='aula-ei-shell-v1';
+const scopeUrl=new URL(self.registration.scope);
+const shell=[
+  new URL('./',scopeUrl).href,
+  new URL('./bootstrap.js',scopeUrl).href,
+  new URL('./manifest.webmanifest',scopeUrl).href,
+  new URL('./brand/logo-aula-ei.png',scopeUrl).href,
+  new URL('./brand/fondo.jpg',scopeUrl).href
+];
+
+self.addEventListener('install',(event)=>{
+  event.waitUntil(caches.open(CACHE).then((cache)=>cache.addAll(shell)).then(()=>self.skipWaiting()));
+});
+
+self.addEventListener('activate',(event)=>{
+  event.waitUntil(
+    caches.keys()
+      .then((keys)=>Promise.all(keys.filter((key)=>key!==CACHE).map((key)=>caches.delete(key))))
+      .then(()=>self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch',(event)=>{
+  const request=event.request;
+  if(request.method!=='GET')return;
+  const url=new URL(request.url);
+  if(url.origin!==self.location.origin)return;
+
+  if(request.mode==='navigate'){
+    event.respondWith(
+      fetch(request)
+        .then((response)=>{
+          const copy=response.clone();
+          caches.open(CACHE).then((cache)=>cache.put(new URL('./',scopeUrl).href,copy)).catch(()=>{});
+          return response;
+        })
+        .catch(()=>caches.match(new URL('./',scopeUrl).href))
+    );
+    return;
+  }
+
+  const destination=request.destination;
+  if(['script','style','image','font','manifest'].includes(destination)||url.pathname.includes('/brand/')||url.pathname.includes('/player/')||url.pathname.includes('/certificate/')){
+    event.respondWith(
+      caches.match(request).then((cached)=>{
+        const network=fetch(request).then((response)=>{
+          if(response&&response.ok){
+            caches.open(CACHE).then((cache)=>cache.put(request,response.clone())).catch(()=>{});
+          }
+          return response;
+        }).catch(()=>cached);
+        return cached||network;
+      })
+    );
+  }
+});
+`
+
+await writeFile(path.join(dist, 'manifest.webmanifest'), JSON.stringify(manifest, null, 2), 'utf8')
+await writeFile(path.join(dist, 'sw.js'), serviceWorker, 'utf8')
+
+
 await unlink(path.join(certificateDir, 'index.html'))
 await unlink(path.join(playerDir, 'index.html'))
 
@@ -225,6 +312,9 @@ for (const file of ['index.html', '404.html']) {
   const p = path.join(dist, file)
   let html = await readFile(p, 'utf8')
   html = html.replace(/<script type="module" crossorigin src="\.\/assets\/index-[^"]+\.js"><\/script>/, '<script type="module" src="/bootstrap.js"></script>')
+  if (!html.includes('manifest.webmanifest')) {
+    html = html.replace('</head>', '<link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#003b8e"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"></head>')
+  }
   if (!html.includes('/bootstrap.js')) throw new Error(`WIRE6: failed to wire ${file}`)
   await writeFile(p, html, 'utf8')
 }

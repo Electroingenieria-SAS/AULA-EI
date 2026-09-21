@@ -49,7 +49,7 @@
       ]
     },
     {
-      "source": "/404.html",
+      "source": "/bootstrap.js",
       "headers": [
         {
           "key": "Cache-Control",
@@ -58,7 +58,7 @@
       ]
     },
     {
-      "source": "/studio/index.html",
+      "source": "/404.html",
       "headers": [
         {
           "key": "Cache-Control",

@@ -702,13 +702,19 @@ function Compliance({ snapshot, dueRows }) {
 function Analytics({ snapshot }) {
   const passRate = snapshot.exam_pass_rate
   const avgScore = snapshot.avg_exam_score
+  const completionHours = snapshot.avg_completion_hours
+  const avgAttempts = snapshot.avg_attempts_per_user
+
   return <div className="formation360-section">
     <section className="formation360-section-head">
-      <div><span className="eyebrow">Analítica avanzada</span><h3>Salud del aprendizaje</h3><p>Primera capa: cumplimiento, desempeño, riesgo, cobertura por cargo y salud de evaluaciones.</p></div>
+      <div><span className="eyebrow">Analítica avanzada</span><h3>Salud del aprendizaje</h3><p>Desempeño, riesgo, tiempo, dificultad real, estancamiento y cohortes en una sola lectura.</p></div>
     </section>
+
     <div className="formation360-analytics-grid">
       <AnalyticsCard label="Promedio de examen" value={avgScore == null ? '—' : avgScore + '%'} icon={BrainCircuit} />
       <AnalyticsCard label="Tasa de aprobación" value={passRate == null ? '—' : passRate + '%'} icon={CheckCircle2} />
+      <AnalyticsCard label="Tiempo medio de cierre" value={completionHours == null ? '—' : completionHours + ' h'} icon={Clock3} />
+      <AnalyticsCard label="Intentos promedio" value={avgAttempts == null ? '—' : avgAttempts} icon={RefreshCw} />
       <AnalyticsCard label="Certificados emitidos" value={snapshot.certificates_total || 0} icon={Award} />
       <AnalyticsCard label="Usuarios en riesgo" value={(snapshot.risk_users || []).length} icon={AlertTriangle} />
       <AnalyticsCard label="Errores técnicos 24 h" value={snapshot.telemetry_errors_24h || 0} icon={Activity} />
@@ -721,10 +727,35 @@ function Analytics({ snapshot }) {
           {snapshot.risk_users.map((item) => <div key={item.id}><span className="avatar-mini">{String(item.full_name || item.email || 'EI').slice(0, 2).toUpperCase()}</span><div><strong>{item.full_name || item.email}</strong><small>{item.overdue || 0} vencido(s) · {item.failed_attempts || 0} intento(s) fallido(s)</small></div></div>)}
         </div> : <EmptyState icon={CheckCircle2} title="Sin señales críticas" text="Cuando existan vencimientos o reincidencias aparecerán aquí." compact />}
       </article>
+
       <article className="formation360-panel">
         <header><div><span className="eyebrow">Cobertura</span><h3>Personas por cargo</h3></div><Users size={22} /></header>
         <div className="formation360-breakdown">
           {(snapshot.position_breakdown || []).map((item) => <div key={item.id}><span>{item.name}</span><div><i style={{ width: Math.min(100, (Number(item.people || 0) / Math.max(1, Number(snapshot.people_total || 1))) * 100) + '%' }} /></div><strong>{item.people || 0}</strong></div>)}
+        </div>
+      </article>
+    </div>
+
+    <div className="formation360-overview-grid">
+      <article className="formation360-panel">
+        <header><div><span className="eyebrow">Dificultad</span><h3>Preguntas con mayor error</h3></div><BrainCircuit size={22} /></header>
+        <div className="formation360-question-health">
+          {(snapshot.hardest_questions || []).map((item) => <div key={item.id}>
+            <div><strong>{item.prompt}</strong><small>{item.course_title} · {item.responses || 0} respuesta(s)</small></div>
+            <b>{item.error_rate == null ? '—' : item.error_rate + '% error'}</b>
+          </div>)}
+          {!(snapshot.hardest_questions || []).length && <EmptyState icon={BrainCircuit} title="Sin datos de dificultad" text="La métrica se activa cuando existan intentos de examen." compact />}
+        </div>
+      </article>
+
+      <article className="formation360-panel">
+        <header><div><span className="eyebrow">Abandono</span><h3>Bloques con mayor estancamiento</h3></div><Layers3 size={22} /></header>
+        <div className="formation360-question-health">
+          {(snapshot.stalled_blocks || []).map((item) => <div key={item.id}>
+            <div><strong>{item.title}</strong><small>{item.course_title} · {item.total_progress_records || 0} registro(s)</small></div>
+            <b>{item.stalled || 0} estancado(s)</b>
+          </div>)}
+          {!(snapshot.stalled_blocks || []).length && <EmptyState icon={Layers3} title="Sin estancamientos detectados" text="Aparecerán cuando existan contenidos iniciados sin cierre." compact />}
         </div>
       </article>
     </div>
@@ -737,6 +768,20 @@ function Analytics({ snapshot }) {
           <span>Promedio <b>{item.avg_score == null ? '—' : item.avg_score + '%'}</b></span>
           <span>Aprobación <b>{item.pass_rate == null ? '—' : item.pass_rate + '%'}</b></span>
         </div>)}
+      </div>
+    </article>
+
+    <article className="formation360-panel">
+      <header><div><span className="eyebrow">Cohortes</span><h3>Asignación y cierre por mes</h3></div><CalendarClock size={22} /></header>
+      <div className="formation360-cohorts">
+        {(snapshot.cohorts || []).map((item) => <div key={item.month}>
+          <strong>{item.month}</strong>
+          <span>{item.assigned || 0} asignadas</span>
+          <span>{item.completed || 0} completadas</span>
+          <div><i style={{ width: Math.min(100, Number(item.completion_rate || 0)) + '%' }} /></div>
+          <b>{item.completion_rate == null ? '—' : item.completion_rate + '%'}</b>
+        </div>)}
+        {!(snapshot.cohorts || []).length && <EmptyState icon={CalendarClock} title="Sin cohortes todavía" text="La evolución mensual aparecerá con nuevas asignaciones." compact />}
       </div>
     </article>
   </div>

@@ -31,7 +31,7 @@ const appBundle = `/player/assets/${playerJsFiles[0]}`
 const appStyles = `/player/assets/${playerCssFiles[0]}`
 
 const bootstrap = `const certificateRoute=/^#\\/certificate\\/[^/?#]+/;
-const appRoute=/^#\\/(?:$|catalog(?:\\/|$)|course\\/[^/?#]+|games(?:\\/|$)|studio(?:\\/|$))/;
+const appRoute=/^#\\/(?:$|catalog(?:\\/|$)|journey(?:\\/|$)|course\\/[^/?#]+|games(?:\\/|$)|studio(?:\\/|$))/;
 const currentMode=()=>certificateRoute.test(window.location.hash)?'certificate':appRoute.test(window.location.hash)?'app':'legacy';
 const bootMode=currentMode();
 const enforceBoundary=()=>{if(currentMode()!==bootMode)window.location.reload()};

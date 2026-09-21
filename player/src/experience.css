@@ -1129,12 +1129,272 @@ textarea{resize:vertical}
 .pending-certificate-card{
   contain:layout paint style;
 }
-.catalog-course-grid,
-.home-course-grid,
-.games-grid,
-.course-library-grid,
-.pending-certificate-grid{
+/* ---------- Acabado premium transversal ---------- */
+::selection{background:rgba(0,59,142,.18);color:#102f55}
+*{scrollbar-width:thin;scrollbar-color:#b8cce1 transparent}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{
+  border:3px solid transparent;
+  border-radius:999px;
+  background-clip:padding-box;
+  background:#b8cce1;
+}
+*::-webkit-scrollbar-thumb:hover{background:#8facca;background-clip:padding-box}
+
+.learner-home-page,
+.catalog-original-page,
+.learner-games-page,
+.studio-single-content .studio-single-page{
+  padding-top:clamp(22px,2vw,34px);
+  padding-bottom:clamp(38px,4vw,64px);
+}
+
+/* Encabezados secundarios */
+.home-section-heading h2,
+.catalog-workspace-header h2,
+.games-section-heading h2,
+.courses-overview-head h2,
+.users-overview-head h2,
+.certificates-overview-head h2,
+.authoring-section-header h2,
+.section-title-row h2{
+  letter-spacing:-.025em;
+}
+.home-section-heading p,
+.catalog-workspace-header p,
+.games-section-heading p,
+.courses-overview-head p,
+.users-overview-head p,
+.certificates-overview-head p{
+  line-height:1.55;
+}
+
+/* Toolbars y zonas de trabajo */
+.catalog-toolbar,
+.courses-library-toolbar,
+.users-toolbar,
+.certificate-toolbar,
+.filters-grid,
+.exam-toolbar,
+.selection-toolbar{
+  border-radius:16px;
+}
+.courses-library-toolbar,
+.users-toolbar,
+.certificate-toolbar,
+.filters-grid,
+.selection-toolbar{
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(12px);
+}
+.courses-library,
+.users-directory,
+.certificates-workspace{
+  overflow:hidden;
+}
+
+/* Tablas más legibles */
+.data-table,
+.users-data-table,
+.certificates-data-table{
+  border-collapse:separate;
+  border-spacing:0;
+}
+.data-table thead th,
+.users-data-table thead th,
+.certificates-data-table thead th{
+  position:sticky;
+  top:0;
+  z-index:4;
+  background:rgba(248,251,254,.96);
+  backdrop-filter:blur(10px);
+  box-shadow:inset 0 -1px 0 #dfe8f1;
+}
+.data-table tbody td,
+.users-data-table tbody td,
+.certificates-data-table tbody td{
+  border-bottom-color:#e9eff5;
+}
+.pagination-bar,
+.users-pagination,
+.certificate-pagination{
+  background:rgba(251,253,255,.82);
+  backdrop-filter:blur(10px);
+}
+
+/* Autoría: sensación de editor profesional */
+.course-authoring-studio{
+  gap:18px;
+}
+.course-authoring-header{
+  border-radius:22px;
+  box-shadow:var(--premium-shadow-sm);
+}
+.course-authoring-nav{
+  border-radius:18px;
+  box-shadow:var(--premium-shadow-xs);
+}
+.authoring-section{
+  scroll-margin-top:110px;
+}
+.authoring-card-title,
+.inspector-title,
+.course-create-section-title,
+.block-editor-heading,
+.phase-editor-heading{
+  letter-spacing:-.015em;
+}
+.block-authoring-top,
+.phase-authoring-heading,
+.exam-question-list-head{
+  transition:background var(--ux-normal),border-color var(--ux-normal);
+}
+.block-authoring-card:hover .block-authoring-top,
+.phase-editor-panel:hover .phase-authoring-heading{
+  background:#fbfdff;
+}
+.resource-upload-box,
+.exam-import-panel,
+.import-box{
+  transition:border-color var(--ux-normal),background var(--ux-normal),box-shadow var(--ux-normal),transform var(--ux-fast);
+}
+.resource-upload-box:hover,
+.exam-import-panel:hover,
+.import-box:hover{
+  border-color:#aec9e4;
+  background:#f8fbff;
+  box-shadow:var(--premium-shadow-xs);
+}
+
+/* Personería visual en usuarios */
+.detail-avatar,
+.avatar,
+.avatar-mini,
+.certificate-avatar{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 18px rgba(0,59,142,.10);
+}
+.user-identity-button:hover .avatar-mini,
+.certificate-person-button:hover .certificate-avatar{
+  transform:scale(1.04);
+}
+.avatar-mini,
+.certificate-avatar{
+  transition:transform var(--ux-normal) var(--ux-ease);
+}
+.detail-profile-card,
+.detail-section,
+.detail-actions-section,
+.training-summary,
+.temporary-password-card,
+.created-user-success{
+  transition:transform var(--ux-normal) var(--ux-ease),box-shadow var(--ux-normal),border-color var(--ux-normal);
+}
+.detail-profile-card:hover,
+.detail-section:hover,
+.training-summary:hover{
+  transform:translateY(-2px);
+  border-color:#c4d8eb;
+  box-shadow:var(--premium-shadow-xs);
+}
+
+/* Ranking */
+.certificate-rank-pill{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 6px 14px rgba(0,59,142,.075);
+}
+.certificate-score-card{
+  box-shadow:var(--premium-shadow-xs);
+}
+.pending-certificate-card{
+  transition:transform var(--ux-normal) var(--ux-ease),box-shadow var(--ux-normal),border-color var(--ux-normal);
+}
+
+/* Pregunta rápida y examen */
+.practice-gate-modal{
+  border-color:#c9dced;
+  box-shadow:0 38px 110px rgba(4,20,43,.35);
+}
+.practice-gate-icon{
+  box-shadow:0 10px 24px rgba(0,59,142,.12);
+}
+.practice-gate-kicker{
+  animation:premiumKicker 3.2s ease-in-out infinite alternate;
+}
+@keyframes premiumKicker{to{filter:brightness(1.08);transform:translateY(-1px)}}
+.exam-learning-question{
+  transition:transform var(--ux-normal) var(--ux-ease),box-shadow var(--ux-normal),border-color var(--ux-normal),background var(--ux-normal);
+}
+.exam-learning-question:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--premium-shadow-xs);
+}
+.exam-learning-question.answered{
+  box-shadow:inset 3px 0 0 rgba(0,91,183,.45);
+}
+.exam-submit-bar{
+  backdrop-filter:blur(16px) saturate(1.05);
+  box-shadow:0 16px 40px rgba(18,47,80,.14);
+}
+
+/* Estado visual seleccionado */
+.content-type-check.selected,
+.validation-option.selected,
+.toggle-option.selected,
+.course-template-card.selected,
+.exam-option-card.selected{
+  border-color:#91b7dc;
+  background:linear-gradient(145deg,#eef6ff,#fbfdff);
+  box-shadow:0 0 0 3px rgba(0,59,142,.055),var(--premium-shadow-xs);
+}
+
+/* Mejor jerarquía en badges/chips */
+.plain-chip,
+.required-pill,
+.catalog-card-progress-pill,
+.content-completed-badge,
+.stage-completed-indicator,
+.stage-pending-indicator,
+.save-state{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+/* Elementos que aparecen escalonados */
+.home-course-grid>.home-course-card,
+.catalog-course-grid>.catalog-course-card,
+.games-grid>article,
+.course-library-grid>.course-library-card,
+.pending-certificate-grid>.pending-certificate-card{
+  animation:premiumCardIn .42s var(--ux-ease-out) both;
+}
+.home-course-grid>*:nth-child(2),
+.catalog-course-grid>*:nth-child(2),
+.games-grid>*:nth-child(2),
+.course-library-grid>*:nth-child(2),
+.pending-certificate-grid>*:nth-child(2){animation-delay:40ms}
+.home-course-grid>*:nth-child(3),
+.catalog-course-grid>*:nth-child(3),
+.games-grid>*:nth-child(3),
+.course-library-grid>*:nth-child(3),
+.pending-certificate-grid>*:nth-child(3){animation-delay:80ms}
+.home-course-grid>*:nth-child(4),
+.catalog-course-grid>*:nth-child(4),
+.games-grid>*:nth-child(4),
+.course-library-grid>*:nth-child(4),
+.pending-certificate-grid>*:nth-child(4){animation-delay:120ms}
+@keyframes premiumCardIn{
+  from{opacity:0;transform:translateY(12px) scale(.992)}
+  to{opacity:1;transform:none}
+}
+
+/* Rendimiento: solo los elementos repetitivos reciben contención */
+.catalog-course-card,
+.home-course-card,
+.games-grid article,
+.course-library-card,
+.pending-certificate-card{
+  contain:layout paint style;
   content-visibility:auto;
+  contain-intrinsic-size:340px;
 }
 
 /* ---------- Responsive ---------- */

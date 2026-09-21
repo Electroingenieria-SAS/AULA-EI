@@ -1513,6 +1513,18 @@ textarea{resize:vertical}
   from{transform:translateY(-50%) rotate(-3deg)}
   to{transform:translateY(calc(-50% - 3px)) rotate(3deg)}
 }
+.topbar-progress-track>span[style*="100%"]:after,
+.hero-progress-inline>div>span[style*="100%"]:after,
+.catalog-resume-progress>div>span[style*="100%"]:after{
+  border-color:rgba(255,210,0,.88);
+  background-color:#fffdf1;
+  box-shadow:0 7px 20px rgba(255,190,0,.25),0 0 0 4px rgba(255,210,0,.14);
+  animation:premiumLearnerFinish 1.15s var(--ux-ease-out) infinite alternate;
+}
+@keyframes premiumLearnerFinish{
+  from{transform:translateY(-50%) scale(1) rotate(-3deg)}
+  to{transform:translateY(calc(-50% - 4px)) scale(1.09) rotate(4deg)}
+}
 .topbar-progress-track:hover>span:after,
 .hero-progress-inline>div:hover>span:after,
 .catalog-resume-progress>div:hover>span:after{

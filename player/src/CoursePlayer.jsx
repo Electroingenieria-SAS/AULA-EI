@@ -24,7 +24,6 @@ export default function CoursePlayer() {
   const [enrollment, setEnrollment] = useState(null)
   const [completed, setCompleted] = useState(new Set())
   const [currentBlockId, setCurrentBlockId] = useState(null)
-  const [coverUrl, setCoverUrl] = useState(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [outlineOpen, setOutlineOpen] = useState(false)
@@ -35,7 +34,8 @@ export default function CoursePlayer() {
   const [achievementToast, setAchievementToast] = useState(null)
   const [practiceQuestion, setPracticeQuestion] = useState(null)
   const [practiceAnswer, setPracticeAnswer] = useState(null)
-  const [practiceMarked, setPracticeMarked] = useState(false)
+  const [practiceVerdict, setPracticeVerdict] = useState(null)
+  const [practiceChecking, setPracticeChecking] = useState(false)
   const [practiceLoading, setPracticeLoading] = useState(false)
   const [practiceGateOpen, setPracticeGateOpen] = useState(false)
   const [practiceNextBlockId, setPracticeNextBlockId] = useState(null)
@@ -95,13 +95,6 @@ export default function CoursePlayer() {
       setCurrentBlockId((current) => current && allBlocks.some((block) => block.id === current) ? current : initial?.id || null)
       setEnrollment(enrollmentResult.error ? null : enrollmentResult.data || null)
 
-      if (normalized.cover_path) {
-        signedAsset(normalized.cover_path)
-          .then(setCoverUrl)
-          .catch(() => setCoverUrl(null))
-      } else {
-        setCoverUrl(null)
-      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No fue posible abrir la capacitación.')
       setCourse(null)
@@ -141,7 +134,7 @@ export default function CoursePlayer() {
     setPracticeLoading(true)
     setPracticeQuestion(null)
     setPracticeAnswer(null)
-    setPracticeMarked(false)
+    setPracticeVerdict(null)
     try {
       const { data, error } = await supabase.rpc('get_course_practice_question', {
         p_course_id: courseId,
@@ -156,16 +149,55 @@ export default function CoursePlayer() {
           const index = seededIndex(String(seed), fallback.data.length)
           setPracticeQuestion(fallback.data[index])
           setPracticeAnswer(null)
-          setPracticeMarked(false)
+          setPracticeVerdict(null)
         }
         return
       }
 
       setPracticeQuestion(data || null)
       setPracticeAnswer(null)
-      setPracticeMarked(false)
+      setPracticeVerdict(null)
     } finally {
       setPracticeLoading(false)
+    }
+  }
+
+  const checkPracticeAnswer = async (optionId) => {
+    if (!practiceQuestion?.id || practiceChecking || practiceAdvanceBusy) return
+
+    setPracticeAnswer(optionId)
+    setPracticeVerdict(null)
+    setPracticeChecking(true)
+
+    try {
+      const { data, error } = await supabase.rpc('check_course_practice_answer', {
+        p_course_id: courseId,
+        p_question_id: practiceQuestion.id,
+        p_option_id: optionId,
+      })
+
+      if (!error && typeof data?.correct === 'boolean') {
+        setPracticeVerdict(data.correct)
+        return
+      }
+
+      const fallback = await supabase
+        .from('question_options')
+        .select('is_correct')
+        .eq('id', optionId)
+        .eq('question_id', practiceQuestion.id)
+        .maybeSingle()
+
+      if (!fallback.error && typeof fallback.data?.is_correct === 'boolean') {
+        setPracticeVerdict(Boolean(fallback.data.is_correct))
+        return
+      }
+
+      setPracticeVerdict('unavailable')
+    } catch {
+      setPracticeVerdict('unavailable')
+    } finally {
+      setPracticeChecking(false)
     }
   }
 
@@ -227,10 +259,10 @@ export default function CoursePlayer() {
   }
 
   const continueAfterPractice = async () => {
-    if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy) return
+    if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy || practiceChecking) return
 
     setPracticeAdvanceBusy(true)
-    setPracticeMarked(true)
+    setPracticeVerdict(null)
 
     // The quick question is a transition checkpoint, not an exam attempt.
     // Any selected option allows progression; the answer is stored only as
@@ -239,13 +271,15 @@ export default function CoursePlayer() {
       transition_practice: true,
       practice_question_id: practiceQuestion?.id || null,
       practice_option_id: practiceAnswer,
+      practice_correct: typeof practiceVerdict === 'boolean' ? practiceVerdict : null,
     })
 
     const target = practiceNextBlockId
     setPracticeGateOpen(false)
     setPracticeQuestion(null)
     setPracticeAnswer(null)
-    setPracticeMarked(false)
+    setPracticeVerdict(null)
+    setPracticeChecking(false)
     setPracticeNextBlockId(null)
     setPracticeAdvanceBusy(false)
 
@@ -266,7 +300,8 @@ export default function CoursePlayer() {
     setPracticeGateOpen(false)
     setPracticeQuestion(null)
     setPracticeAnswer(null)
-    setPracticeMarked(false)
+    setPracticeVerdict(null)
+    setPracticeChecking(false)
     setPracticeNextBlockId(null)
     setPracticeAdvanceBusy(false)
 
@@ -342,27 +377,34 @@ export default function CoursePlayer() {
     </header>
 
     <section className="learner-course-hero">
-      {coverUrl && <div className="learner-hero-cover" style={{ backgroundImage: `url("${coverUrl}")` }} />}
-      <div className="learner-hero-overlay" />
+      <div className="hero-motion-field" aria-hidden="true">
+        {Array.from({ length: 9 }).map((_, index) => <i key={index} style={{ '--i': index }} />)}
+        <span className="hero-motion-orbit orbit-a" />
+        <span className="hero-motion-orbit orbit-b" />
+        <span className="hero-motion-spark spark-a" />
+        <span className="hero-motion-spark spark-b" />
+      </div>
+
       <div className="learner-hero-content">
         <div className="learner-hero-copy">
           <div className="hero-chip-row">
             <span className="hero-learning-chip"><BookOpen size={14} /> Capacitación Aula EI</span>
             {enrollment?.due_at && <span className="hero-learning-chip soft"><Clock3 size={14} /> Hasta {dateLabel(enrollment.due_at)}</span>}
           </div>
+
           <h1>{course.title}</h1>
           <p>{course.description || 'Continúa tu ruta de aprendizaje y completa cada actividad a tu ritmo.'}</p>
+
+          <div className="hero-progress-inline" aria-label={`Progreso de la capacitación: ${progress}%`}>
+            <div><span style={{ width: progress + '%' }} /></div>
+            <strong>{progress}% completado</strong>
+            <small>{requiredCompleted} de {requiredBlocks.length} contenidos obligatorios</small>
+          </div>
+
           <div className="learner-hero-actions">
             {currentBlock && <button className="hero-primary-button" onClick={() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><PlayCircle size={18} /> {progress ? 'Continuar donde quedé' : 'Comenzar capacitación'}</button>}
-            <span>{requiredCompleted} de {requiredBlocks.length} contenidos obligatorios completados</span>
+            <span>{examUnlocked ? 'Examen final desbloqueado' : 'Tu progreso se guarda automáticamente al avanzar'}</span>
           </div>
-        </div>
-
-        <div className="hero-progress-orbit">
-          <div className="hero-progress-ring" style={{ '--progress': progress }}>
-            <div><strong>{progress}%</strong><span>completado</span></div>
-          </div>
-          <small>{examUnlocked ? 'Examen final desbloqueado' : 'Sigue avanzando para desbloquear el examen'}</small>
         </div>
       </div>
     </section>
@@ -488,7 +530,9 @@ export default function CoursePlayer() {
       <PracticeGateModal
         question={practiceQuestion}
         selected={practiceAnswer}
-        setSelected={(value) => { setPracticeAnswer(value); setPracticeMarked(false) }}
+        verdict={practiceVerdict}
+        checking={practiceChecking}
+        selectAnswer={checkPracticeAnswer}
         loading={practiceLoading}
         advancing={practiceAdvanceBusy}
         targetTitle={allBlocks.find((block) => block.id === practiceNextBlockId)?.title || 'Examen final'}
@@ -735,7 +779,10 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
   </div>
 }
 
-function PracticeGateModal({ question, selected, setSelected, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion }) {
+function PracticeGateModal({ question, selected, verdict, checking, selectAnswer, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion }) {
+  const resolved = verdict === true || verdict === false
+  const unavailable = verdict === 'unavailable'
+
   return <div className="practice-gate-backdrop" role="presentation">
     <section className="practice-gate-modal" role="dialog" aria-modal="true" aria-labelledby="practice-gate-title">
       <div className="practice-gate-accent" />
@@ -745,7 +792,7 @@ function PracticeGateModal({ question, selected, setSelected, loading, advancing
         <div>
           <span>Antes de continuar</span>
           <h2 id="practice-gate-title">Pregunta rápida</h2>
-          <p>Elige una opción para avanzar. No afecta tu nota y no necesitas acertar para continuar.</p>
+          <p>Elige una opción. Te diremos si acertaste, pero nunca mostraremos cuál era la respuesta correcta.</p>
         </div>
       </header>
 
@@ -762,29 +809,46 @@ function PracticeGateModal({ question, selected, setSelected, loading, advancing
             <h3>{question.prompt}</h3>
 
             <div className="practice-gate-options">
-              {(question.options || []).map((option, index) => (
-                <button
+              {(question.options || []).map((option, index) => {
+                const isSelected = selected === option.id
+                const statusClass = isSelected && verdict === true
+                  ? 'selected correct'
+                  : isSelected && verdict === false
+                    ? 'selected incorrect'
+                    : isSelected
+                      ? 'selected'
+                      : ''
+
+                return <button
                   key={option.id}
-                  className={selected === option.id ? 'selected' : ''}
-                  onClick={() => setSelected(option.id)}
-                  disabled={advancing}
+                  className={statusClass}
+                  onClick={() => selectAnswer(option.id)}
+                  disabled={advancing || checking || resolved || unavailable}
                 >
                   <span>{String.fromCharCode(65 + index)}</span>
                   <strong>{option.label}</strong>
-                  {selected === option.id && <CheckCircle2 size={18} />}
+                  {isSelected && checking && <Loader2 className="spin" size={18} />}
+                  {isSelected && verdict === true && <CheckCircle2 size={18} />}
+                  {isSelected && verdict === false && <X size={18} />}
+                  {isSelected && unavailable && <CircleAlert size={18} />}
                 </button>
-              ))}
+              })}
             </div>
+
+            {checking && <div className="practice-answer-feedback checking"><Loader2 className="spin" size={16} /><span>Comprobando tu respuesta…</span></div>}
+            {verdict === true && <div className="practice-answer-feedback correct"><CheckCircle2 size={17} /><div><strong>¡Correcto!</strong><span>Muy bien. Puedes continuar con el siguiente contenido.</span></div></div>}
+            {verdict === false && <div className="practice-answer-feedback incorrect"><X size={17} /><div><strong>Respuesta incorrecta</strong><span>No revelaremos la respuesta correcta. Puedes continuar y reforzarla durante la capacitación.</span></div></div>}
+            {unavailable && <div className="practice-answer-feedback unavailable"><CircleAlert size={17} /><div><strong>Respuesta registrada</strong><span>No pudimos comprobarla en este momento, pero esto nunca bloqueará tu avance.</span></div></div>}
           </div>
 
           <footer className="practice-gate-footer">
             <div>
               <ShieldCheck size={16} />
-              <span>Tu respuesta aquí es solo de práctica. El examen final se califica por separado.</span>
+              <span>Este reto es de práctica. No suma ni resta puntos del examen final.</span>
             </div>
-            <button className="practice-gate-continue" disabled={!selected || advancing} onClick={continueForward}>
+            <button className="practice-gate-continue" disabled={!selected || checking || advancing || (!resolved && !unavailable)} onClick={continueForward}>
               {advancing ? <Loader2 className="spin" size={17} /> : <ArrowRight size={17} />}
-              {advancing ? 'Guardando avance…' : 'Responder y continuar'}
+              {advancing ? 'Guardando avance…' : resolved || unavailable ? 'Continuar' : 'Responder y continuar'}
             </button>
           </footer>
 
@@ -807,7 +871,6 @@ function PracticeGateModal({ question, selected, setSelected, loading, advancing
     </section>
   </div>
 }
-
 function ExamExperience({ questions, answers, setAnswers, passingScore, submit, loading }) {
   const answered = Object.keys(answers).length
   return <section className="exam-experience">

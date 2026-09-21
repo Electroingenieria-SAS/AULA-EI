@@ -9,9 +9,7 @@ export default function LearnerTopbar({ center, actions, mobileAction }) {
       <span><strong>Aula EI</strong><small>Experiencia de aprendizaje</small></span>
     </button>
 
-    <div className="learner-topbar-center">
-      {center || <div className="learner-topbar-page"><BookOpen size={16} /><div><span>Ruta personal</span><strong>Mis capacitaciones</strong></div></div>}
-    </div>
+    {center || <div className="learner-topbar-page"><BookOpen size={16} /><div><span>Ruta personal</span><strong>Mis capacitaciones</strong></div></div>}
 
     <div className="learner-topbar-actions">
       {mobileAction}

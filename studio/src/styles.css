@@ -359,3 +359,5 @@ h1,h2,h3,h4{color:#173b69}
   .certificate-detail-drawer{width:100%}
   .certificate-detail-actions{grid-template-columns:1fr}
 }
+
+.certificate-rank-pill{display:inline-grid;place-items:center;min-width:34px;height:30px;padding:0 8px;border-radius:10px;background:#eaf2ff;color:#075bb9;font-size:.7rem;font-weight:900}

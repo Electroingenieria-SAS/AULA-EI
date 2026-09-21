@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   BookOpen, ClipboardList, Gamepad2, GraduationCap, Home, Loader2,
-  LogOut, RefreshCw, ShieldCheck, Sparkles, Users, X,
+  LogOut, RefreshCw, Route, ShieldCheck, Sparkles, Users, X,
 } from 'lucide-react'
 import AssignmentsCenter from './AssignmentsCenter.jsx'
 import CoursesManager from './CoursesManager.jsx'
 import UsersManager from './UsersManager.jsx'
 import CertificatesManager from './CertificatesManager.jsx'
+import Formation360 from './Formation360.jsx'
 import { ADMIN_ROLES, ROLE_LABELS, STAFF_ROLES, fetchAllPages, getError, supabase } from './shared.js'
 
 export default function App({ embedded = false, initialProfile = null }) {
@@ -126,6 +127,7 @@ export default function App({ embedded = false, initialProfile = null }) {
     ['courses', 'Capacitaciones', BookOpen],
     ...(canAdmin ? [
       ['assignments', 'Asignaciones', ClipboardList],
+      ['formation360', 'Formación 360', Route],
       ['users', 'Usuarios y roles', Users],
       ['certificates', 'Ranking y certificados', GraduationCap],
     ] : []),
@@ -162,6 +164,7 @@ export default function App({ embedded = false, initialProfile = null }) {
     <div className="studio-tab-stage" key={tab} aria-busy={loading ? 'true' : 'false'}>
       {tab === 'courses' && <CoursesManager courses={courses} refresh={() => loadCore()} setMessage={setMessage} />}
       {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
+      {tab === 'formation360' && canAdmin && <Formation360 profiles={profiles} courses={courses} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
       {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
       {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
     </div>

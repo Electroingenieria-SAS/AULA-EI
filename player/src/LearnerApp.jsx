@@ -74,14 +74,20 @@ export default function LearnerApp() {
   }, [route.key, route.type, profile, sessionReady, sessionUser])
 
   return <LearnerShell activeRoute={route.type} profile={profile}>
-    <div className="learner-route-transition" key={route.key}>{content}</div>
+    <div className="learner-route-transition" key={route.key}>
+      <span className="experience-route-progress" aria-hidden="true" />
+      {content}
+    </div>
   </LearnerShell>
 }
 
 function ModuleLoading({ label }) {
-  return <section className="global-module-loading" aria-live="polite">
-    <div className="global-loading-orb" />
+  return <section className="global-module-loading" aria-live="polite" aria-busy="true">
+    <div className="experience-loading-mark" aria-hidden="true"><i /><i /><i /></div>
     <strong>{label}</strong>
-    <span>La navegación principal permanece disponible.</span>
+    <span>Estamos preparando el contenido sin recargar la navegación.</span>
+    <div className="experience-loading-skeleton" aria-hidden="true">
+      <i className="wide" /><i /><i /><i />
+    </div>
   </section>
 }

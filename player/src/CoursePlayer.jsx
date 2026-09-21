@@ -146,16 +146,14 @@ export default function CoursePlayer() {
       })
 
       if (error) {
-        // Compatibility fallback while the dedicated practice RPC is not yet
-        // available: only the already-unlocked final exam can be sampled.
-        if (examUnlocked) {
-          const fallback = await supabase.rpc('get_exam_questions', { p_course_id: courseId })
-          if (!fallback.error && Array.isArray(fallback.data) && fallback.data.length) {
-            const index = seededIndex(String(seed), fallback.data.length)
-            setPracticeQuestion(fallback.data[index])
-            setPracticeAnswer(null)
-            setPracticeMarked(false)
-          }
+        // Compatibility fallback. Staff can preview the exam at any point;
+        // learners can only use this path once their final exam is unlocked.
+        const fallback = await supabase.rpc('get_exam_questions', { p_course_id: courseId })
+        if (!fallback.error && Array.isArray(fallback.data) && fallback.data.length) {
+          const index = seededIndex(String(seed), fallback.data.length)
+          setPracticeQuestion(fallback.data[index])
+          setPracticeAnswer(null)
+          setPracticeMarked(false)
         }
         return
       }

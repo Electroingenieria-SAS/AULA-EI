@@ -788,8 +788,8 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
         <span><small>Contenido anterior</small><strong>{previousTitle}</strong></span>
       </button>
       <div>
-        <span>Vista ampliada</span>
-        <small>También puedes usar ← y → para navegar.</small>
+        <span>Pantalla completa</span>
+        <small>Zoom con + / − · navega con ← y → · Esc para cerrar.</small>
       </div>
       <button disabled={!canNext} onClick={next}>
         <span><small>Siguiente contenido</small><strong>{nextTitle}</strong></span>

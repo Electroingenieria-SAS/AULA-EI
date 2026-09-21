@@ -10,6 +10,7 @@ import CertificatesManager from './CertificatesManager.jsx'
 import { ADMIN_ROLES, ROLE_LABELS, STAFF_ROLES, fetchAllPages, getError, supabase } from './shared.js'
 
 export default function App() {
+  const embedded = new URLSearchParams(window.location.search).get('embedded') === '1'
   const [booting, setBooting] = useState(true)
   const [profile, setProfile] = useState(null)
   const [tab, setTab] = useState('courses')
@@ -110,7 +111,7 @@ export default function App() {
     ] : []),
   ]
 
-  return <div className="app-shell integrated-studio">
+  return <div className={`app-shell integrated-studio${embedded ? ' embedded-studio' : ''}`}>
     <aside className="sidebar">
       <button className="brand app-brand-logo integrated-brand" onClick={() => goTo('/#/', true)}>
         <img src="/brand/logo-aula-ei.png" alt="Aula EI" />

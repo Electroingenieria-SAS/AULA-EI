@@ -298,10 +298,19 @@ function buildPreviewJourney({ profile, enrollments, certificates }) {
 
 function stepStatus(step, index, steps) {
   if (step.course_status === 'completed') return 'completed'
-  const previous = index > 0 ? steps[index - 1] : null
-  if (previous && previous.course_id && previous.course_status !== 'completed' && step.required !== false) return 'locked'
-  if (step.course_id) return step.course_status === 'in_progress' ? 'progress' : 'available'
-  if (step.step_type === 'assessment' || step.step_type === 'certification') return previous?.course_status === 'completed' ? 'available' : 'locked'
+
+  const previousCourses = steps.slice(0, index).filter((item) => item.course_id)
+  const prerequisitesComplete = previousCourses.every((item) => item.course_status === 'completed')
+
+  if (step.course_id) {
+    if (!prerequisitesComplete && step.required !== false) return 'locked'
+    return step.course_status === 'in_progress' ? 'progress' : 'available'
+  }
+
+  if (step.step_type === 'assessment' || step.step_type === 'certification') {
+    return prerequisitesComplete && previousCourses.length ? 'available' : 'locked'
+  }
+
   return 'pending'
 }
 

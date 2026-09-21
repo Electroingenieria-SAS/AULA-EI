@@ -104,8 +104,8 @@ function HomeCourseCard({ item }) {
   return <button className="home-course-card" onClick={() => openLearnerCourse(item.course.id)}>
     <div className={'home-course-cover ' + (coverReady ? 'is-ready' : '')}>
       {item.course.cover_path && !coverReady && <div className="home-cover-loading"><BookOpen size={34}/><i /></div>}
-      {!item.course.cover_path && <div className="home-cover-fallback"><BookOpen size={38}/></div>}
-      {cover && <img src={cover} alt={item.course.title} loading="lazy" onLoad={() => setCoverReady(true)} />}
+      {(!item.course.cover_path || (coverReady && !cover)) && <div className="home-cover-fallback"><BookOpen size={38}/></div>}
+      {cover && <img src={cover} alt={item.course.title} loading="lazy" onLoad={() => setCoverReady(true)} onError={() => { setCover(null); setCoverReady(true) }} />}
       <span>{item.course.status}</span>
     </div>
     <div className="home-course-body">

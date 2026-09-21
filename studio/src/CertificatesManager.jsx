@@ -259,7 +259,10 @@ function ScorePill({ score }) {
 }
 
 function LoadingState({ text }) {
-  return <div className="certificate-loading"><Loader2 className="spin" size={22} /><span>{text}</span></div>
+  return <div className="certificate-loading" aria-busy="true">
+    <div className="certificate-loading-head"><Loader2 className="spin" size={20} /><span>{text}</span></div>
+    <div className="certificate-loading-skeleton" aria-hidden="true"><i /><i /><i /><i /></div>
+  </div>
 }
 
 function EmptyState({ icon: Icon, title, text }) {

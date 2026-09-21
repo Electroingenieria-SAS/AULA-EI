@@ -37,9 +37,9 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
 
   return <div className="learner-app-shell">
     <aside className="learner-global-sidebar">
-      <button className="learner-sidebar-brand" onClick={() => navigateLearner('/')}>
-        <img src="/brand/logo-aula-ei.png" alt="Aula EI" />
-        <span><strong>Aula EI</strong><small>Academia interna</small></span>
+      <button className="learner-sidebar-brand learner-sidebar-brand-original" onClick={() => navigateLearner('/')}>
+        <img src="/brand/logo-aula-ei.png" alt="Aula EI · Academia Interna" />
+        <small>ACADEMIA INTERNA</small>
       </button>
 
       <div className="learner-sidebar-user">

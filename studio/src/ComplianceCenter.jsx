@@ -629,8 +629,14 @@ function PathsPanel({
             return <article key={relation.course_id}>
               <span className="path-course-number">{index + 1}</span>
               <div className="path-course-copy"><strong>{course.title}</strong><small>{relation.required ? 'Obligatoria' : 'Opcional'} · aprobación {course.passing_score || 80}%</small></div>
-              <label><span>Plazo</span><input type="number" min="0" value={relation.due_days ?? ''} placeholder="Días" onChange={(event) => updatePathCourse(relation.course_id, { due_days: event.target.value === '' ? null : Number(event.target.value) })} /></label>
-              <label><span>Vigencia</span><input type="number" min="1" value={relation.recertification_months ?? ''} placeholder="Meses" onChange={(event) => updatePathCourse(relation.course_id, { recertification_months: event.target.value === '' ? null : Number(event.target.value) })} /></label>
+              <label><span>Plazo</span><input key={'due:' + relation.course_id + ':' + String(relation.due_days ?? '')} type="number" min="0" defaultValue={relation.due_days ?? ''} placeholder="Días" onBlur={(event) => {
+                const next = event.target.value === '' ? null : Number(event.target.value)
+                if (next !== relation.due_days) updatePathCourse(relation.course_id, { due_days: next })
+              }} /></label>
+              <label><span>Vigencia</span><input key={'validity:' + relation.course_id + ':' + String(relation.recertification_months ?? '')} type="number" min="1" defaultValue={relation.recertification_months ?? ''} placeholder="Meses" onBlur={(event) => {
+                const next = event.target.value === '' ? null : Number(event.target.value)
+                if (next !== relation.recertification_months) updatePathCourse(relation.course_id, { recertification_months: next })
+              }} /></label>
               <button className="icon-button danger-soft" title="Retirar de la ruta" onClick={() => unlinkCourseFromPath(relation.course_id)} disabled={busy === 'unlink-course:' + relation.course_id}><X size={16} /></button>
             </article>
           })}

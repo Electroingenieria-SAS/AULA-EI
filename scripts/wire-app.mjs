@@ -122,6 +122,69 @@ const installGlobalMotion=()=>{
   else start();
 };
 
+const installRevealMotion=()=>{
+  if(bootMode!=='app'||window.__AULA_REVEAL_MOTION__)return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  window.__AULA_REVEAL_MOTION__=true;
+
+  const selectors=[
+    '.home-section-heading',
+    '.catalog-workspace-header',
+    '.games-section-heading',
+    '.courses-overview',
+    '.courses-library',
+    '.assignment-intro',
+    '.assignment-stats',
+    '.panel-card',
+    '.users-overview',
+    '.users-directory',
+    '.certificates-overview',
+    '.certificates-workspace',
+    '.authoring-section',
+    '.publish-actions-card'
+  ].join(',');
+
+  const start=()=>{
+    if(!document.body)return;
+
+    const observer=new IntersectionObserver((entries)=>{
+      for(const entry of entries){
+        if(!entry.isIntersecting)continue;
+        entry.target.classList.add('premium-reveal-in');
+        observer.unobserve(entry.target);
+      }
+    },{threshold:.08,rootMargin:'0px 0px -6% 0px'});
+
+    let order=0;
+    const scan=(root=document)=>{
+      const nodes=[];
+      if(root.matches?.(selectors))nodes.push(root);
+      if(root.querySelectorAll)nodes.push(...root.querySelectorAll(selectors));
+      for(const node of nodes){
+        if(node.dataset.premiumReveal==='1')continue;
+        node.dataset.premiumReveal='1';
+        node.dataset.revealOrder=String((order%4)+1);
+        order+=1;
+        node.classList.add('premium-reveal');
+        observer.observe(node);
+      }
+    };
+
+    scan();
+    const mutations=new MutationObserver((records)=>{
+      for(const record of records){
+        for(const node of record.addedNodes){
+          if(node.nodeType===1)scan(node);
+        }
+      }
+    });
+    mutations.observe(document.body,{childList:true,subtree:true});
+  };
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+};
+
 for(const method of ['pushState','replaceState']){
   const original=history[method];
   history[method]=function(...args){
@@ -134,6 +197,7 @@ for(const method of ['pushState','replaceState']){
 window.addEventListener('hashchange',enforceBoundary);
 window.addEventListener('popstate',enforceBoundary);
 installGlobalMotion();
+installRevealMotion();
 
 if(bootMode==='certificate'){
   addStyles('${certificateStyles}');

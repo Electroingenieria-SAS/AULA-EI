@@ -146,12 +146,12 @@ export default function App({ embedded = false, initialProfile = null }) {
 
     <div className="studio-control-row">
       <nav className="tab-bar integrated-tab-bar">
-        {tabs.map(([id, label, Icon]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>
+        {tabs.map(([id, label, Icon]) => <button key={id} className={tab === id ? 'active' : ''} aria-pressed={tab === id} onClick={() => setTab(id)}>
           <Icon size={17} /> {label}
         </button>)}
       </nav>
       <button className="secondary-button compact studio-refresh" title="Actualizar información" onClick={() => loadCore()} disabled={loading}>
-        <RefreshCw size={16} className={loading ? 'spin' : ''} /> Actualizar
+        <RefreshCw size={16} className={loading ? 'spin' : ''} /> {loading ? 'Actualizando…' : 'Actualizar'}
       </button>
     </div>
 

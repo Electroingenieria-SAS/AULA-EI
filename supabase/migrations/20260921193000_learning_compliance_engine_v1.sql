@@ -90,6 +90,9 @@ create table if not exists public.profile_competency_evidence (
 
 create index if not exists profile_competency_user_idx on public.profile_competency_evidence(user_id);
 create index if not exists profile_competency_validity_idx on public.profile_competency_evidence(valid_until);
+create unique index if not exists profile_competency_evidence_ref_idx
+  on public.profile_competency_evidence(user_id,competency_id,evidence_type,evidence_ref)
+  where evidence_ref is not null;
 
 -- =========================================================
 -- 3. RUTAS DE APRENDIZAJE Y PRERREQUISITOS
@@ -177,6 +180,24 @@ create table if not exists public.job_position_course_requirements (
 alter table public.certificates
   add column if not exists valid_until timestamptz,
   add column if not exists renewal_due_at timestamptz;
+
+create table if not exists public.certificate_history (
+  id uuid primary key default gen_random_uuid(),
+  certificate_code text not null,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  course_id uuid not null references public.courses(id) on delete cascade,
+  exam_attempt_id uuid,
+  score integer,
+  event_type text not null default 'issued' check (event_type in ('issued','recertified','manual')),
+  issued_at timestamptz not null,
+  valid_until timestamptz,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  unique(certificate_code, exam_attempt_id)
+);
+
+create index if not exists certificate_history_user_idx on public.certificate_history(user_id,issued_at desc);
+create index if not exists certificate_history_validity_idx on public.certificate_history(valid_until);
 
 -- =========================================================
 -- 5. AUTOMATIZACIONES, NOTIFICACIONES Y CALENDARIO
@@ -723,20 +744,58 @@ set search_path=public,pg_temp
 as $$
 declare
   v_valid_days integer;
+  v_effective_issued timestamptz;
+  v_valid_until timestamptz;
+  v_event_type text;
+  v_source_ref text;
 begin
+  -- Solo procesar una emisión inicial o un nuevo intento asociado al certificado.
+  if tg_op='UPDATE' and old.exam_attempt_id is not distinct from new.exam_attempt_id then
+    return new;
+  end if;
+
   select valid_days into v_valid_days
   from public.course_compliance_rules
   where course_id=new.course_id;
 
+  v_effective_issued := case when tg_op='INSERT' then coalesce(new.issued_at,now()) else now() end;
+  v_valid_until := case when v_valid_days is null then new.valid_until else v_effective_issued + make_interval(days=>v_valid_days) end;
+  v_event_type := case when tg_op='INSERT' then 'issued' else 'recertified' end;
+  v_source_ref := new.certificate_code||':'||coalesce(new.exam_attempt_id::text,'manual');
+
   if v_valid_days is not null then
     update public.certificates
-    set valid_until=coalesce(new.valid_until,new.issued_at + make_interval(days=>v_valid_days)),
-        renewal_due_at=coalesce(new.renewal_due_at,new.issued_at + make_interval(days=>greatest(v_valid_days-30,1)))
+    set valid_until=v_valid_until,
+        renewal_due_at=v_effective_issued + make_interval(days=>greatest(v_valid_days-30,1))
     where certificate_code=new.certificate_code;
   end if;
 
-  perform public.award_learning_xp(new.user_id,'certificate_earned',100,new.certificate_code,jsonb_build_object('course_id',new.course_id,'score',new.score));
-  perform public.log_learning_event(new.user_id,new.course_id,'certificate_earned','earned','certificate',new.certificate_code,jsonb_build_object('score',new.score));
+  insert into public.certificate_history(
+    certificate_code,user_id,course_id,exam_attempt_id,score,event_type,issued_at,valid_until,metadata
+  )
+  values(
+    new.certificate_code,new.user_id,new.course_id,new.exam_attempt_id,new.score,v_event_type,
+    v_effective_issued,v_valid_until,jsonb_build_object('source','learning360')
+  )
+  on conflict(certificate_code,exam_attempt_id) do nothing;
+
+  insert into public.profile_competency_evidence(
+    user_id,competency_id,course_id,attained_level,evidence_type,evidence_ref,attained_at,valid_until,metadata
+  )
+  select
+    new.user_id,cc.competency_id,new.course_id,cc.granted_level,'certificate',v_source_ref,
+    v_effective_issued,
+    case
+      when cc.validity_days is not null then v_effective_issued + make_interval(days=>cc.validity_days)
+      else v_valid_until
+    end,
+    jsonb_build_object('certificate_code',new.certificate_code,'exam_attempt_id',new.exam_attempt_id)
+  from public.course_competencies cc
+  where cc.course_id=new.course_id
+  on conflict do nothing;
+
+  perform public.award_learning_xp(new.user_id,'certificate_earned',100,v_source_ref,jsonb_build_object('course_id',new.course_id,'score',new.score,'event_type',v_event_type));
+  perform public.log_learning_event(new.user_id,new.course_id,'certificate_earned',case when v_event_type='recertified' then 'recertified' else 'earned' end,'certificate',v_source_ref,jsonb_build_object('score',new.score,'valid_until',v_valid_until));
 
   return new;
 end;
@@ -744,7 +803,7 @@ $$;
 
 drop trigger if exists learning360_certificate on public.certificates;
 create trigger learning360_certificate
-after insert on public.certificates
+after insert or update of exam_attempt_id on public.certificates
 for each row execute function public.learning360_certificate_trigger();
 
 create or replace function public.admin_assign_profile_position(p_user_id uuid,p_position_id uuid)
@@ -1276,6 +1335,7 @@ alter table public.learning_path_steps enable row level security;
 alter table public.profile_learning_paths enable row level security;
 alter table public.course_compliance_rules enable row level security;
 alter table public.job_position_course_requirements enable row level security;
+alter table public.certificate_history enable row level security;
 alter table public.learning_automation_rules enable row level security;
 alter table public.learning_notifications enable row level security;
 alter table public.training_calendar_events enable row level security;
@@ -1327,6 +1387,8 @@ create policy profile_paths_admin_write on public.profile_learning_paths for all
   using (public.is_admin()) with check (public.is_admin());
 
 create policy competency_evidence_self_admin on public.profile_competency_evidence for select to authenticated
+  using (user_id=auth.uid() or public.is_admin());
+create policy certificate_history_self_admin on public.certificate_history for select to authenticated
   using (user_id=auth.uid() or public.is_admin());
 create policy competency_evidence_admin_write on public.profile_competency_evidence for all to authenticated
   using (public.is_admin()) with check (public.is_admin());

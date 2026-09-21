@@ -310,7 +310,10 @@ function SignatureControl({ label, type, value, working, onUpload, onPaste, onCl
 }
 
 function StatePage({ icon: Icon, title, text, spin, error }) {
-  return <main className="certificate-state-page"><section><Icon size={34} className={spin ? 'spin' : error ? 'state-error' : ''} /><h1>{title}</h1><p>{text}</p>{error && <a href="/#/">Volver a Aula EI</a>}</section></main>
+  return <main className="certificate-state-page"><section aria-busy={spin ? 'true' : undefined}>
+    {spin ? <div className="certificate-state-loader" aria-hidden="true"><i /><i /><i /></div> : <Icon size={34} className={error ? 'state-error' : ''} />}
+    <h1>{title}</h1><p>{text}</p>{error && <a href="/#/">Volver a Aula EI</a>}
+  </section></main>
 }
 
 function normalizeRpcRow(value) {

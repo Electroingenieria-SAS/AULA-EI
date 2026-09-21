@@ -163,7 +163,7 @@ export default function App({ embedded = false, initialProfile = null }) {
     {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
   </div>
 
-  if (embedded) return <section className="embedded-studio studio-single-content">{content}</section>
+  if (embedded) return <section className="embedded-studio integrated-studio studio-single-content">{content}</section>
 
   return <div className="app-shell integrated-studio">
     <aside className="sidebar">

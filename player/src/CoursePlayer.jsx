@@ -37,6 +37,9 @@ export default function CoursePlayer() {
   const [practiceAnswer, setPracticeAnswer] = useState(null)
   const [practiceMarked, setPracticeMarked] = useState(false)
   const [practiceLoading, setPracticeLoading] = useState(false)
+  const [practiceGateOpen, setPracticeGateOpen] = useState(false)
+  const [practiceNextBlockId, setPracticeNextBlockId] = useState(null)
+  const [practiceAdvanceBusy, setPracticeAdvanceBusy] = useState(false)
 
   const courseId = useMemo(() => {
     const match = window.location.hash.match(/^#\/course\/([^/?#]+)/)
@@ -122,7 +125,7 @@ export default function CoursePlayer() {
   const achievementContext = useMemo(() => ({ progress, completedCount: courseCompletedCount }), [progress, courseCompletedCount])
   const unlockedAchievements = useMemo(() => ACHIEVEMENTS.filter((item) => item.unlock(achievementContext)), [achievementContext])
 
-  const isLockedAtIndex = (index) => allBlocks.slice(0, index).some((block) => block.required && block.status !== 'draft' && !completed.has(block.id))
+  const isLockedAtIndex = () => false
 
   const phaseStats = (phase) => {
     const blocks = (phase.blocks || []).filter((block) => block.status !== 'draft')
@@ -166,14 +169,9 @@ export default function CoursePlayer() {
     }
   }
 
-  useEffect(() => {
-    if (!courseId || !sessionUser?.id || !currentBlockId || examQuestions || examResult) return
-    loadPracticeQuestion(currentBlockId)
-  }, [courseId, sessionUser?.id, currentBlockId])
-
   const selectBlock = (blockId) => {
     const index = allBlocks.findIndex((block) => block.id === blockId)
-    if (index < 0 || isLockedAtIndex(index)) return
+    if (index < 0) return
     setExamQuestions(null)
     setExamResult(null)
     setCurrentBlockId(blockId)
@@ -185,14 +183,10 @@ export default function CoursePlayer() {
     if (!sessionUser?.id || completed.has(blockId)) return true
     const beforeProgress = progress
     const beforeCount = allBlocks.filter((block) => completed.has(block.id)).length
-    const { error } = await supabase.from('block_progress').upsert({
-      user_id: sessionUser.id,
-      block_id: blockId,
-      status: 'completed',
-      progress_percent: 100,
-      completed_at: new Date().toISOString(),
-      data,
-    }, { onConflict: 'user_id,block_id' })
+    const { error } = await supabase.rpc('complete_block', {
+      p_block_id: blockId,
+      p_data: data,
+    })
 
     if (error) {
       setMessage(error.message)
@@ -223,10 +217,61 @@ export default function CoursePlayer() {
     return true
   }
 
-  const goNext = () => {
-    if (currentIndex < 0) return
-    const next = allBlocks[currentIndex + 1]
-    if (next && !isLockedAtIndex(currentIndex + 1)) selectBlock(next.id)
+  const goNext = async () => {
+    if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy) return
+    const next = allBlocks[currentIndex + 1] || null
+
+    setPracticeNextBlockId(next?.id || null)
+    setPracticeGateOpen(true)
+    await loadPracticeQuestion(crypto.randomUUID())
+  }
+
+  const continueAfterPractice = async () => {
+    if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy) return
+
+    setPracticeAdvanceBusy(true)
+    setPracticeMarked(true)
+
+    // The quick question is a transition checkpoint, not an exam attempt.
+    // Any selected option allows progression; the answer is stored only as
+    // context for the completed content and never graded here.
+    await completeBlock(currentBlockId, {
+      transition_practice: true,
+      practice_question_id: practiceQuestion?.id || null,
+      practice_option_id: practiceAnswer,
+    })
+
+    const target = practiceNextBlockId
+    setPracticeGateOpen(false)
+    setPracticeQuestion(null)
+    setPracticeAnswer(null)
+    setPracticeMarked(false)
+    setPracticeNextBlockId(null)
+    setPracticeAdvanceBusy(false)
+
+    if (target) selectBlock(target)
+    else window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+
+  const continueWithoutPractice = async () => {
+    if (!currentBlockId || practiceAdvanceBusy) return
+
+    setPracticeAdvanceBusy(true)
+    await completeBlock(currentBlockId, {
+      transition_practice: true,
+      practice_unavailable: true,
+    })
+
+    const target = practiceNextBlockId
+    setPracticeGateOpen(false)
+    setPracticeQuestion(null)
+    setPracticeAnswer(null)
+    setPracticeMarked(false)
+    setPracticeNextBlockId(null)
+    setPracticeAdvanceBusy(false)
+
+    if (target) selectBlock(target)
+    else window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   const goPrevious = () => {
@@ -365,11 +410,10 @@ export default function CoursePlayer() {
             <ContentExperience
               block={currentBlock}
               completed={completed.has(currentBlock.id)}
-              complete={(data) => completeBlock(currentBlock.id, data)}
               previousTitle={allBlocks[currentIndex - 1]?.title || 'Inicio'}
               nextTitle={allBlocks[currentIndex + 1]?.title || 'Examen final'}
               canPrevious={currentIndex > 0}
-              canNext={currentIndex < allBlocks.length - 1 && !isLockedAtIndex(currentIndex + 1)}
+              canNext={true}
               previous={goPrevious}
               next={goNext}
             />
@@ -382,9 +426,11 @@ export default function CoursePlayer() {
           <div className="learner-stage-nav">
             <button className="stage-nav-button previous" disabled={currentIndex <= 0} onClick={goPrevious}><ArrowLeft size={18} /><span><small>Anterior</small><strong>{allBlocks[currentIndex - 1]?.title || 'Inicio'}</strong></span></button>
             <div className="stage-nav-center">
-              {completed.has(currentBlock.id) ? <span className="stage-completed-indicator"><CheckCircle2 size={16} /> Contenido completado</span> : <span className="stage-pending-indicator"><Circle size={14} /> Completa este contenido para seguir</span>}
+              {completed.has(currentBlock.id)
+                ? <span className="stage-completed-indicator"><CheckCircle2 size={16} /> Este paso ya cuenta en tu progreso</span>
+                : <span className="stage-pending-indicator"><BrainCircuit size={14} /> Siguiente abrirá una pregunta rápida</span>}
             </div>
-            <button className="stage-nav-button next" disabled={currentIndex >= allBlocks.length - 1 || isLockedAtIndex(currentIndex + 1)} onClick={goNext}><span><small>Siguiente</small><strong>{allBlocks[currentIndex + 1]?.title || 'Examen final'}</strong></span><ArrowRight size={18} /></button>
+            <button className="stage-nav-button next" disabled={practiceLoading || practiceAdvanceBusy} onClick={goNext}><span><small>{currentIndex >= allBlocks.length - 1 ? 'Finalizar contenido' : 'Siguiente'}</small><strong>{allBlocks[currentIndex + 1]?.title || 'Examen final'}</strong></span><ArrowRight size={18} /></button>
           </div>
         )}
 
@@ -398,18 +444,6 @@ export default function CoursePlayer() {
       </section>
 
       <aside className="learner-progress-panel">
-        {!examQuestions && !examResult && practiceQuestion && (
-          <PracticeQuestionCard
-            question={practiceQuestion}
-            selected={practiceAnswer}
-            setSelected={(value) => { setPracticeAnswer(value); setPracticeMarked(false) }}
-            marked={practiceMarked}
-            mark={() => setPracticeMarked(true)}
-            refresh={() => loadPracticeQuestion(crypto.randomUUID())}
-            loading={practiceLoading}
-          />
-        )}
-
         <section className="learner-side-card">
           <div className="side-card-title"><Trophy size={18} /><div><strong>Tus logros</strong><small>{unlockedAchievements.length} de {ACHIEVEMENTS.length} desbloqueados</small></div></div>
           <div className="achievement-mini-grid">
@@ -450,6 +484,20 @@ export default function CoursePlayer() {
       </aside>
     </div>
 
+    {practiceGateOpen && (
+      <PracticeGateModal
+        question={practiceQuestion}
+        selected={practiceAnswer}
+        setSelected={(value) => { setPracticeAnswer(value); setPracticeMarked(false) }}
+        loading={practiceLoading}
+        advancing={practiceAdvanceBusy}
+        targetTitle={allBlocks.find((block) => block.id === practiceNextBlockId)?.title || 'Examen final'}
+        retry={() => loadPracticeQuestion(crypto.randomUUID())}
+        continueForward={continueAfterPractice}
+        continueWithoutQuestion={continueWithoutPractice}
+      />
+    )}
+
     {achievementToast && <AchievementToast achievement={achievementToast} onClose={() => setAchievementToast(null)} />}
   </main>
 }
@@ -478,7 +526,7 @@ function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnloc
                 const Icon = typeIcon(block.type)
                 return <button key={block.id} disabled={locked} className={(currentBlockId === block.id ? 'active ' : '') + (done ? 'done ' : '')} onClick={() => selectBlock(block.id)}>
                   <span>{done ? <CheckCircle2 size={16} /> : locked ? <LockKeyhole size={15} /> : <Icon size={15} />}</span>
-                  <div><strong>{block.title}</strong><small>{typeLabel(block.type)}{block.required ? ' · Obligatorio' : ' · Opcional'}</small></div>
+                  <div><strong>{block.title}</strong><small>{typeLabel(block.type)} · Disponible</small></div>
                 </button>
               })}
             </div>
@@ -495,12 +543,11 @@ function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnloc
   </>
 }
 
-function ContentExperience({ block, completed, complete, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
+function ContentExperience({ block, completed, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
   const [assetUrl, setAssetUrl] = useState(null)
   const [assetError, setAssetError] = useState('')
   const [feedback, setFeedback] = useState('')
   const [selectedOption, setSelectedOption] = useState(null)
-  const [completing, setCompleting] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const content = block.content || {}
   const externalUrl = String(content.url || '').trim()
@@ -520,23 +567,10 @@ function ContentExperience({ block, completed, complete, previousTitle, nextTitl
   const originalUrl = externalUrl || assetUrl
   const isExternalEmbed = Boolean(displayUrl && isEmbedProvider(displayUrl))
 
-  const markComplete = async (data = {}) => {
-    if (completed) return
-    setCompleting(true)
-    const ok = await complete(data)
-    setCompleting(false)
-    if (ok) setFeedback('¡Contenido completado! Tu progreso quedó guardado.')
-  }
-
-  const validate = async () => {
-    const options = Array.isArray(content.options) ? content.options.map(String) : []
+  const validate = () => {
     const correct = Number(content.correctIndex ?? -1)
-    if (selectedOption === correct) {
-      setFeedback('¡Respuesta correcta! Puedes continuar.')
-      await markComplete({ answer: selectedOption })
-    } else {
-      setFeedback('Todavía no. Revisa el contenido y vuelve a intentarlo.')
-    }
+    if (selectedOption === correct) setFeedback('¡Respuesta correcta! Puedes continuar cuando quieras.')
+    else setFeedback('Respuesta marcada. Puedes seguir avanzando o revisar el contenido e intentarlo otra vez.')
   }
 
   const TypeIcon = typeIcon(block.type)
@@ -557,15 +591,15 @@ function ContentExperience({ block, completed, complete, previousTitle, nextTitl
 
       {block.type === 'video' && displayUrl && (
         <div className="media-experience">
-          {isExternalEmbed ? <iframe src={displayUrl} title={block.title} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen /> : <video controls src={displayUrl} onEnded={() => markComplete({ watched: true })} />}
-          {!completed && isExternalEmbed && <div className="media-completion-note"><PlayCircle size={16} /><span>Cuando termines el video, confirma abajo para registrar tu avance.</span></div>}
+          {isExternalEmbed ? <iframe src={displayUrl} title={block.title} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen /> : <video controls src={displayUrl} />}
+          {isExternalEmbed && <div className="media-completion-note"><PlayCircle size={16} /><span>Cuando termines, usa “Siguiente” y responde la pregunta rápida para registrar tu avance.</span></div>}
         </div>
       )}
 
       {block.type === 'audio' && displayUrl && (
         <div className="audio-experience">
           <span><FileAudio size={30} /></span>
-          <div><strong>{block.title}</strong><small>Escucha el audio completo para registrar el avance automáticamente.</small><audio controls src={displayUrl} onEnded={() => markComplete({ listened: true })} /></div>
+          <div><strong>{block.title}</strong><small>Escucha el audio a tu ritmo. El avance se registra al responder la pregunta de transición.</small><audio controls src={displayUrl} /></div>
         </div>
       )}
 
@@ -622,7 +656,7 @@ function ContentExperience({ block, completed, complete, previousTitle, nextTitl
           <span><Gamepad2 size={34} /></span>
           <h3>{content.gameTitle || block.title || 'Actividad interactiva'}</h3>
           <p>{content.instructions || 'Completa la actividad y confirma cuando hayas terminado.'}</p>
-          {!completed && <button onClick={() => markComplete({ gameType: content.gameType || 'activity', score: 100 })} disabled={completing}>{completing ? <Loader2 className="spin" size={16} /> : <CheckCircle2 size={16} />} Completar actividad</button>}
+          <div className="activity-progress-note"><BrainCircuit size={16} /> El avance de este contenido se registra al responder la pregunta rápida de “Siguiente”.</div>
         </div>
       )}
 
@@ -632,7 +666,7 @@ function ContentExperience({ block, completed, complete, previousTitle, nextTitl
           <div className="validation-answer-grid">
             {(Array.isArray(content.options) ? content.options : []).map((option, index) => <button key={index} className={selectedOption === index ? 'selected' : ''} onClick={() => setSelectedOption(index)}><span>{String.fromCharCode(65 + index)}</span><strong>{String(option)}</strong>{selectedOption === index && <Check size={16} />}</button>)}
           </div>
-          {!completed && <button className="validation-submit" disabled={selectedOption === null || completing} onClick={validate}>{completing ? <Loader2 className="spin" size={16} /> : <ShieldCheck size={16} />} Validar respuesta</button>}
+          <button className="validation-submit" disabled={selectedOption === null} onClick={validate}><ShieldCheck size={16} /> Revisar respuesta</button>
         </div>
       )}
 
@@ -641,14 +675,6 @@ function ContentExperience({ block, completed, complete, previousTitle, nextTitl
       {feedback && <div className={'content-feedback ' + (feedback.startsWith('¡') ? 'success' : '')}>{feedback}</div>}
     </div>
 
-    {!completed && !['audio','game','validation'].includes(block.type) && (
-      <footer className="content-completion-footer">
-        <div><span>¿Terminaste este contenido?</span><small>Marca como completado para guardar tu avance y desbloquear lo siguiente.</small></div>
-        <button onClick={() => markComplete({ manuallyCompleted: true, url: originalUrl || undefined })} disabled={completing}>
-          {completing ? <Loader2 className="spin" size={17} /> : <CheckCircle2 size={17} />} Marcar como completado
-        </button>
-      </footer>
-    )}
   </article>
 }
 
@@ -709,40 +735,77 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
   </div>
 }
 
-function PracticeQuestionCard({ question, selected, setSelected, marked, mark, refresh, loading }) {
-  return <section className="learner-side-card practice-question-card">
-    <div className="practice-question-top">
-      <div className="practice-question-icon"><BrainCircuit size={19} /></div>
-      <div><span>Reto rápido</span><strong>Pregunta de práctica</strong></div>
-      <button onClick={refresh} disabled={loading} title="Mostrar otra pregunta">{loading ? <Loader2 className="spin" size={15} /> : <Shuffle size={15} />}</button>
-    </div>
+function PracticeGateModal({ question, selected, setSelected, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion }) {
+  return <div className="practice-gate-backdrop" role="presentation">
+    <section className="practice-gate-modal" role="dialog" aria-modal="true" aria-labelledby="practice-gate-title">
+      <div className="practice-gate-accent" />
 
-    <p>{question.prompt}</p>
+      <header className="practice-gate-header">
+        <div className="practice-gate-icon"><BrainCircuit size={26} /></div>
+        <div>
+          <span>Antes de continuar</span>
+          <h2 id="practice-gate-title">Pregunta rápida</h2>
+          <p>Elige una opción para avanzar. No afecta tu nota y no necesitas acertar para continuar.</p>
+        </div>
+      </header>
 
-    <div className="practice-answer-list">
-      {(question.options || []).map((option, index) => (
-        <button
-          key={option.id}
-          className={(selected === option.id ? 'selected ' : '') + (marked && selected === option.id ? 'marked' : '')}
-          onClick={() => setSelected(option.id)}
-        >
-          <span>{String.fromCharCode(65 + index)}</span>
-          <strong>{option.label}</strong>
-          {selected === option.id && <CheckCircle2 size={15} />}
-        </button>
-      ))}
-    </div>
+      {loading ? (
+        <div className="practice-gate-loading">
+          <Loader2 className="spin" size={28} />
+          <strong>Preparando una pregunta aleatoria…</strong>
+          <span>Estamos tomando una pregunta del banco de esta capacitación.</span>
+        </div>
+      ) : question ? (
+        <>
+          <div className="practice-gate-question">
+            <span className="practice-gate-kicker"><Sparkles size={14} /> Reto de transición</span>
+            <h3>{question.prompt}</h3>
 
-    <button className="practice-mark-button" disabled={!selected || loading} onClick={mark}>
-      {marked ? <CheckCircle2 size={16} /> : <Sparkles size={16} />}
-      {marked ? 'Respuesta marcada' : 'Marcar respuesta'}
-    </button>
+            <div className="practice-gate-options">
+              {(question.options || []).map((option, index) => (
+                <button
+                  key={option.id}
+                  className={selected === option.id ? 'selected' : ''}
+                  onClick={() => setSelected(option.id)}
+                  disabled={advancing}
+                >
+                  <span>{String.fromCharCode(65 + index)}</span>
+                  <strong>{option.label}</strong>
+                  {selected === option.id && <CheckCircle2 size={18} />}
+                </button>
+              ))}
+            </div>
+          </div>
 
-    <div className="practice-safety-note">
-      <ShieldCheck size={14} />
-      <span>{marked ? 'Tu elección quedó marcada solo como práctica.' : 'No afecta tu nota y no revela la respuesta correcta.'}</span>
-    </div>
-  </section>
+          <footer className="practice-gate-footer">
+            <div>
+              <ShieldCheck size={16} />
+              <span>Tu respuesta aquí es solo de práctica. El examen final se califica por separado.</span>
+            </div>
+            <button className="practice-gate-continue" disabled={!selected || advancing} onClick={continueForward}>
+              {advancing ? <Loader2 className="spin" size={17} /> : <ArrowRight size={17} />}
+              {advancing ? 'Guardando avance…' : 'Responder y continuar'}
+            </button>
+          </footer>
+
+          <div className="practice-gate-target">Siguiente: <strong>{targetTitle}</strong></div>
+        </>
+      ) : (
+        <div className="practice-gate-error">
+          <CircleAlert size={28} />
+          <strong>No pudimos cargar la pregunta rápida.</strong>
+          <span>Inténtalo otra vez para continuar con la capacitación.</span>
+          <div className="practice-gate-error-actions">
+            <button onClick={retry} disabled={advancing}><RotateCcw size={16} /> Cargar otra pregunta</button>
+            <button className="practice-gate-skip" onClick={continueWithoutQuestion} disabled={advancing}>
+              {advancing ? <Loader2 className="spin" size={16} /> : <ArrowRight size={16} />}
+              Continuar por ahora
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  </div>
 }
 
 function ExamExperience({ questions, answers, setAnswers, passingScore, submit, loading }) {

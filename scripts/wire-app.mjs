@@ -37,6 +37,91 @@ const bootMode=currentMode();
 const enforceBoundary=()=>{if(currentMode()!==bootMode)window.location.reload()};
 const addStyles=(href)=>{const css=document.createElement('link');css.rel='stylesheet';css.href=href;document.head.appendChild(css)};
 
+const installGlobalMotion=()=>{
+  if(window.__AULA_GLOBAL_MOTION__)return;
+  window.__AULA_GLOBAL_MOTION__=true;
+
+  const style=document.createElement('style');
+  style.textContent=[
+    '#aula-pointer-dot,#aula-pointer-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;opacity:0;will-change:transform,width,height,opacity;border-color;background}',
+    '#aula-pointer-dot{width:5px;height:5px;border-radius:50%;background:#003b8e;box-shadow:0 0 0 1px rgba(255,255,255,.75),0 2px 8px rgba(0,59,142,.25);transition:opacity .18s ease,background .18s ease,box-shadow .18s ease}',
+    '#aula-pointer-ring{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(0,59,142,.38);background:rgba(255,255,255,.06);backdrop-filter:blur(1px);transition:opacity .18s ease,width .20s cubic-bezier(.2,.72,.22,1),height .20s cubic-bezier(.2,.72,.22,1),border-color .20s ease,background .20s ease,box-shadow .20s ease}',
+    'body.aula-pointer-visible #aula-pointer-dot,body.aula-pointer-visible #aula-pointer-ring{opacity:1}',
+    'body.aula-interactive-hover #aula-pointer-ring{width:42px;height:42px;border-color:rgba(255,210,0,.72);background:rgba(255,210,0,.08);box-shadow:0 0 0 6px rgba(0,59,142,.045)}',
+    'body.aula-interactive-hover #aula-pointer-dot{background:#ffd200;box-shadow:0 0 0 1px rgba(0,59,142,.55),0 3px 10px rgba(255,210,0,.25)}',
+    'body.aula-pointer-down #aula-pointer-ring{width:22px;height:22px;background:rgba(0,59,142,.11);border-color:rgba(0,59,142,.62)}',
+    '.aula-click-burst{position:fixed;left:0;top:0;width:18px;height:18px;pointer-events:none;z-index:2147482999;border:2px solid rgba(0,59,142,.62);border-radius:50%;transform:translate(-50%,-50%) scale(.18);animation:aulaClickBurst .54s cubic-bezier(.16,1,.3,1) both}',
+    '.aula-click-burst:before,.aula-click-burst:after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#ffd200;box-shadow:12px 0 0 #1d6dd2,-12px 0 0 #ffd200,0 12px 0 #1d6dd2,0 -12px 0 #ffd200;transform:translate(-50%,-50%) scale(.2);animation:aulaClickDots .54s cubic-bezier(.16,1,.3,1) both}',
+    '.aula-click-burst:after{transform:translate(-50%,-50%) rotate(45deg) scale(.2);opacity:.72}',
+    '@keyframes aulaClickBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.18)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(2.25)}}',
+    '@keyframes aulaClickDots{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}24%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}}',
+    '@media(prefers-reduced-motion:reduce){#aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}}',
+    '@media(hover:none),(pointer:coarse){#aula-pointer-dot,#aula-pointer-ring{display:none!important}}'
+  ].join('');
+  document.head.appendChild(style);
+
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine=window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const interactiveSelector='button,a,[role="button"],input,select,textarea,label,.home-course-card,.catalog-course-card,.games-grid article,.course-library-card,.pending-certificate-card,.user-identity-button,.certificate-person-button,.image-learning-canvas';
+
+  const start=()=>{
+    if(!document.body||reduce)return;
+
+    if(fine){
+      const dot=document.createElement('i');
+      const ring=document.createElement('i');
+      dot.id='aula-pointer-dot';
+      ring.id='aula-pointer-ring';
+      dot.setAttribute('aria-hidden','true');
+      ring.setAttribute('aria-hidden','true');
+      document.body.append(dot,ring);
+
+      let tx=-80,ty=-80,rx=-80,ry=-80,dotX=-80,dotY=-80;
+      const draw=()=>{
+        rx+=(tx-rx)*.18;ry+=(ty-ry)*.18;
+        dotX+=(tx-dotX)*.46;dotY+=(ty-dotY)*.46;
+        ring.style.transform='translate3d('+rx+'px,'+ry+'px,0) translate(-50%,-50%)';
+        dot.style.transform='translate3d('+dotX+'px,'+dotY+'px,0) translate(-50%,-50%)';
+        requestAnimationFrame(draw);
+      };
+      requestAnimationFrame(draw);
+
+      window.addEventListener('pointermove',(event)=>{
+        if(event.pointerType==='touch')return;
+        tx=event.clientX;ty=event.clientY;
+        document.body.classList.add('aula-pointer-visible');
+      },{passive:true});
+
+      window.addEventListener('pointerout',(event)=>{
+        if(!event.relatedTarget)document.body.classList.remove('aula-pointer-visible');
+      },{passive:true});
+
+      document.addEventListener('pointerover',(event)=>{
+        document.body.classList.toggle('aula-interactive-hover',!!event.target.closest?.(interactiveSelector));
+      },{passive:true});
+    }
+
+    document.addEventListener('pointerdown',(event)=>{
+      const interactive=event.target.closest?.(interactiveSelector);
+      if(!interactive)return;
+      document.body.classList.add('aula-pointer-down');
+      const burst=document.createElement('i');
+      burst.className='aula-click-burst';
+      burst.setAttribute('aria-hidden','true');
+      burst.style.left=event.clientX+'px';
+      burst.style.top=event.clientY+'px';
+      document.body.appendChild(burst);
+      setTimeout(()=>burst.remove(),620);
+    },{passive:true});
+
+    window.addEventListener('pointerup',()=>document.body.classList.remove('aula-pointer-down'),{passive:true});
+    window.addEventListener('pointercancel',()=>document.body.classList.remove('aula-pointer-down'),{passive:true});
+  };
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+};
+
 for(const method of ['pushState','replaceState']){
   const original=history[method];
   history[method]=function(...args){
@@ -48,6 +133,7 @@ for(const method of ['pushState','replaceState']){
 
 window.addEventListener('hashchange',enforceBoundary);
 window.addEventListener('popstate',enforceBoundary);
+installGlobalMotion();
 
 if(bootMode==='certificate'){
   addStyles('${certificateStyles}');

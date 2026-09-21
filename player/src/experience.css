@@ -1397,6 +1397,55 @@ textarea{resize:vertical}
   contain-intrinsic-size:340px;
 }
 
+/* ---------- Navegación móvil premium ---------- */
+.learner-mobile-global-nav{
+  border:1px solid rgba(214,226,238,.90);
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(20px) saturate(1.10);
+  box-shadow:0 -10px 32px rgba(17,46,79,.10);
+}
+.learner-mobile-global-nav button{
+  position:relative;
+  overflow:hidden;
+  transition:transform var(--ux-fast),background var(--ux-normal),color var(--ux-normal);
+}
+.learner-mobile-global-nav button:hover{transform:translateY(-1px)}
+.learner-mobile-global-nav button.active{
+  background:linear-gradient(180deg,#edf5ff,#f8fbff);
+}
+.learner-mobile-global-nav button.active:after{
+  content:"";
+  position:absolute;
+  left:25%;right:25%;bottom:2px;
+  height:2px;border-radius:999px;
+  background:var(--premium-yellow);
+  box-shadow:0 0 10px rgba(255,210,0,.28);
+}
+
+/* ---------- Feedback visual de click ---------- */
+.primary-button:active:not(:disabled),
+.secondary-button:active:not(:disabled),
+.catalog-open-button:active:not(:disabled),
+.home-yellow-button:active:not(:disabled),
+.hero-primary-button:active:not(:disabled),
+.stage-nav-button:active:not(:disabled),
+.integrated-tab-bar button:active:not(:disabled){
+  filter:brightness(.97);
+}
+
+/* ---------- Transiciones de paneles laterales ---------- */
+.learner-course-layout{
+  transition:grid-template-columns var(--ux-slow) var(--ux-ease);
+}
+.learner-course-layout.visual-focus .learner-outline,
+.learner-course-layout.visual-focus .learner-progress-panel{
+  animation:premiumPanelReflow .36s var(--ux-ease-out) both;
+}
+@keyframes premiumPanelReflow{
+  from{opacity:.2;transform:translateY(-10px)}
+  to{opacity:1;transform:none}
+}
+
 /* ---------- Responsive ---------- */
 @media(max-width:1180px){
   .studio-control-row{position:relative;top:auto}

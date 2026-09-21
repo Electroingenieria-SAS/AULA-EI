@@ -622,3 +622,7 @@ a{text-decoration:none;color:inherit}
     text-align:center;
   }
 }
+
+.practice-gate-error-actions{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+.practice-gate-error-actions button{margin-top:0}
+.practice-gate-error-actions .practice-gate-skip{border-color:#d9dfb5;background:#fff9df;color:#6d5a10}

@@ -1,6 +1,9 @@
-name: Deploy GitHub Pages Preview
+name: Build and Deploy Aula EI
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -12,7 +15,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages-preview
+  group: aula-ei-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -34,19 +37,23 @@ jobs:
         run: npm run build
 
       - name: Prepare repository subpath for GitHub Pages
+        if: github.event_name != 'pull_request'
         run: node scripts/prepare-github-pages.mjs
 
       - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

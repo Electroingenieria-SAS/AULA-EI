@@ -165,7 +165,7 @@ export default function App() {
 
         {tab === 'courses' && <CoursesManager courses={courses} refresh={() => loadCore()} setMessage={setMessage} />}
         {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
-        {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} refresh={() => loadCore()} setMessage={setMessage} />}
+        {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
         {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
       </div>
     </main>

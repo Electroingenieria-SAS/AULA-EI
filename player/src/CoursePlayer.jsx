@@ -194,6 +194,8 @@ export default function CoursePlayer() {
       }
 
       setPracticeVerdict('unavailable')
+    } catch {
+      setPracticeVerdict('unavailable')
     } finally {
       setPracticeChecking(false)
     }
@@ -844,7 +846,7 @@ function PracticeGateModal({ question, selected, verdict, checking, selectAnswer
               <ShieldCheck size={16} />
               <span>Este reto es de práctica. No suma ni resta puntos del examen final.</span>
             </div>
-            <button className="practice-gate-continue" disabled={!selected || checking || advancing} onClick={continueForward}>
+            <button className="practice-gate-continue" disabled={!selected || checking || advancing || (!resolved && !unavailable)} onClick={continueForward}>
               {advancing ? <Loader2 className="spin" size={17} /> : <ArrowRight size={17} />}
               {advancing ? 'Guardando avance…' : resolved || unavailable ? 'Continuar' : 'Responder y continuar'}
             </button>

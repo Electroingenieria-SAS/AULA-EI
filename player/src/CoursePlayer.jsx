@@ -357,8 +357,8 @@ export default function CoursePlayer() {
     }
   }
 
-  if (loading) return <StateView title="Preparando tu capacitación…" text="Cargando contenidos, progreso y recursos." icon={Loader2} spin />
-  if (!course) return <StateView title="No fue posible abrir la capacitación" text={message || 'No encontramos información disponible.'} icon={CircleAlert} error />
+  if (loading) return <CourseTransitionState loading />
+  if (!course) return <CourseTransitionState error message={message || 'No encontramos información disponible.'} />
 
   return <main className="learner-course-app">
     <LearnerTopbar
@@ -937,10 +937,31 @@ function CelebrationBurst({ mini = false }) {
   return <div className={'celebration-burst ' + (mini ? 'mini' : '')}>{Array.from({ length: 16 }).map((_, index) => <i key={index} style={{ '--i': index }} />)}</div>
 }
 
-function StateView({ title, text, icon: Icon, spin, error }) {
-  return <main className="learner-state-view"><section><img src="/brand/logo-aula-ei.png" alt="Aula EI" /><Icon size={34} className={spin ? 'spin' : error ? 'error' : ''} /><h1>{title}</h1><p>{text}</p>{error && <button onClick={() => navigateLearner('/catalog')}>Volver a mis capacitaciones</button>}</section></main>
-}
+function CourseTransitionState({ loading = false, error = false, message = '' }) {
+  return <main className="learner-course-app learner-course-transition-state">
+    <LearnerTopbar
+      center={<div className="learner-topbar-page"><BookOpen size={16} /><div><span>Capacitación</span><strong>{loading ? 'Preparando contenido…' : 'No disponible'}</strong></div></div>}
+      actions={<button className="secondary-action" onClick={() => navigateLearner('/catalog')}><ArrowLeft size={17} /> Mis capacitaciones</button>}
+    />
 
+    {loading ? <section className="course-transition-skeleton">
+      <div className="course-transition-intro">
+        <span /><h1 /><p /><p />
+        <div className="course-transition-progress" />
+      </div>
+      <div className="course-transition-grid">
+        <aside>{Array.from({ length: 6 }).map((_, index) => <i key={index} />)}</aside>
+        <article><b /><strong /><p /><p /><div /></article>
+        <aside>{Array.from({ length: 4 }).map((_, index) => <i key={index} />)}</aside>
+      </div>
+    </section> : <section className="course-transition-error">
+      <CircleAlert size={34} />
+      <h1>No fue posible abrir la capacitación</h1>
+      <p>{message}</p>
+      <button onClick={() => navigateLearner('/catalog')}><ArrowLeft size={16} /> Volver a mis capacitaciones</button>
+    </section>}
+  </main>
+}
 function normalizeCourse(course) {
   return {
     ...course,

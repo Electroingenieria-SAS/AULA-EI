@@ -1154,6 +1154,47 @@ begin
 end;
 $$;
 
+create or replace function public.record_external_learning_event(
+  p_course_id uuid,
+  p_event_type text,
+  p_verb text,
+  p_object_type text,
+  p_object_id text,
+  p_data jsonb default '{}'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $
+declare
+  v_user uuid := auth.uid();
+begin
+  if v_user is null or not public.is_aula_active(v_user) then
+    raise exception 'Sesión de Aula EI requerida.';
+  end if;
+
+  if p_course_id is not null and not (
+    public.can_manage_courses() or public.is_enrolled(p_course_id,v_user)
+  ) then
+    raise exception 'No tienes acceso a la capacitación indicada.';
+  end if;
+
+  insert into public.learning_events(user_id,course_id,event_type,verb,object_type,object_id,data)
+  values(
+    v_user,
+    p_course_id,
+    left(coalesce(p_event_type,'external_event'),100),
+    left(coalesce(p_verb,'experienced'),100),
+    left(coalesce(p_object_type,'activity'),100),
+    left(coalesce(p_object_id,''),500),
+    coalesce(p_data,'{}'::jsonb)
+  );
+
+  return jsonb_build_object('ok',true,'recorded_at',now());
+end;
+$;
+
 create or replace function public.record_aula_telemetry(
   p_event_type text,
   p_route text,
@@ -1281,6 +1322,7 @@ revoke execute on function public.admin_learning_360_snapshot() from public,anon
 revoke execute on function public.admin_run_learning_automations() from public,anon;
 revoke execute on function public.admin_assign_profile_position(uuid,uuid) from public,anon;
 revoke execute on function public.record_aula_telemetry(text,text,text,numeric,jsonb) from public,anon;
+revoke execute on function public.record_external_learning_event(uuid,text,text,text,text,jsonb) from public,anon;
 
 grant execute on function public.touch_learning_activity() to authenticated,service_role;
 grant execute on function public.get_my_learning_360() to authenticated,service_role;
@@ -1288,5 +1330,6 @@ grant execute on function public.admin_learning_360_snapshot() to authenticated,
 grant execute on function public.admin_run_learning_automations() to authenticated,service_role;
 grant execute on function public.admin_assign_profile_position(uuid,uuid) to authenticated,service_role;
 grant execute on function public.record_aula_telemetry(text,text,text,numeric,jsonb) to authenticated,service_role;
+grant execute on function public.record_external_learning_event(uuid,text,text,text,text,jsonb) to authenticated,service_role;
 
 commit;

@@ -29,6 +29,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [outlineOpen, setOutlineOpen] = useState(false)
+  const [visualFocus, setVisualFocus] = useState(false)
   const [examQuestions, setExamQuestions] = useState(null)
   const [examAnswers, setExamAnswers] = useState({})
   const [examResult, setExamResult] = useState(null)
@@ -47,6 +48,10 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     const match = window.location.hash.match(/^#\/course\/([^/?#]+)/)
     return match?.[1] ? decodeURIComponent(match[1]) : ''
   }, [])
+
+  useEffect(() => {
+    setVisualFocus(false)
+  }, [currentBlockId])
 
   const load = async () => {
     setLoading(true)
@@ -408,7 +413,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
     {message && <div className="learner-inline-message"><CircleAlert size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={15} /></button></div>}
 
-    <div className="learner-course-layout">
+    <div className={'learner-course-layout ' + (visualFocus ? 'visual-focus' : '')}>
       <CourseOutline
         course={course}
         allBlocks={allBlocks}
@@ -455,6 +460,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
               canNext={true}
               previous={goPrevious}
               next={goNext}
+              imageExpanded={visualFocus}
+              setImageExpanded={setVisualFocus}
             />
           ) : (
             <div className="learner-empty-stage"><BookOpen size={38} /><h2>Esta capacitación aún no tiene contenido visible.</h2><p>Cuando el equipo publique contenidos aparecerán aquí.</p></div>
@@ -584,7 +591,7 @@ function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnloc
   </>
 }
 
-function ContentExperience({ block, completed, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
+function ContentExperience({ block, completed, previousTitle, nextTitle, canPrevious, canNext, previous, next, imageExpanded, setImageExpanded }) {
   const [assetUrl, setAssetUrl] = useState(null)
   const [assetError, setAssetError] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -645,15 +652,25 @@ function ContentExperience({ block, completed, previousTitle, nextTitle, canPrev
       )}
 
       {block.type === 'image' && displayUrl && (
-        <div className="image-learning-experience">
-          <button className="image-learning-canvas" onClick={() => setLightboxOpen(true)}>
+        <div className={'image-learning-experience ' + (imageExpanded ? 'expanded' : '')}>
+          <button
+            className="image-learning-canvas"
+            onClick={() => imageExpanded ? setLightboxOpen(true) : setImageExpanded(true)}
+            aria-label={imageExpanded ? 'Abrir imagen a pantalla completa' : 'Ampliar imagen dentro de la capacitación'}
+          >
             <img src={displayUrl} alt={block.title} />
-            <span><Maximize2 size={17} /> Ampliar imagen</span>
+            <span>{imageExpanded ? <><Maximize2 size={17} /> Pantalla completa</> : <><Maximize2 size={17} /> Ampliar imagen</>}</span>
           </button>
+
           <div className="image-learning-actions">
-            <span><Images size={16} /> Haz clic sobre la imagen para verla a pantalla completa y hacer zoom.</span>
-            {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Abrir original</a>}
+            <span><Images size={16} /> {imageExpanded ? 'Vista ampliada activa. La ruta y tus logros se acomodaron debajo para darle más espacio a la imagen.' : 'Amplía primero la imagen sin salir de la capacitación.'}</span>
+            <div className="image-view-actions">
+              {imageExpanded && <button type="button" onClick={() => setImageExpanded(false)}><Minimize2 size={15} /> Tamaño normal</button>}
+              {imageExpanded && <button type="button" className="primary" onClick={() => setLightboxOpen(true)}><Maximize2 size={15} /> Pantalla completa</button>}
+              {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Abrir original</a>}
+            </div>
           </div>
+
           {lightboxOpen && <ImageLightbox
             src={displayUrl}
             alt={block.title}
@@ -731,6 +748,9 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
   const [zoom, setZoom] = useState(1)
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     const onKey = (event) => {
       if (event.key === 'Escape') close()
       if (event.key === 'ArrowLeft' && canPrevious) previous()
@@ -739,7 +759,10 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
       if (event.key === '-' && !event.ctrlKey) setZoom((value) => Math.max(.6, value - .2))
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previousOverflow
+    }
   }, [canPrevious, canNext, previous, next, close])
 
   return <div className="image-lightbox" onMouseDown={(event) => { if (event.target === event.currentTarget) close() }}>
@@ -765,8 +788,8 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
         <span><small>Contenido anterior</small><strong>{previousTitle}</strong></span>
       </button>
       <div>
-        <span>Vista ampliada</span>
-        <small>También puedes usar ← y → para navegar.</small>
+        <span>Pantalla completa</span>
+        <small>Zoom con + / − · navega con ← y → · Esc para cerrar.</small>
       </div>
       <button disabled={!canNext} onClick={next}>
         <span><small>Siguiente contenido</small><strong>{nextTitle}</strong></span>

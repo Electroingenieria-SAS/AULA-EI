@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import StudioApp from '../../studio/src/App.jsx'
 import CatalogPage from './CatalogPage.jsx'
 import CoursePlayer from './CoursePlayer.jsx'
 import GamesPage from './GamesPage.jsx'
 import HomePage from './HomePage.jsx'
 import LearnerShell from './LearnerShell.jsx'
-import StudioFrame from './StudioFrame.jsx'
 import { supabase } from './supabase.js'
 
 function readRoute() {
@@ -20,6 +20,7 @@ function readRoute() {
 export default function LearnerApp() {
   const [route, setRoute] = useState(() => readRoute())
   const [profile, setProfile] = useState(null)
+  const [sessionReady, setSessionReady] = useState(false)
 
   useEffect(() => {
     const sync = () => setRoute(readRoute())
@@ -33,23 +34,51 @@ export default function LearnerApp() {
 
   useEffect(() => {
     let alive = true
-    supabase.rpc('get_my_profile').then(({ data, error }) => {
-      if (!alive || error) return
-      const value = Array.isArray(data) ? data[0] : data
-      if (value) setProfile(value)
-    })
+    ;(async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (error) throw error
+        if (!data.session?.user) {
+          window.location.replace('/#/login')
+          return
+        }
+
+        const { data: profileData, error: profileError } = await supabase.rpc('get_my_profile')
+        if (profileError) throw profileError
+        const value = Array.isArray(profileData) ? profileData[0] : profileData
+        if (alive && value) setProfile(value)
+      } catch {
+        if (alive) setProfile(null)
+      } finally {
+        if (alive) setSessionReady(true)
+      }
+    })()
+
     return () => { alive = false }
   }, [])
 
   const content = useMemo(() => {
+    if (!sessionReady) return <ModuleLoading label="Preparando Aula EI…" />
     if (route.type === 'course') return <CoursePlayer />
     if (route.type === 'catalog') return <CatalogPage profile={profile} />
     if (route.type === 'games') return <GamesPage />
-    if (route.type === 'studio') return <StudioFrame />
+    if (route.type === 'studio') {
+      return profile
+        ? <StudioApp embedded initialProfile={profile} />
+        : <ModuleLoading label="Validando Gestión Aula EI…" />
+    }
     return <HomePage profile={profile} />
-  }, [route.key, route.type, profile])
+  }, [route.key, route.type, profile, sessionReady])
 
   return <LearnerShell activeRoute={route.type} profile={profile}>
     <div className="learner-route-transition" key={route.key}>{content}</div>
   </LearnerShell>
+}
+
+function ModuleLoading({ label }) {
+  return <section className="global-module-loading" aria-live="polite">
+    <div className="global-loading-orb" />
+    <strong>{label}</strong>
+    <span>La navegación principal permanece disponible.</span>
+  </section>
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { BookOpen, Gamepad2, GraduationCap, Medal, PlayCircle, ShieldCheck, Sparkles, Trophy } from 'lucide-react'
+import { BookOpen, Briefcase, Gamepad2, GraduationCap, Layers3, Medal, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
 import { navigateLearner, openLearnerCourse } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
@@ -7,6 +7,7 @@ export default function HomePage({ profile, sessionUser }) {
   const [enrollments, setEnrollments] = useState([])
   const [certificates, setCertificates] = useState([])
   const [hiddenCount, setHiddenCount] = useState(0)
+  const [trainingProfile, setTrainingProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -16,13 +17,14 @@ export default function HomePage({ profile, sessionUser }) {
         const userId = sessionUser?.id
         if (!userId) return
 
-        const [enrollmentResult, certificateResult] = await Promise.all([
+        const [enrollmentResult, certificateResult, trainingProfileResult] = await Promise.all([
           supabase
             .from('enrollments')
             .select('id,status,due_at,created_at,course:courses(id,title,description,passing_score,status,cover_path)')
             .eq('user_id', userId)
             .order('created_at', { ascending: false }),
           supabase.rpc('get_my_certificates'),
+          supabase.rpc('get_my_training_profile'),
         ])
 
         if (!alive) return
@@ -31,6 +33,7 @@ export default function HomePage({ profile, sessionUser }) {
         setEnrollments(visible)
         setHiddenCount(raw.length - visible.length)
         setCertificates(certificateResult.error ? [] : (certificateResult.data || []))
+        setTrainingProfile(trainingProfileResult.error ? null : (trainingProfileResult.data || null))
       } finally {
         if (alive) setLoading(false)
       }
@@ -65,6 +68,33 @@ export default function HomePage({ profile, sessionUser }) {
       <article><Gamepad2 /><div><span>Juegos disponibles</span><strong>6+</strong></div></article>
       <article><Medal /><div><span>Nota mínima</span><strong>80%</strong></div></article>
     </section>
+
+    {trainingProfile?.position && <section className="home-training-route-card">
+      <div className="home-training-route-head">
+        <span className="home-training-route-icon"><Briefcase size={22} /></span>
+        <div>
+          <span>MI RUTA FORMATIVA</span>
+          <h2>{trainingProfile.position.name}</h2>
+          <p>{trainingProfile.position.department || 'Ruta de formación asociada a tu cargo actual.'}</p>
+        </div>
+      </div>
+      <div className="home-training-route-content">
+        <div>
+          <strong><Target size={16} /> Competencias esperadas</strong>
+          <div className="home-training-chip-list">
+            {(trainingProfile.competencies || []).slice(0,6).map((item) => <span key={item.id}>{item.name}<b>N{item.required_level}</b></span>)}
+            {!trainingProfile.competencies?.length && <small>Aún no hay competencias configuradas para este cargo.</small>}
+          </div>
+        </div>
+        <div>
+          <strong><Layers3 size={16} /> Rutas asignadas</strong>
+          <div className="home-training-path-list">
+            {(trainingProfile.paths || []).map((item) => <span key={item.id}><Layers3 size={14} /> {item.name}</span>)}
+            {!trainingProfile.paths?.length && <small>Aún no hay rutas vinculadas a este cargo.</small>}
+          </div>
+        </div>
+      </div>
+    </section>}
 
     <section className="home-section-heading">
       <div><span>CONTINUAR APRENDIZAJE</span><h2>Capacitaciones asignadas</h2><p>Abre cualquier capacitación desde aquí sin perder la navegación principal.</p></div>

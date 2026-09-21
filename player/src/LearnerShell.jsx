@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { BookOpen, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
+import { BookOpen, Gamepad2, Home, LogOut, Route, ShieldCheck, Sparkles } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'
 
@@ -31,6 +31,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
 
       <nav className="learner-sidebar-nav" aria-label="Navegación principal">
         <SidebarLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
+        <SidebarLink icon={Route} label="Mi Ruta 360" active={activeRoute === 'journey'} onClick={() => navigateLearner('/journey')} />
         <SidebarLink icon={BookOpen} label="Mis capacitaciones" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
         <SidebarLink icon={Gamepad2} label="Juegos EI" active={activeRoute === 'games'} onClick={() => navigateLearner('/games')} />
         {canManage && <SidebarLink icon={ShieldCheck} label="Gestión Aula EI" active={activeRoute === 'studio'} onClick={() => navigateLearner('/studio')} />}
@@ -45,7 +46,8 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     <div className="learner-shell-main">{children}</div>
 
     <nav className="learner-mobile-global-nav">
-      <MobileLink icon={Home} label="Inicio" onClick={() => navigateLearner('/')} />
+      <MobileLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
+      <MobileLink icon={Route} label="Mi ruta" active={activeRoute === 'journey'} onClick={() => navigateLearner('/journey')} />
       <MobileLink icon={BookOpen} label="Cursos" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
       <MobileLink icon={Gamepad2} label="Juegos" onClick={() => navigateLearner('/games')} />
       {canManage && <MobileLink icon={ShieldCheck} label="Gestión" onClick={() => navigateLearner('/studio')} />}

@@ -722,3 +722,231 @@ h1,h2,h3,h4{color:#173b69}
   .publish-action-buttons{flex-direction:column;align-items:stretch}
   .publish-action-buttons button{width:100%}
 }
+
+
+/* =========================================================
+   Motor de Formación y Cumplimiento
+   ========================================================= */
+.compliance-center{display:flex;flex-direction:column;gap:16px}
+.compliance-hero{
+  position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:25px;
+  padding:22px;
+  background:linear-gradient(135deg,#001e4a,#003b8e 55%,#176cc5);
+  color:#fff;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 230px;
+  align-items:center;gap:20px;
+  box-shadow:0 24px 56px rgba(0,37,86,.20)
+}
+.compliance-hero:after{content:"";position:absolute;width:260px;height:260px;right:-110px;top:-150px;border-radius:50%;background:rgba(255,210,0,.22)}
+.compliance-hero>div{position:relative;z-index:1}
+.compliance-hero h2{margin:6px 0 7px;font-size:1.45rem;letter-spacing:-.03em;color:#fff}
+.compliance-hero p{margin:0;max-width:780px;color:rgba(255,255,255,.78);font-size:.72rem;line-height:1.6}
+.compliance-hero-score{
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:19px;
+  padding:17px;
+  background:rgba(255,255,255,.11);
+  backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10)
+}
+.compliance-hero-score span{font-size:.58rem;color:rgba(255,255,255,.72)}
+.compliance-hero-score strong{margin:5px 0 3px;font-size:2.1rem;line-height:1;color:#fff}
+.compliance-hero-score small{font-size:.56rem;color:rgba(255,255,255,.70)}
+.compliance-tabs{
+  display:flex;gap:6px;flex-wrap:wrap;
+  padding:7px;
+  border:1px solid #dbe5ef;border-radius:16px;
+  background:rgba(255,255,255,.78);backdrop-filter:blur(10px)
+}
+.compliance-tabs button{
+  border:1px solid transparent;background:transparent;color:#62778d;
+  border-radius:11px;padding:8px 11px;display:flex;align-items:center;gap:6px;
+  font-size:.66rem;font-weight:900
+}
+.compliance-tabs button:hover{background:#f1f6fc;color:#145ea6}
+.compliance-tabs button.active{border-color:#c9ddf0;background:#edf5ff;color:#075bb9;box-shadow:0 7px 16px rgba(0,59,142,.07)}
+.compliance-overview{display:flex;flex-direction:column;gap:14px}
+.compliance-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+.compliance-metrics article{
+  min-height:88px;padding:12px;border:1px solid #dbe5ee;border-radius:16px;
+  background:#fff;display:flex;align-items:center;gap:10px;
+  box-shadow:0 10px 24px rgba(18,54,96,.055)
+}
+.compliance-metrics article>span{width:39px;height:39px;flex:none;border-radius:12px;background:#edf5ff;color:#075bb9;display:grid;place-items:center}
+.compliance-metrics article>div{display:flex;flex-direction:column;min-width:0}
+.compliance-metrics small{font-size:.56rem;color:#7b8da0}
+.compliance-metrics strong{font-size:1.25rem;color:#173b69;line-height:1.05}
+.compliance-metrics em{font-style:normal;font-size:.52rem;color:#8292a3;margin-top:2px}
+.compliance-overview-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:12px}
+.compliance-flow-card,.compliance-alert-card,.compliance-position-detail,.compliance-people-panel,.compliance-catalog-panel,
+.compliance-competency-head,.compliance-create-competency,.compliance-path-sidebar,.compliance-path-builder,.compliance-automation-intro,
+.compliance-matrix-head{padding:15px}
+.compliance-flow{
+  margin-top:14px;display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+  align-items:center;gap:6px
+}
+.compliance-flow article{
+  min-height:112px;padding:10px;border:1px solid #dde7f0;border-radius:14px;background:#fbfdff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px
+}
+.compliance-flow article>span{width:36px;height:36px;border-radius:11px;background:#edf5ff;color:#075bb9;display:grid;place-items:center}
+.compliance-flow article strong{font-size:.65rem}.compliance-flow article small{font-size:.53rem;line-height:1.35;color:#7a8da0}
+.flow-chevron{color:#91a7bd}
+.compliance-flow-actions{margin-top:12px;display:flex;gap:7px;flex-wrap:wrap}
+.compliance-alert-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.compliance-alert-list article{
+  padding:8px;border:1px solid #e3eaf1;border-radius:11px;background:#fff;
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center
+}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#9aabba}
+.status-dot.green{background:#2c915c}.status-dot.yellow{background:#d49b1c}.status-dot.red{background:#c65050}.status-dot.blue{background:#2373c7}
+.compliance-alert-list article>div{min-width:0;display:flex;flex-direction:column}
+.compliance-alert-list strong{font-size:.63rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compliance-alert-list small{font-size:.54rem;color:#7c8da0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compliance-status{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:4px 7px;border-radius:999px;font-size:.53rem;font-weight:900;white-space:nowrap}
+.compliance-status.green{background:#e3f5eb;color:#247748}.compliance-status.yellow{background:#fff1d8;color:#9b6715}.compliance-status.red{background:#fde7e7;color:#a84040}.compliance-status.blue{background:#e6f1ff;color:#1769b7}.compliance-status.neutral{background:#eef2f6;color:#6d7f91}
+.compliance-empty-compact{
+  min-height:65px;border:1px dashed #d1dce7;border-radius:12px;background:#fbfdff;color:#72859a;
+  display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;font-size:.61rem;text-align:center
+}
+.compliance-two-column{display:grid;grid-template-columns:320px minmax(0,1fr);gap:12px}
+.compliance-stack{display:flex;flex-direction:column;gap:12px}
+.compliance-position-list,.compliance-path-list{display:flex;flex-direction:column;gap:5px;margin-top:11px}
+.compliance-position-list button,.compliance-path-list button{
+  border:1px solid #e0e8f0;border-radius:12px;background:#fff;padding:9px;
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;color:inherit
+}
+.compliance-position-list button:hover,.compliance-path-list button:hover{border-color:#bfd4e8;background:#f8fbff}
+.compliance-position-list button.active,.compliance-path-list button.active{border-color:#a9c8e7;background:#edf5ff;box-shadow:0 0 0 3px rgba(0,59,142,.04)}
+.compliance-position-icon,.compliance-path-list button>span{width:32px;height:32px;border-radius:9px;background:#edf5ff;color:#075bb9;display:grid;place-items:center}
+.compliance-position-list button>div,.compliance-path-list button>div{min-width:0;display:flex;flex-direction:column}
+.compliance-position-list strong,.compliance-path-list strong{font-size:.65rem}
+.compliance-position-list small,.compliance-path-list small{font-size:.53rem;color:#7c8da0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compliance-create-box{margin-top:12px;border-top:1px solid #e9eef4;padding-top:11px;display:flex;flex-direction:column;gap:7px}
+.compliance-create-box>strong{font-size:.65rem;color:#355b7d}
+.compliance-create-box input,.compliance-create-box textarea,.compliance-create-box select{width:100%}
+.compliance-inline-fields{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+.compliance-path-toggle-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.compliance-path-toggle-grid button{
+  border:1px solid #dfe7ef;border-radius:12px;background:#fff;padding:9px;
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;text-align:left;color:inherit
+}
+.compliance-path-toggle-grid button>span{width:32px;height:32px;border-radius:9px;background:#eff3f7;color:#7b8da0;display:grid;place-items:center}
+.compliance-path-toggle-grid button.active{border-color:#9fc6e8;background:#f1f7ff}
+.compliance-path-toggle-grid button.active>span{background:#dceeff;color:#075bb9}
+.compliance-path-toggle-grid strong{font-size:.63rem}.compliance-path-toggle-grid small{font-size:.53rem;color:#7d8ea0}
+.compliance-search{margin:10px 0}
+.compliance-people-list{display:flex;flex-direction:column;gap:5px;max-height:520px;overflow:auto;padding-right:2px}
+.compliance-people-list article{
+  border:1px solid #e2e9f0;border-radius:12px;background:#fff;padding:8px;
+  display:grid;grid-template-columns:auto minmax(0,1fr) minmax(180px,260px) auto;gap:8px;align-items:center
+}
+.compliance-person-avatar{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#e3efff,#f7fbff);color:#075bb9;display:grid;place-items:center;font-size:.61rem;font-weight:900}
+.compliance-person-copy{min-width:0;display:flex;flex-direction:column}.compliance-person-copy strong{font-size:.64rem}.compliance-person-copy small{font-size:.53rem;color:#7d8ea0}
+.compliance-people-list select{min-width:0}
+.compliance-competency-layout{display:flex;flex-direction:column;gap:12px}
+.compliance-competency-head{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,320px);gap:16px;align-items:end
+}
+.compliance-competency-head h3,.compliance-automation-intro h3,.compliance-matrix-head h3{margin:3px 0 4px;font-size:.91rem}
+.compliance-competency-head p,.compliance-automation-intro p,.compliance-matrix-head p{margin:0;color:#75889b;font-size:.63rem;line-height:1.5}
+.compliance-competency-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.compliance-competency-card{
+  border:1px solid #dde6ef;border-radius:15px;background:#fff;padding:11px;display:flex;flex-direction:column;gap:8px;
+  box-shadow:0 9px 22px rgba(18,54,96,.045)
+}
+.compliance-competency-card.active{border-color:#a9c9e7;background:linear-gradient(145deg,#f4f9ff,#fff)}
+.competency-toggle{border:0;background:transparent;padding:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;text-align:left;color:inherit}
+.competency-toggle>span{width:34px;height:34px;border-radius:10px;background:#eef3f8;color:#7890a8;display:grid;place-items:center}
+.compliance-competency-card.active .competency-toggle>span{background:#dceeff;color:#075bb9}
+.competency-toggle>div{display:flex;flex-direction:column}.competency-toggle strong{font-size:.66rem}.competency-toggle small{font-size:.52rem;text-transform:capitalize;color:#7d8ea0}
+.compliance-competency-card p{margin:0;min-height:36px;color:#788a9d;font-size:.57rem;line-height:1.45}
+.competency-level-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #edf1f5;padding-top:8px}
+.competency-level-row>span{font-size:.55rem;color:#73879a}
+.competency-level-buttons{display:flex;gap:3px}
+.competency-level-buttons button{width:26px;height:26px;border:1px solid #d9e3ed;border-radius:8px;background:#fff;color:#6f8296;font-size:.55rem;font-weight:900}
+.competency-level-buttons button.filled{border-color:#96bde2;background:#e7f2ff;color:#075bb9}
+.compliance-create-competency{display:grid;grid-template-columns:minmax(190px,.7fr) minmax(180px,1fr) minmax(140px,.6fr) auto;gap:8px;align-items:end}
+.compliance-create-competency h3{margin:3px 0 0;font-size:.8rem}
+.compliance-path-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px}
+.compliance-linked-courses{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.compliance-linked-courses article{
+  border:1px solid #dde6ef;border-radius:13px;background:#fff;padding:8px;
+  display:grid;grid-template-columns:auto minmax(0,1fr) 95px 95px auto;gap:8px;align-items:center
+}
+.path-course-number{width:30px;height:30px;border-radius:9px;background:#edf5ff;color:#075bb9;display:grid;place-items:center;font-size:.62rem;font-weight:900}
+.path-course-copy{display:flex;flex-direction:column;min-width:0}.path-course-copy strong{font-size:.64rem}.path-course-copy small{font-size:.53rem;color:#7c8da0}
+.compliance-linked-courses label{display:flex;flex-direction:column;gap:3px}.compliance-linked-courses label>span{font-size:.5rem;color:#7f90a1}.compliance-linked-courses input{padding:7px!important}
+.danger-soft{color:#a84747!important;background:#fff7f7!important}
+.compliance-empty-path{min-height:155px;border:1px dashed #cedae6;border-radius:14px;background:#fbfdff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;color:#75899e}
+.compliance-empty-path strong{font-size:.7rem}.compliance-empty-path span{font-size:.58rem}
+.compliance-course-pool{margin-top:12px;border-top:1px solid #e8eef4;padding-top:11px;display:flex;flex-direction:column;gap:8px}
+.compliance-course-pool>div:first-child{display:flex;flex-direction:column}.compliance-course-pool>div:first-child strong{font-size:.67rem}.compliance-course-pool>div:first-child span{font-size:.55rem;color:#7b8da0}
+.compliance-course-pool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:280px;overflow:auto}
+.compliance-course-pool-grid button{
+  border:1px solid #e0e8ef;border-radius:11px;background:#fff;padding:8px;
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px;align-items:center;text-align:left;color:inherit
+}
+.compliance-course-pool-grid button:hover{border-color:#b5cee6;background:#f7fbff}
+.compliance-course-pool-grid button>span{width:29px;height:29px;border-radius:8px;background:#edf5ff;color:#075bb9;display:grid;place-items:center}
+.compliance-course-pool-grid button>div{min-width:0;display:flex;flex-direction:column}.compliance-course-pool-grid strong{font-size:.59rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.compliance-course-pool-grid small{font-size:.49rem;color:#7c8da0}
+.compliance-automation{display:flex;flex-direction:column;gap:12px}
+.compliance-automation-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px;align-items:center}
+.compliance-rule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.compliance-rule-grid article{border:1px solid #dfe7ef;border-radius:16px;background:#fff;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 24px rgba(18,54,96,.045)}
+.compliance-rule-grid article.active{border-color:#a9c9e8;background:linear-gradient(145deg,#f4f9ff,#fff)}
+.automation-rule-icon{width:40px;height:40px;border-radius:12px;background:#edf5ff;color:#075bb9;display:grid;place-items:center}
+.automation-rule-copy{display:flex;flex-direction:column}.automation-rule-copy>span{font-size:.49rem;text-transform:uppercase;letter-spacing:1px;color:#7b8da0}.automation-rule-copy h3{margin:4px 0;font-size:.73rem}.automation-rule-copy p{margin:0;min-height:53px;color:#74879a;font-size:.58rem;line-height:1.48}
+.automation-rule-footer{border-top:1px solid #edf1f5;padding-top:9px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.automation-state{font-size:.54rem;font-weight:900}.automation-state.on{color:#278054}.automation-state.off{color:#8998a8}
+.compliance-matrix{display:flex;flex-direction:column;gap:10px}
+.compliance-matrix-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px;align-items:center}
+.compliance-matrix-summary{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.compliance-matrix-summary span{border-radius:999px;padding:6px 8px;background:#e7f5ed;color:#267a4d;font-size:.56rem;font-weight:900;display:flex;align-items:center;gap:4px}.compliance-matrix-summary span.warning{background:#fff2dc;color:#956315}.compliance-matrix-summary span.danger{background:#fde8e8;color:#a44040}
+.compliance-matrix-search{max-width:520px}
+.compliance-table-wrap{overflow:auto;border:1px solid #dfe7ef;border-radius:15px;background:#fff;box-shadow:0 10px 24px rgba(18,54,96,.045)}
+.compliance-table{width:100%;border-collapse:separate;border-spacing:0;min-width:920px}
+.compliance-table th{position:sticky;top:0;z-index:2;background:#f7fafc;border-bottom:1px solid #dfe7ef;padding:9px 10px;text-align:left;font-size:.53rem;text-transform:uppercase;letter-spacing:.5px;color:#687f96}
+.compliance-table td{padding:9px 10px;border-bottom:1px solid #edf2f6;font-size:.58rem;color:#526b84;vertical-align:middle}
+.compliance-table tr:last-child td{border-bottom:0}.compliance-table tbody tr:hover{background:#f8fbff}
+.compliance-table td:first-child{display:flex;flex-direction:column}.compliance-table td:first-child strong,.compliance-table td:nth-child(4) strong{font-size:.61rem;color:#294f73}.compliance-table td:first-child small{font-size:.5rem;color:#8795a5}
+.compliance-empty-table{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;color:#75899c}.compliance-empty-table strong{font-size:.7rem}.compliance-empty-table span{font-size:.57rem}
+.compliance-loading{min-height:500px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;color:#708397}
+.compliance-loading>strong{color:#315b83;font-size:.78rem}.compliance-loading>span{font-size:.59rem}
+.compliance-loading-grid{width:min(720px,90%);margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.compliance-loading-grid i{height:80px;border-radius:14px;background:linear-gradient(90deg,#edf2f6,#f9fbfc,#edf2f6);background-size:220% 100%;animation:skeletonShimmer 1.2s ease-in-out infinite}
+.compliance-setup-pending{min-height:280px;padding:28px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:15px;align-items:flex-start}
+.compliance-setup-icon{width:54px;height:54px;border-radius:17px;background:#edf5ff;color:#075bb9;display:grid;place-items:center}.compliance-setup-pending.error .compliance-setup-icon{background:#fff0f0;color:#aa4141}
+.compliance-setup-pending h2{margin:5px 0 6px;font-size:1rem}.compliance-setup-pending p{margin:0 0 8px;color:#708397;font-size:.65rem;line-height:1.55}.compliance-setup-pending small{font-size:.55rem;color:#7c8da0}.compliance-setup-pending code{background:#eef3f7;border-radius:6px;padding:2px 5px}
+@media(max-width:1380px){
+  .compliance-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .compliance-competency-grid,.compliance-rule-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:1100px){
+  .compliance-hero{grid-template-columns:1fr}
+  .compliance-hero-score{align-items:flex-start;text-align:left}
+  .compliance-overview-grid,.compliance-two-column,.compliance-path-layout{grid-template-columns:1fr}
+  .compliance-flow{grid-template-columns:repeat(5,minmax(0,1fr))}.flow-chevron{display:none}
+  .compliance-create-competency{grid-template-columns:1fr 1fr}.compliance-create-competency>div:first-child{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .compliance-metrics{grid-template-columns:1fr 1fr}
+  .compliance-tabs{display:grid;grid-template-columns:1fr 1fr}
+  .compliance-tabs button{justify-content:flex-start}
+  .compliance-flow{grid-template-columns:1fr 1fr}
+  .compliance-flow article:last-of-type{grid-column:1/-1}
+  .compliance-path-toggle-grid,.compliance-course-pool-grid,.compliance-competency-grid,.compliance-rule-grid{grid-template-columns:1fr}
+  .compliance-people-list article{grid-template-columns:auto minmax(0,1fr)}.compliance-people-list select{grid-column:1/-1}
+  .compliance-competency-head,.compliance-automation-intro,.compliance-matrix-head{grid-template-columns:1fr}
+  .compliance-create-competency{grid-template-columns:1fr}
+  .compliance-linked-courses article{grid-template-columns:auto minmax(0,1fr) auto}.compliance-linked-courses label{grid-column:2}
+  .compliance-matrix-summary{justify-content:flex-start}
+}
+@media(max-width:520px){
+  .compliance-metrics{grid-template-columns:1fr}
+  .compliance-tabs{grid-template-columns:1fr}
+  .compliance-hero{padding:18px;border-radius:20px}
+}

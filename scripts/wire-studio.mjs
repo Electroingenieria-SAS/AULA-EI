@@ -42,7 +42,7 @@ const playerStyles = `/player/assets/${playerCssFiles[0]}`
 
 const bootstrap = `const studioRoute=/^#\\/studio(?:\\/|$)/;
 const certificateRoute=/^#\\/certificate\\/[^/?#]+/;
-const playerRoute=/^#\\/course\\/[^/?#]+/;
+const playerRoute=/^#\\/(?:catalog(?:\\/|$)|course\\/[^/?#]+)/;
 const currentMode=()=>certificateRoute.test(window.location.hash)?'certificate':playerRoute.test(window.location.hash)?'player':studioRoute.test(window.location.hash)?'studio':'legacy';
 const bootMode=currentMode();
 const enforceBundleBoundary=()=>{if(currentMode()!==bootMode)window.location.reload()};

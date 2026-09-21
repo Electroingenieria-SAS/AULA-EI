@@ -3318,3 +3318,29 @@ a{text-decoration:none;color:inherit}
     padding:0 0 11px 12px;
   }
 }
+
+@media(max-width:900px){
+  .learner-mobile-global-nav{
+    border:1px solid rgba(255,255,255,.82);
+    background:rgba(255,255,255,.94);
+    box-shadow:0 16px 40px rgba(15,23,42,.16);
+  }
+  .learner-mobile-global-nav button{
+    color:#64748b;
+  }
+  .learner-mobile-global-nav button.active{
+    position:relative;
+    background:#edf4ff;
+    color:var(--aula-blue);
+  }
+  .learner-mobile-global-nav button.active:before{
+    content:"";
+    position:absolute;
+    top:-6px;
+    left:28%;
+    right:28%;
+    height:3px;
+    border-radius:0 0 999px 999px;
+    background:var(--aula-yellow);
+  }
+}

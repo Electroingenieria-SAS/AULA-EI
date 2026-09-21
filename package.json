@@ -6,7 +6,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "build": "node b.mjs && vite build --config studio/vite.config.js && vite build --config certificate/vite.config.js && vite build --config player/vite.config.js && node scripts/wire-studio.mjs"
+    "build": "node b.mjs && vite build --config certificate/vite.config.js && vite build --config player/vite.config.js && node scripts/wire-studio.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

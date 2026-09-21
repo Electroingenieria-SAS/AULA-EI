@@ -157,10 +157,14 @@ export default function App({ embedded = false, initialProfile = null }) {
 
     {message && <div className="message-banner"><Sparkles size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={16} /></button></div>}
 
-    {tab === 'courses' && <CoursesManager courses={courses} refresh={() => loadCore()} setMessage={setMessage} />}
-    {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
-    {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
-    {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
+    {loading && <div className="studio-sync-feedback" role="status"><span /><strong>Actualizando información…</strong></div>}
+
+    <div className="studio-tab-stage" key={tab} aria-busy={loading ? 'true' : 'false'}>
+      {tab === 'courses' && <CoursesManager courses={courses} refresh={() => loadCore()} setMessage={setMessage} />}
+      {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
+      {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={() => loadCore()} setMessage={setMessage} />}
+      {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
+    </div>
   </div>
 
   if (embedded) return <section className="embedded-studio integrated-studio studio-single-content">{content}</section>
@@ -203,10 +207,11 @@ export default function App({ embedded = false, initialProfile = null }) {
 }
 
 function StudioInlineLoading() {
-  return <section className="studio-inline-state">
-    <Loader2 className="spin" size={28} />
+  return <section className="studio-inline-state studio-inline-loading" aria-busy="true">
+    <div className="experience-loading-mark" aria-hidden="true"><i /><i /><i /></div>
     <strong>Preparando Gestión Aula EI…</strong>
-    <span>La navegación principal permanece disponible.</span>
+    <span>Cargando herramientas y datos de gestión.</span>
+    <div className="studio-loading-skeleton" aria-hidden="true"><i className="wide" /><i /><i /><i /></div>
   </section>
 }
 

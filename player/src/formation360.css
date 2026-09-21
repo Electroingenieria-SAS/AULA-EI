@@ -628,6 +628,54 @@
   font-size:.63rem;
 }
 
+/* Puente capacitación → competencia */
+.formation360-course-competencies{margin-top:2px}
+.formation360-bridge-form{
+  display:grid;
+  grid-template-columns:minmax(220px,1.4fr) minmax(220px,1.2fr) 120px auto;
+  gap:8px;
+  align-items:end;
+}
+.formation360-bridge-form>select,
+.formation360-bridge-form label select{
+  width:100%;
+  min-height:38px;
+  padding:7px 9px;
+  border:1px solid #d5e2ed;
+  border-radius:10px;
+  background:#fff;
+  font-size:.62rem;
+}
+.formation360-bridge-form label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  color:#697d92;
+  font-size:.53rem;
+  font-weight:800;
+}
+.formation360-bridge-list{
+  margin-top:13px;
+  display:grid;
+  gap:6px;
+}
+.formation360-bridge-list>div{
+  min-height:48px;
+  padding:8px 9px;
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  border:1px solid #e3eaf1;
+  border-radius:12px;
+  background:#fff;
+}
+.formation360-bridge-list>div>svg{color:#075db7}
+.formation360-bridge-list>div>div{display:flex;flex-direction:column;gap:2px}
+.formation360-bridge-list strong{font-size:.62rem}
+.formation360-bridge-list small{color:#7b8c9d;font-size:.51rem}
+.formation360-bridge-list>small{color:#7d8d9d;font-size:.55rem}
+
 /* Rutas */
 .formation360-path-list{display:grid;gap:12px}
 
@@ -1428,6 +1476,8 @@
   .formation360-metric-grid,.formation360-compliance-grid,.formation360-analytics-grid,.formation360-ecosystem-grid,.journey-metrics{grid-template-columns:1fr 1fr}
   .formation360-person-list>div{grid-template-columns:38px minmax(0,1fr)}
   .formation360-person-list select{grid-column:2;width:100%}
+  .formation360-bridge-form{grid-template-columns:1fr 1fr}
+  .formation360-bridge-form>button{justify-self:start}
   .formation360-compliance-table>div{grid-template-columns:1fr 1fr}
   .formation360-compliance-table>.head{display:none}
   .formation360-course-health>div{grid-template-columns:1fr 1fr}
@@ -1445,6 +1495,7 @@
   .formation360-alert-list{grid-template-columns:1fr}
   .formation360-tabs button span{display:none}
   .formation360-path-card>header{flex-direction:column}
+  .formation360-bridge-form{grid-template-columns:1fr}
   .formation360-path-meta{align-items:flex-start}
   .formation360-path-step{grid-template-columns:26px minmax(0,1fr)}
   .formation360-step-icon{display:none}

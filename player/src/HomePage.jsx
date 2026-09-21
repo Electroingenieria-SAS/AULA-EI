@@ -59,9 +59,9 @@ export default function HomePage({ profile, sessionUser }) {
 
     {hiddenCount > 0 && <div className="home-warning">Hay {hiddenCount} asignación(es) que todavía no están visibles porque la capacitación no está publicada o no tiene permisos activos.</div>}
 
-    <section className="home-metric-grid">
-      <article><BookOpen /><div><span>Asignadas visibles</span><strong>{enrollments.length}</strong></div></article>
-      <article><GraduationCap /><div><span>Certificadas</span><strong>{certificates.length}</strong></div></article>
+    <section className={'home-metric-grid ' + (loading ? 'is-loading' : '')}>
+      <article><BookOpen /><div><span>Asignadas visibles</span><strong>{loading ? '—' : enrollments.length}</strong></div></article>
+      <article><GraduationCap /><div><span>Certificadas</span><strong>{loading ? '—' : certificates.length}</strong></div></article>
       <article><Gamepad2 /><div><span>Juegos disponibles</span><strong>6+</strong></div></article>
       <article><Medal /><div><span>Nota mínima</span><strong>80%</strong></div></article>
     </section>
@@ -79,27 +79,32 @@ export default function HomePage({ profile, sessionUser }) {
       <div><span>CERTIFICACIÓN</span><h2>Mis certificados</h2><p>Consulta los certificados que ya has obtenido.</p></div>
     </section>
 
-    {certificates.length ? <div className="home-certificate-list">
-      {certificates.map((item)=><article key={item.certificate_code}>
-        <div><b>{item.course_title || 'Capacitación Aula EI'}</b><span>Código: {item.certificate_code}</span><small>{new Date(item.issued_at).toLocaleDateString('es-CO')} · {item.score}%</small></div>
-        <button onClick={() => window.open('/#/certificate/' + encodeURIComponent(item.certificate_code), '_blank', 'noopener,noreferrer')}><Trophy size={16}/> Abrir certificado</button>
-      </article>)}
-    </div> : <div className="home-empty compact"><Trophy size={28}/><h3>Aún no tienes certificados</h3><p>Aprueba una capacitación con la nota mínima para generarlo automáticamente.</p></div>}
+    {loading ? <div className="home-certificate-loading" aria-hidden="true">{Array.from({ length: 2 }).map((_, index) => <i key={index} />)}</div> :
+      certificates.length ? <div className="home-certificate-list">
+        {certificates.map((item)=><article key={item.certificate_code}>
+          <div><b>{item.course_title || 'Capacitación Aula EI'}</b><span>Código: {item.certificate_code}</span><small>{new Date(item.issued_at).toLocaleDateString('es-CO')} · {item.score}%</small></div>
+          <button onClick={() => window.open('/#/certificate/' + encodeURIComponent(item.certificate_code), '_blank', 'noopener,noreferrer')}><Trophy size={16}/> Abrir certificado</button>
+        </article>)}
+      </div> : <div className="home-empty compact"><Trophy size={28}/><h3>Aún no tienes certificados</h3><p>Aprueba una capacitación con la nota mínima para generarlo automáticamente.</p></div>}
   </main>
 }
 
 function HomeCourseCard({ item }) {
   const [cover, setCover] = useState(null)
+  const [coverReady, setCoverReady] = useState(false)
   useEffect(() => {
     let alive = true
+    setCover(null)
+    setCoverReady(false)
     if (!item.course.cover_path) return () => { alive = false }
     signedAsset(item.course.cover_path).then((url)=>alive&&setCover(url)).catch(()=>alive&&setCover(null))
     return () => { alive = false }
   }, [item.course.cover_path])
 
   return <button className="home-course-card" onClick={() => openLearnerCourse(item.course.id)}>
-    <div className="home-course-cover">
-      {cover ? <img src={cover} alt={item.course.title} /> : <BookOpen size={40}/>}
+    <div className={'home-course-cover ' + (coverReady ? 'is-ready' : '')}>
+      {!coverReady && <div className="home-cover-loading"><BookOpen size={34}/><i /></div>}
+      {cover && <img src={cover} alt={item.course.title} loading="lazy" onLoad={() => setCoverReady(true)} />}
       <span>{item.course.status}</span>
     </div>
     <div className="home-course-body">

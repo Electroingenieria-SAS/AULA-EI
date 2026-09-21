@@ -1032,6 +1032,113 @@
 .journey-loading-grid>.wide{grid-column:1/-1;min-height:120px}
 @keyframes formationShimmer{to{background-position:-140% 0}}
 
+/* Notificaciones globales */
+.learner-nav-badge{
+  margin-left:auto;
+  min-width:20px;
+  height:20px;
+  padding:0 5px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:#ffd200;
+  color:#002a64;
+  font-size:.49rem;
+  font-weight:950;
+  box-shadow:0 5px 12px rgba(255,210,0,.20);
+}
+.learner-mobile-global-nav button{position:relative}
+.learner-mobile-badge{
+  position:absolute;
+  top:3px;
+  right:7px;
+  min-width:17px;
+  height:17px;
+  padding:0 4px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:#ffd200;
+  color:#002a64;
+  font-size:.45rem;
+  font-weight:950;
+  box-shadow:0 4px 10px rgba(255,210,0,.18);
+}
+
+/* Analítica avanzada */
+.formation360-question-health{
+  display:grid;
+  gap:7px;
+}
+.formation360-question-health>div{
+  min-height:55px;
+  padding:9px 10px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid #edf1f5;
+}
+.formation360-question-health>div>div{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.formation360-question-health strong{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:.62rem;
+  white-space:nowrap;
+}
+.formation360-question-health small{
+  color:#7a8b9b;
+  font-size:.51rem;
+}
+.formation360-question-health b{
+  padding:5px 7px;
+  border-radius:999px;
+  background:#fff2df;
+  color:#8a6400;
+  font-size:.52rem;
+  white-space:nowrap;
+}
+
+.formation360-cohorts{
+  display:grid;
+  gap:7px;
+}
+.formation360-cohorts>div{
+  min-height:48px;
+  padding:8px 9px;
+  display:grid;
+  grid-template-columns:74px 100px 110px minmax(120px,1fr) 46px;
+  align-items:center;
+  gap:9px;
+  border-bottom:1px solid #edf1f5;
+  color:#6f8296;
+  font-size:.54rem;
+}
+.formation360-cohorts>div>strong{color:#173b62;font-size:.60rem}
+.formation360-cohorts>div>div{
+  height:7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#edf2f6;
+}
+.formation360-cohorts>div>div i{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#075db7,#ffd200);
+  transition:width .55s cubic-bezier(.16,1,.3,1);
+}
+.formation360-cohorts>div>b{
+  text-align:right;
+  color:#164f88;
+  font-size:.57rem;
+}
+
 /* =========================================================
    Mi Ruta 360 · colaborador
    ========================================================= */
@@ -1325,6 +1432,9 @@
   .formation360-compliance-table>.head{display:none}
   .formation360-course-health>div{grid-template-columns:1fr 1fr}
   .formation360-course-health>div>div{grid-column:1/-1}
+  .formation360-cohorts>div{grid-template-columns:70px 1fr 1fr}
+  .formation360-cohorts>div>div{grid-column:1/3}
+  .formation360-cohorts>div>b{grid-column:3;grid-row:2}
   .formation360-form{grid-template-columns:1fr}
   .formation360-form label.wide{grid-column:auto}
   .journey-badges{grid-template-columns:1fr 1fr}

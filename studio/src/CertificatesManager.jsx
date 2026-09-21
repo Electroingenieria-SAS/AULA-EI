@@ -94,15 +94,21 @@ export default function CertificatesManager({ setMessage }) {
 
   const selectedCertificate = issuedRows.find((item) => item.certificate_code === detailCode) || null
 
+  const certificateUrl = (code) => new URL('/#/certificate/' + encodeURIComponent(code), window.location.origin).href
+
   const openCertificate = (code) => {
     if (!code) return
-    const url = new URL('/#/certificate/' + encodeURIComponent(code), window.location.origin).href
-    const popup = window.open(url, '_blank', 'noopener,noreferrer')
-    if (!popup) setMessage('El navegador bloqueó la nueva pestaña. Habilita ventanas emergentes para Aula EI e inténtalo de nuevo.')
+    const anchor = document.createElement('a')
+    anchor.href = certificateUrl(code)
+    anchor.target = '_blank'
+    anchor.rel = 'noopener noreferrer'
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
   }
 
   const copyCertificateLink = async (code) => {
-    const url = new URL('/#/certificate/' + encodeURIComponent(code), window.location.origin).href
+    const url = certificateUrl(code)
     try {
       await navigator.clipboard.writeText(url)
       setMessage('Enlace del certificado copiado.')
@@ -113,6 +119,8 @@ export default function CertificatesManager({ setMessage }) {
 
   const generate = async (item) => {
     const key = item.course_id + '-' + item.user_id
+    const reservedTab = window.open('about:blank', '_blank')
+    if (reservedTab) reservedTab.opener = null
     setWorking(key)
     try {
       const { data, error } = await supabase.rpc('admin_generate_certificate', { p_course_id: item.course_id, p_user_id: item.user_id })
@@ -120,8 +128,11 @@ export default function CertificatesManager({ setMessage }) {
       const code = data?.certificate_code
       setMessage('Certificado generado oficialmente: ' + String(code || 'generado') + '.')
       await load()
-      if (code) openCertificate(code)
+      if (code && reservedTab && !reservedTab.closed) reservedTab.location.replace(certificateUrl(code))
+      else if (code) openCertificate(code)
+      else if (reservedTab && !reservedTab.closed) reservedTab.close()
     } catch (error) {
+      if (reservedTab && !reservedTab.closed) reservedTab.close()
       setMessage(getError(error, 'No fue posible generar el certificado oficial.'))
     } finally {
       setWorking(null)

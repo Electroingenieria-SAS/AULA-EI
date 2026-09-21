@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node b.mjs",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "headers": [
     {
@@ -24,9 +24,21 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store,max-age=0" }]
     },
     {
+      "source": "/studio/index.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store,max-age=0" }]
+    },
+    {
       "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public,max-age=31536000,immutable" }]
+    },
+    {
+      "source": "/studio/assets/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public,max-age=31536000,immutable" }]
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    { "source": "/studio", "destination": "/studio/index.html" },
+    { "source": "/studio/", "destination": "/studio/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

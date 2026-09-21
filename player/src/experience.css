@@ -700,3 +700,53 @@ button:disabled,
     scroll-behavior:auto !important;
   }
 }
+
+
+/* Detalles complementarios de carga */
+.home-cover-fallback{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#eaf2fb;
+  background:linear-gradient(135deg,#174f9f,#082f72);
+}
+.certificate-loading{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:14px;
+  padding:18px 4px;
+}
+.certificate-loading-head{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:#5f748a;
+  font-size:.72rem;
+}
+.certificate-loading-skeleton{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.certificate-loading-skeleton i{
+  position:relative;
+  overflow:hidden;
+  min-height:82px;
+  border:1px solid #e0e8f1;
+  border-radius:15px;
+  background:#eef3f8;
+}
+.certificate-loading-skeleton i:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.72) 46%,transparent 64%);
+  transform:translateX(-110%);
+  animation:uxShimmer 1.35s ease-in-out infinite;
+}
+@media(max-width:760px){
+  .certificate-loading-skeleton{grid-template-columns:1fr 1fr}
+}

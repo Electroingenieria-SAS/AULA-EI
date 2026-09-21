@@ -76,24 +76,30 @@ const installGlobalMotion=()=>{
       ring.setAttribute('aria-hidden','true');
       document.body.append(dot,ring);
 
-      let tx=-80,ty=-80,rx=-80,ry=-80,dotX=-80,dotY=-80;
+      let tx=-80,ty=-80,rx=-80,ry=-80,dotX=-80,dotY=-80,raf=0;
       const draw=()=>{
         rx+=(tx-rx)*.18;ry+=(ty-ry)*.18;
         dotX+=(tx-dotX)*.46;dotY+=(ty-dotY)*.46;
         ring.style.transform='translate3d('+rx+'px,'+ry+'px,0) translate(-50%,-50%)';
         dot.style.transform='translate3d('+dotX+'px,'+dotY+'px,0) translate(-50%,-50%)';
-        requestAnimationFrame(draw);
+        const remaining=Math.abs(tx-rx)+Math.abs(ty-ry)+Math.abs(tx-dotX)+Math.abs(ty-dotY);
+        if(remaining>.35)raf=requestAnimationFrame(draw);
+        else raf=0;
       };
-      requestAnimationFrame(draw);
+      const scheduleDraw=()=>{if(!raf)raf=requestAnimationFrame(draw)};
 
       window.addEventListener('pointermove',(event)=>{
         if(event.pointerType==='touch')return;
         tx=event.clientX;ty=event.clientY;
         document.body.classList.add('aula-pointer-visible');
+        scheduleDraw();
       },{passive:true});
 
       window.addEventListener('pointerout',(event)=>{
         if(!event.relatedTarget)document.body.classList.remove('aula-pointer-visible');
+      },{passive:true});
+      document.addEventListener('visibilitychange',()=>{
+        if(document.hidden)document.body.classList.remove('aula-pointer-visible','aula-interactive-hover','aula-pointer-down');
       },{passive:true});
 
       document.addEventListener('pointerover',(event)=>{

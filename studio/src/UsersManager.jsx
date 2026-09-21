@@ -179,6 +179,10 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     initialState: { pagination: { pageSize: 25 } },
   })
 
+  useEffect(() => {
+    table.setPageIndex(0)
+  }, [search, roleFilter, statusFilter, manageFilter])
+
   const selectedRows = useMemo(() => rows.filter((row) => rowSelection[row.id]), [rows, rowSelection])
   const manageableSelected = selectedRows.filter((person) => canManage(person))
 

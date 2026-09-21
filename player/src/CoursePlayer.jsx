@@ -24,7 +24,6 @@ export default function CoursePlayer() {
   const [enrollment, setEnrollment] = useState(null)
   const [completed, setCompleted] = useState(new Set())
   const [currentBlockId, setCurrentBlockId] = useState(null)
-  const [coverUrl, setCoverUrl] = useState(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [outlineOpen, setOutlineOpen] = useState(false)
@@ -35,7 +34,8 @@ export default function CoursePlayer() {
   const [achievementToast, setAchievementToast] = useState(null)
   const [practiceQuestion, setPracticeQuestion] = useState(null)
   const [practiceAnswer, setPracticeAnswer] = useState(null)
-  const [practiceMarked, setPracticeMarked] = useState(false)
+  const [practiceVerdict, setPracticeVerdict] = useState(null)
+  const [practiceChecking, setPracticeChecking] = useState(false)
   const [practiceLoading, setPracticeLoading] = useState(false)
   const [practiceGateOpen, setPracticeGateOpen] = useState(false)
   const [practiceNextBlockId, setPracticeNextBlockId] = useState(null)
@@ -95,13 +95,6 @@ export default function CoursePlayer() {
       setCurrentBlockId((current) => current && allBlocks.some((block) => block.id === current) ? current : initial?.id || null)
       setEnrollment(enrollmentResult.error ? null : enrollmentResult.data || null)
 
-      if (normalized.cover_path) {
-        signedAsset(normalized.cover_path)
-          .then(setCoverUrl)
-          .catch(() => setCoverUrl(null))
-      } else {
-        setCoverUrl(null)
-      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No fue posible abrir la capacitación.')
       setCourse(null)
@@ -141,7 +134,7 @@ export default function CoursePlayer() {
     setPracticeLoading(true)
     setPracticeQuestion(null)
     setPracticeAnswer(null)
-    setPracticeMarked(false)
+    setPracticeVerdict(null)
     try {
       const { data, error } = await supabase.rpc('get_course_practice_question', {
         p_course_id: courseId,
@@ -156,16 +149,53 @@ export default function CoursePlayer() {
           const index = seededIndex(String(seed), fallback.data.length)
           setPracticeQuestion(fallback.data[index])
           setPracticeAnswer(null)
-          setPracticeMarked(false)
+          setPracticeVerdict(null)
         }
         return
       }
 
       setPracticeQuestion(data || null)
       setPracticeAnswer(null)
-      setPracticeMarked(false)
+      setPracticeVerdict(null)
     } finally {
       setPracticeLoading(false)
+    }
+  }
+
+  const checkPracticeAnswer = async (optionId) => {
+    if (!practiceQuestion?.id || practiceChecking || practiceAdvanceBusy) return
+
+    setPracticeAnswer(optionId)
+    setPracticeVerdict(null)
+    setPracticeChecking(true)
+
+    try {
+      const { data, error } = await supabase.rpc('check_course_practice_answer', {
+        p_course_id: courseId,
+        p_question_id: practiceQuestion.id,
+        p_option_id: optionId,
+      })
+
+      if (!error && typeof data?.correct === 'boolean') {
+        setPracticeVerdict(data.correct)
+        return
+      }
+
+      const fallback = await supabase
+        .from('question_options')
+        .select('is_correct')
+        .eq('id', optionId)
+        .eq('question_id', practiceQuestion.id)
+        .maybeSingle()
+
+      if (!fallback.error && typeof fallback.data?.is_correct === 'boolean') {
+        setPracticeVerdict(Boolean(fallback.data.is_correct))
+        return
+      }
+
+      setPracticeVerdict('unavailable')
+    } finally {
+      setPracticeChecking(false)
     }
   }
 
@@ -227,10 +257,10 @@ export default function CoursePlayer() {
   }
 
   const continueAfterPractice = async () => {
-    if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy) return
+    if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy || practiceChecking) return
 
     setPracticeAdvanceBusy(true)
-    setPracticeMarked(true)
+    setPracticeVerdict(null)
 
     // The quick question is a transition checkpoint, not an exam attempt.
     // Any selected option allows progression; the answer is stored only as
@@ -239,13 +269,15 @@ export default function CoursePlayer() {
       transition_practice: true,
       practice_question_id: practiceQuestion?.id || null,
       practice_option_id: practiceAnswer,
+      practice_correct: typeof practiceVerdict === 'boolean' ? practiceVerdict : null,
     })
 
     const target = practiceNextBlockId
     setPracticeGateOpen(false)
     setPracticeQuestion(null)
     setPracticeAnswer(null)
-    setPracticeMarked(false)
+    setPracticeVerdict(null)
+    setPracticeChecking(false)
     setPracticeNextBlockId(null)
     setPracticeAdvanceBusy(false)
 
@@ -266,7 +298,8 @@ export default function CoursePlayer() {
     setPracticeGateOpen(false)
     setPracticeQuestion(null)
     setPracticeAnswer(null)
-    setPracticeMarked(false)
+    setPracticeVerdict(null)
+    setPracticeChecking(false)
     setPracticeNextBlockId(null)
     setPracticeAdvanceBusy(false)
 
@@ -488,7 +521,7 @@ export default function CoursePlayer() {
       <PracticeGateModal
         question={practiceQuestion}
         selected={practiceAnswer}
-        setSelected={(value) => { setPracticeAnswer(value); setPracticeMarked(false) }}
+        setSelected={(value) => { setPracticeAnswer(value); setPracticeVerdict(null) }}
         loading={practiceLoading}
         advancing={practiceAdvanceBusy}
         targetTitle={allBlocks.find((block) => block.id === practiceNextBlockId)?.title || 'Examen final'}

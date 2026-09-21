@@ -112,6 +112,7 @@ export default function CoursesManager({ courses, refresh, setMessage }) {
       if (error) throw error
 
       const template = COURSE_TEMPLATES.find((item) => item.id === templateId)
+      let templateWarning = ''
       if (template?.phases?.length) {
         const { error: phaseError } = await supabase.from('course_phases').insert(
           template.phases.map((title, index) => ({
@@ -120,7 +121,7 @@ export default function CoursesManager({ courses, refresh, setMessage }) {
             sort_order: index,
           })),
         )
-        if (phaseError) throw phaseError
+        if (phaseError) templateWarning = ' La capacitación se creó, pero la estructura sugerida no pudo agregarse automáticamente.'
       }
 
       setForm(EMPTY_COURSE)
@@ -128,7 +129,7 @@ export default function CoursesManager({ courses, refresh, setMessage }) {
       setCreateOpen(false)
       await refresh()
       setSelectedId(data.id)
-      setMessage('Capacitación creada. El constructor ya está listo para completar el contenido.')
+      setMessage('Capacitación creada. El constructor ya está listo para completar el contenido.' + templateWarning)
     } catch (error) {
       setMessage(getError(error, 'No fue posible crear la capacitación.'))
     } finally {
@@ -471,20 +472,9 @@ function CourseBuilder({ course, onBack, refresh, setMessage }) {
   }
 
   const setCourseStatus = async (status) => {
-    setBusy(true)
-    try {
-      const { error } = await supabase.from('courses').update({ status }).eq('id', course.id)
-      if (error) throw error
-      setConfig((current) => ({ ...current, status }))
-      setDirty(false)
-      setLastSaved(new Date())
-      await refresh()
-      setMessage(status === 'archived' ? 'Capacitación archivada.' : status === 'draft' ? 'Capacitación guardada como borrador.' : 'Estado actualizado.')
-    } catch (error) {
-      setMessage(getError(error, 'No fue posible cambiar el estado.'))
-    } finally {
-      setBusy(false)
-    }
+    const saved = await saveConfig({ status })
+    if (!saved) return
+    setMessage(status === 'archived' ? 'Capacitación archivada.' : status === 'draft' ? 'Capacitación guardada como borrador.' : 'Estado actualizado.')
   }
 
   const safeBack = () => {

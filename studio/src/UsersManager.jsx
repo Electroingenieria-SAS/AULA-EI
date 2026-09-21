@@ -73,7 +73,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     return rows.filter((person) => {
       const haystack = `${person.name} ${person.email || ''} ${person.role_label}`.toLowerCase()
       if (query && !haystack.includes(query)) return false
-      if (roleFilter !== 'all' && person.role !== roleFilter) return false
+      if (roleFilter === 'admin_group' && !['admin', 'super_admin'].includes(person.role)) return false
+      if (roleFilter !== 'all' && roleFilter !== 'admin_group' && person.role !== roleFilter) return false
       if (statusFilter === 'active' && person.is_active === false) return false
       if (statusFilter === 'inactive' && person.is_active !== false) return false
       if (manageFilter === 'manageable' && !canManage(person)) return false

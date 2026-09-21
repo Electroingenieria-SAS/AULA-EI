@@ -20,6 +20,7 @@ function readRoute() {
 export default function LearnerApp() {
   const [route, setRoute] = useState(() => readRoute())
   const [profile, setProfile] = useState(null)
+  const [sessionUser, setSessionUser] = useState(null)
   const [sessionReady, setSessionReady] = useState(false)
 
   useEffect(() => {
@@ -43,6 +44,8 @@ export default function LearnerApp() {
           return
         }
 
+        if (alive) setSessionUser(data.session.user)
+
         const { data: profileData, error: profileError } = await supabase.rpc('get_my_profile')
         if (profileError) throw profileError
         const value = Array.isArray(profileData) ? profileData[0] : profileData
@@ -59,16 +62,16 @@ export default function LearnerApp() {
 
   const content = useMemo(() => {
     if (!sessionReady) return <ModuleLoading label="Preparando Aula EI…" />
-    if (route.type === 'course') return <CoursePlayer />
-    if (route.type === 'catalog') return <CatalogPage profile={profile} />
+    if (route.type === 'course') return <CoursePlayer suppliedSessionUser={sessionUser} />
+    if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage />
     if (route.type === 'studio') {
       return profile
         ? <StudioApp embedded initialProfile={profile} />
         : <ModuleLoading label="Validando Gestión Aula EI…" />
     }
-    return <HomePage profile={profile} />
-  }, [route.key, route.type, profile, sessionReady])
+    return <HomePage profile={profile} sessionUser={sessionUser} />
+  }, [route.key, route.type, profile, sessionReady, sessionUser])
 
   return <LearnerShell activeRoute={route.type} profile={profile}>
     <div className="learner-route-transition" key={route.key}>{content}</div>

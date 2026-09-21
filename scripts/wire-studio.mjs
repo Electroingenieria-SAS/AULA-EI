@@ -42,7 +42,7 @@ const playerStyles = `/player/assets/${playerCssFiles[0]}`
 
 const bootstrap = `const studioRoute=/^#\\/studio(?:\\/|$)/;
 const certificateRoute=/^#\\/certificate\\/[^/?#]+/;
-const playerRoute=/^#\\/(?:catalog(?:\\/|$)|course\\/[^/?#]+)/;
+const playerRoute=/^#\\/(?:$|catalog(?:\\/|$)|course\\/[^/?#]+|games(?:\\/|$)|studio(?:\\/|$))/;
 const currentMode=()=>certificateRoute.test(window.location.hash)?'certificate':playerRoute.test(window.location.hash)?'player':studioRoute.test(window.location.hash)?'studio':'legacy';
 const bootMode=currentMode();
 const enforceBundleBoundary=()=>{if(currentMode()!==bootMode)window.location.reload()};
@@ -75,9 +75,8 @@ if(bootMode==='certificate'){
 
 await writeFile(path.join(dist, 'bootstrap.js'), bootstrap, 'utf8')
 
-// Studio y certificado son módulos internos de Aula EI. Se publican únicamente
-// sus assets compilados; la única entrada visible sigue siendo index.html + hash routes.
-await unlink(path.join(studioDir, 'index.html'))
+// Studio conserva su index compilado únicamente para render embebido dentro
+// del shell persistente. Certificado y Player siguen entrando por bootstrap.
 await unlink(path.join(certificateDir, 'index.html'))
 await unlink(path.join(playerDir, 'index.html'))
 

@@ -7,6 +7,7 @@ import HomePage from './HomePage.jsx'
 import LearnerShell from './LearnerShell.jsx'
 import LearningJourneyPage from './LearningJourneyPage.jsx'
 import { supabase } from './supabase.js'
+import { startAulaTelemetry } from './telemetry.js'
 
 function readRoute() {
   const hash = window.location.hash || '#/'
@@ -24,6 +25,8 @@ export default function LearnerApp() {
   const [profile, setProfile] = useState(null)
   const [sessionUser, setSessionUser] = useState(null)
   const [sessionReady, setSessionReady] = useState(false)
+
+  useEffect(() => startAulaTelemetry(supabase), [])
 
   useEffect(() => {
     const sync = () => setRoute(readRoute())

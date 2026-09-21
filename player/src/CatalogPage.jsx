@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight, BadgeCheck, BookOpen, CalendarClock, CheckCircle2, CircleAlert,
   Clock3, FileCheck2, Filter, GraduationCap, Home, Loader2, PlayCircle,
-  RefreshCw, Search, SlidersHorizontal, Sparkles, Trophy, X,
+  RefreshCw, Search, SlidersHorizontal, Sparkles, Trophy, X, Zap, UserRound,
 } from 'lucide-react'
 import LearnerTopbar from './LearnerTopbar.jsx'
 import { navigateLearner, openLearnerCourse } from './navigation.js'
-import { supabase } from './supabase.js'
+import { signedAsset, supabase } from './supabase.js'
 
 const FILTERS = [
   { key: 'all', label: 'Todas' },
@@ -23,7 +23,7 @@ const SORTS = [
   { key: 'title', label: 'A–Z' },
 ]
 
-export default function CatalogPage() {
+export default function CatalogPage({ profile = null }) {
   const [user, setUser] = useState(null)
   const [courses, setCourses] = useState([])
   const [hiddenCount, setHiddenCount] = useState(0)
@@ -165,33 +165,50 @@ export default function CatalogPage() {
       })[0] || null
   , [courses])
 
-  const firstName = useMemo(() => {
-    const raw = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
-    return String(raw).trim().split(/\s+/)[0] || ''
-  }, [user])
+  const displayName = useMemo(() => {
+    const raw = profile?.full_name || user?.user_metadata?.full_name || ''
+    return String(raw).trim()
+  }, [profile?.full_name, user?.user_metadata?.full_name])
+
+  const firstName = useMemo(() => displayName.split(/\s+/).filter(Boolean)[0] || 'Colaborador', [displayName])
 
   return <main className="learner-course-app learner-catalog-app">
     <LearnerTopbar
       center={<div className="learner-topbar-page"><BookOpen size={16} /><div><span>Ruta personal</span><strong>Mis capacitaciones</strong></div></div>}
       actions={<>
-        <button className="secondary-action" onClick={() => navigateLearner('/')}><Home size={16} /> Inicio</button>
-        <button className="secondary-action catalog-refresh-top" onClick={() => load({ silent: true })} disabled={refreshing}>
+        <button className="catalog-topbar-blue" onClick={() => navigateLearner('/')}><Home size={16} /> Inicio</button>
+        <button className="catalog-topbar-blue catalog-refresh-top" onClick={() => load({ silent: true })} disabled={refreshing}>
           <RefreshCw size={16} className={refreshing ? 'spin' : ''} /> Actualizar
         </button>
       </>}
     />
 
-    <section className="catalog-intro">
+    <section className="catalog-intro catalog-intro-impact">
       <div className="catalog-intro-motion" aria-hidden="true">
-        {Array.from({ length: 8 }).map((_, index) => <i key={index} />)}
+        {Array.from({ length: 14 }).map((_, index) => <i key={index} />)}
         <span className="catalog-orbit orbit-one" />
         <span className="catalog-orbit orbit-two" />
+        <span className="catalog-energy-line line-one" />
+        <span className="catalog-energy-line line-two" />
+        <span className="catalog-energy-pulse pulse-one" />
+        <span className="catalog-energy-pulse pulse-two" />
       </div>
 
       <div className="catalog-intro-copy">
+        <div className="catalog-personal-greeting">
+          <span><UserRound size={15} /> Hola, <strong>{displayName || firstName}</strong></span>
+        </div>
+
         <span className="catalog-eyebrow"><Sparkles size={15} /> Tu aprendizaje, en un solo lugar</span>
-        <h1>{firstName ? `${firstName}, sigue avanzando.` : 'Sigue avanzando.'}</h1>
-        <p>Encuentra rápidamente lo que tienes pendiente, continúa exactamente donde quedaste y revisa tus capacitaciones completadas sin cambiar de experiencia visual.</p>
+        <h1>Aprende. Avanza. <em>Certifícate.</em></h1>
+        <p>{firstName}, aquí tienes toda tu ruta de capacitación: continúa exactamente donde quedaste, revisa lo que viene y celebra cada avance sin salir de la misma experiencia.</p>
+
+        <div className="catalog-hero-actions">
+          {resumeCourse
+            ? <button className="catalog-hero-primary" onClick={() => openLearnerCourse(resumeCourse.course.id)}><PlayCircle size={18} /> Continuar mi capacitación <ArrowRight size={17} /></button>
+            : <button className="catalog-hero-primary" onClick={() => document.querySelector('.catalog-workspace')?.scrollIntoView({ behavior: 'smooth' })}><BookOpen size={18} /> Ver mis capacitaciones <ArrowRight size={17} /></button>}
+          <button className="catalog-hero-secondary" onClick={() => navigateLearner('/games')}><Zap size={18} /> Ir a Juegos EI</button>
+        </div>
       </div>
 
       <div className="catalog-summary">
@@ -261,7 +278,10 @@ export default function CatalogPage() {
 
 function ResumeLearningCard({ item }) {
   return <section className="catalog-resume-card">
-    <div className="catalog-resume-icon">{item.journey === 'exam' ? <GraduationCap size={26} /> : <PlayCircle size={26} />}</div>
+    <div className="catalog-resume-cover">
+      <CourseCover course={item.course} compact />
+      <span className="catalog-resume-play">{item.journey === 'exam' ? <GraduationCap size={20} /> : <PlayCircle size={20} />}</span>
+    </div>
     <div className="catalog-resume-copy">
       <span>{item.journey === 'exam' ? 'Ya puedes cerrar esta ruta' : 'Continúa donde quedaste'}</span>
       <h2>{item.course.title}</h2>
@@ -300,10 +320,12 @@ function CourseCard({ item, index }) {
     role="button"
     tabIndex={0}
   >
-    <div className="catalog-card-visual" aria-hidden="true">
-      <span className="catalog-card-icon"><StatusIcon size={24} /></span>
-      <i /><i /><i />
-      <strong>{item.progress}%</strong>
+    <div className="catalog-card-visual">
+      <CourseCover course={item.course} />
+      <div className="catalog-card-image-overlay" />
+      <span className="catalog-card-icon"><StatusIcon size={22} /></span>
+      <span className="catalog-card-progress-pill">{item.progress}%</span>
+      <span className="catalog-card-hover-action"><PlayCircle size={19} /> {action}</span>
     </div>
 
     <div className="catalog-card-body">
@@ -331,6 +353,31 @@ function CourseCard({ item, index }) {
       <button className="catalog-open-button" onClick={(event) => { event.stopPropagation(); openLearnerCourse(item.course.id) }}>{action} <ArrowRight size={16} /></button>
     </footer>
   </article>
+}
+
+function CourseCover({ course, compact = false }) {
+  const [url, setUrl] = useState(null)
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    setUrl(null)
+    setLoaded(false)
+
+    if (!course?.cover_path) return () => { alive = false }
+
+    signedAsset(course.cover_path)
+      .then((signedUrl) => { if (alive) setUrl(signedUrl) })
+      .catch(() => { if (alive) setUrl(null) })
+
+    return () => { alive = false }
+  }, [course?.cover_path])
+
+  return <div className={'course-cover-frame ' + (compact ? 'compact' : '') + (loaded ? ' loaded' : '')}>
+    {!loaded && <div className="course-cover-placeholder"><BookOpen size={compact ? 22 : 34} /></div>}
+    {url && <img src={url} alt={course?.title || 'Portada de capacitación'} loading="lazy" onLoad={() => setLoaded(true)} />}
+    <div className="course-cover-shine" />
+  </div>
 }
 
 function CatalogSkeleton() {

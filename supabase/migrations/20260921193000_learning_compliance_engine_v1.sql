@@ -1101,6 +1101,8 @@ begin
     'due_60',(select count(*) from public.enrollments where due_at::date between current_date and current_date+60 and coalesce(status,'assigned') not in ('completed','cancelled')),
     'avg_exam_score',(select round(avg(score)::numeric,1) from public.exam_attempts),
     'exam_pass_rate',(select round((100.0*sum(case when passed then 1 else 0 end)/nullif(count(*),0))::numeric,1) from public.exam_attempts),
+    'avg_completion_hours',(select round(avg(extract(epoch from (updated_at-created_at))/3600.0)::numeric,1) from public.enrollments where status='completed' and updated_at>=created_at),
+    'avg_attempts_per_user',(select round(avg(attempts)::numeric,2) from (select user_id,course_id,count(*) attempts from public.exam_attempts group by user_id,course_id) x),
     'certificates_total',(select count(*) from public.certificates),
     'certificates_expiring_30',(select count(*) from public.certificates where valid_until between now() and now()+interval '30 days'),
     'unread_notifications',(select count(*) from public.learning_notifications where read_at is null),
@@ -1136,6 +1138,52 @@ begin
         order by count(a.id) desc,c.title
         limit 15
       ) ch
+    ),'[]'::jsonb),
+    'hardest_questions',coalesce((
+      select jsonb_agg(row_to_json(hq))
+      from (
+        select q.id,q.prompt,c.title course_title,
+          count(a.id) responses,
+          round((100.0*sum(case when (a.answers->>q.id::text) is distinct from o.id::text then 1 else 0 end)/nullif(count(a.id),0))::numeric,1) error_rate
+        from public.questions q
+        join public.courses c on c.id=q.course_id
+        join public.question_options o on o.question_id=q.id and o.is_correct=true
+        join public.exam_attempts a on a.course_id=q.course_id and a.answers ? q.id::text
+        where q.active=true
+        group by q.id,q.prompt,c.title,o.id
+        having count(a.id)>0
+        order by error_rate desc,responses desc
+        limit 10
+      ) hq
+    ),'[]'::jsonb),
+    'stalled_blocks',coalesce((
+      select jsonb_agg(row_to_json(sb))
+      from (
+        select b.id,b.title,c.title course_title,
+          count(*) filter(where bp.status<>'completed') stalled,
+          count(*) total_progress_records
+        from public.block_progress bp
+        join public.content_blocks b on b.id=bp.block_id
+        join public.course_phases ph on ph.id=b.phase_id
+        join public.courses c on c.id=ph.course_id
+        group by b.id,b.title,c.title
+        having count(*) filter(where bp.status<>'completed')>0
+        order by stalled desc,total_progress_records desc
+        limit 10
+      ) sb
+    ),'[]'::jsonb),
+    'cohorts',coalesce((
+      select jsonb_agg(row_to_json(cohort))
+      from (
+        select to_char(date_trunc('month',created_at),'YYYY-MM') month,
+          count(*) assigned,
+          count(*) filter(where status='completed') completed,
+          round((100.0*count(*) filter(where status='completed')/nullif(count(*),0))::numeric,1) completion_rate
+        from public.enrollments
+        group by date_trunc('month',created_at)
+        order by date_trunc('month',created_at) desc
+        limit 12
+      ) cohort
     ),'[]'::jsonb),
     'position_breakdown',coalesce((
       select jsonb_agg(row_to_json(pb))

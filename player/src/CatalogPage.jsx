@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight, BadgeCheck, BookOpen, CalendarClock, CheckCircle2, CircleAlert,
-  Clock3, FileCheck2, Filter, GraduationCap, Home, Loader2, PlayCircle,
-  RefreshCw, Search, SlidersHorizontal, Sparkles, Trophy, X, Zap, UserRound,
+  Clock3, FileCheck2, Filter, GraduationCap, PlayCircle,
+  Search, SlidersHorizontal, Sparkles, Trophy, X, Zap,
 } from 'lucide-react'
-import LearnerTopbar from './LearnerTopbar.jsx'
 import { navigateLearner, openLearnerCourse } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
@@ -172,51 +171,42 @@ export default function CatalogPage({ profile = null }) {
 
   const firstName = useMemo(() => displayName.split(/\s+/).filter(Boolean)[0] || 'Colaborador', [displayName])
 
-  return <main className="learner-course-app learner-catalog-app">
-    <LearnerTopbar
-      center={<div className="learner-topbar-page"><BookOpen size={16} /><div><span>Ruta personal</span><strong>Mis capacitaciones</strong></div></div>}
-      actions={<>
-        <button className="catalog-topbar-blue" onClick={() => navigateLearner('/')}><Home size={16} /> Inicio</button>
-        <button className="catalog-topbar-blue catalog-refresh-top" onClick={() => load({ silent: true })} disabled={refreshing}>
-          <RefreshCw size={16} className={refreshing ? 'spin' : ''} /> Actualizar
-        </button>
-      </>}
-    />
-
-    <section className="catalog-intro catalog-intro-impact">
-      <div className="catalog-intro-motion" aria-hidden="true">
-        {Array.from({ length: 14 }).map((_, index) => <i key={index} />)}
-        <span className="catalog-orbit orbit-one" />
-        <span className="catalog-orbit orbit-two" />
-        <span className="catalog-energy-line line-one" />
-        <span className="catalog-energy-line line-two" />
-        <span className="catalog-energy-pulse pulse-one" />
-        <span className="catalog-energy-pulse pulse-two" />
+  return <main className="learner-course-app learner-catalog-app catalog-original-page">
+    <section className="catalog-original-hero">
+      <div className="catalog-original-hero-motion" aria-hidden="true">
+        <span className="original-hero-orb orb-large" />
+        <span className="original-hero-orb orb-small" />
+        <span className="original-hero-spark spark-one" />
+        <span className="original-hero-spark spark-two" />
+        <span className="original-hero-dot dot-one" />
+        <span className="original-hero-dot dot-two" />
+        <span className="original-hero-dot dot-three" />
       </div>
 
-      <div className="catalog-intro-copy">
-        <div className="catalog-personal-greeting">
-          <span><UserRound size={15} /> Hola, <strong>{displayName || firstName}</strong></span>
-        </div>
+      <div className="catalog-original-copy">
+        <span className="catalog-original-pill"><Sparkles size={15} /> Plataforma conectada</span>
+        <h1>Aprende, participa y certifícate.</h1>
+        <p>{firstName}, completa tus contenidos, recursos y actividades dentro de una misma ruta antes de presentar el examen final.</p>
 
-        <span className="catalog-eyebrow"><Sparkles size={15} /> Tu aprendizaje, en un solo lugar</span>
-        <h1>Aprende. Avanza. <em>Certifícate.</em></h1>
-        <p>{firstName}, aquí tienes toda tu ruta de capacitación: continúa exactamente donde quedaste, revisa lo que viene y celebra cada avance sin salir de la misma experiencia.</p>
-
-        <div className="catalog-hero-actions">
+        <div className="catalog-original-actions">
           {resumeCourse
-            ? <button className="catalog-hero-primary" onClick={() => openLearnerCourse(resumeCourse.course.id)}><PlayCircle size={18} /> Continuar mi capacitación <ArrowRight size={17} /></button>
-            : <button className="catalog-hero-primary" onClick={() => document.querySelector('.catalog-workspace')?.scrollIntoView({ behavior: 'smooth' })}><BookOpen size={18} /> Ver mis capacitaciones <ArrowRight size={17} /></button>}
-          <button className="catalog-hero-secondary" onClick={() => navigateLearner('/games')}><Zap size={18} /> Ir a Juegos EI</button>
+            ? <button className="catalog-original-yellow" onClick={() => openLearnerCourse(resumeCourse.course.id)}><PlayCircle size={18} /> Continuar capacitación</button>
+            : <button className="catalog-original-yellow" onClick={() => document.querySelector('.catalog-workspace')?.scrollIntoView({ behavior: 'smooth' })}><BookOpen size={18} /> Ver mis capacitaciones</button>}
+          <button className="catalog-original-glass" onClick={() => navigateLearner('/games')}><Zap size={18} /> Juegos EI</button>
         </div>
       </div>
 
-      <div className="catalog-summary">
-        <article><span>Asignadas</span><strong>{counts.all}</strong><small>capacitaciones visibles</small></article>
-        <article><span>En progreso</span><strong>{counts.progress}</strong><small>para continuar</small></article>
-        <article><span>Listas</span><strong>{counts.exam}</strong><small>para examen final</small></article>
-        <article><span>Certificadas</span><strong>{counts.certified}</strong><small>rutas aprobadas</small></article>
+      <div className="catalog-original-hero-metric">
+        <strong>{counts.certified}</strong>
+        <span>Certificados obtenidos</span>
       </div>
+    </section>
+
+    <section className="catalog-original-metrics" aria-label="Resumen de capacitaciones">
+      <article><BookOpen size={24} /><div><span>Asignadas visibles</span><strong>{counts.all}</strong></div></article>
+      <article><PlayCircle size={24} /><div><span>En progreso</span><strong>{counts.progress}</strong></div></article>
+      <article><GraduationCap size={24} /><div><span>Listas para examen</span><strong>{counts.exam}</strong></div></article>
+      <article><Trophy size={24} /><div><span>Certificadas</span><strong>{counts.certified}</strong></div></article>
     </section>
 
     {message && <div className="catalog-message error"><CircleAlert size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={15} /></button></div>}
@@ -225,23 +215,23 @@ export default function CatalogPage({ profile = null }) {
     {!loading && resumeCourse && <ResumeLearningCard item={resumeCourse} />}
 
     <section className="catalog-workspace">
-      <header className="catalog-workspace-header">
+      <header className="catalog-workspace-header catalog-original-heading">
         <div>
-          <span>Biblioteca personal</span>
-          <h2>Organiza tu recorrido</h2>
-          <p>Busca, filtra y continúa sin perder contexto.</p>
+          <span>CONTINUAR APRENDIZAJE</span>
+          <h2>Mis capacitaciones</h2>
+          <p>Busca, filtra y continúa tu ruta con el mismo lenguaje visual de Aula EI.</p>
         </div>
 
         <div className="catalog-result-count">
           <strong>{filteredCourses.length}</strong>
-          <span>{filteredCourses.length === 1 ? 'resultado' : 'resultados'}</span>
+          <span>{filteredCourses.length === 1 ? 'capacitación' : 'capacitaciones'}</span>
         </div>
       </header>
 
       <div className="catalog-toolbar">
         <label className="catalog-search">
           <Search size={18} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por capacitación o estado…" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar capacitación…" />
           {query && <button onClick={() => setQuery('')} aria-label="Limpiar búsqueda"><X size={15} /></button>}
         </label>
 

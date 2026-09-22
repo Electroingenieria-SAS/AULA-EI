@@ -91,6 +91,10 @@ body.aula-pointer-down #aula-pointer-ring{
   .compliance-metrics article,
   .certificate-metric-card,
   .assignment-stats article,
+  .course-template-card,
+  .course-picker,
+  .import-box,
+  .compliance-flow article,
   .user-metrics-grid article,
   .course-metrics-grid article,
   .certificate-metrics-grid article
@@ -113,7 +117,10 @@ body.aula-pointer-down #aula-pointer-ring{
     .course-library-card,
     .pending-certificate-card,
     .compliance-metrics article,
-    .certificate-metric-card
+    .certificate-metric-card,
+    .course-template-card,
+    .course-picker,
+    .compliance-flow article
   ):hover{
     transform:translate3d(0,-3px,0);
     box-shadow:var(--motion-lift-shadow);
@@ -164,6 +171,38 @@ body.aula-pointer-down #aula-pointer-ring{
   .certificate-metrics-grid,
   .compliance-metrics
 ) svg{transition:transform var(--motion-base) var(--motion-ease-out)}
+
+/* ---------- Chips, iconos y flujos ---------- */
+:where(.status-badge,.course-status-badge,.user-status-pill,.role-chip,.plain-chip,.account-state){
+  transition:transform var(--motion-fast) var(--motion-ease),filter var(--motion-base) ease,box-shadow var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  :where(.status-badge,.course-status-badge,.user-status-pill,.role-chip,.plain-chip,.account-state):hover{
+    transform:translateY(-1px);
+    filter:saturate(1.06);
+    box-shadow:0 7px 16px rgba(18,54,96,.07);
+  }
+}
+:where(.icon-button,.studio-navigation-button,.primary-button,.secondary-button) svg{
+  transition:transform var(--motion-base) var(--motion-ease-out);
+}
+@media(hover:hover) and (pointer:fine){
+  :where(.icon-button,.studio-navigation-button,.primary-button,.secondary-button):hover svg{
+    transform:translateY(-1px) scale(1.06);
+  }
+}
+.compliance-flow .flow-chevron{
+  transition:transform var(--motion-base) var(--motion-ease),color var(--motion-base) ease,opacity var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  .compliance-flow:hover .flow-chevron{transform:translateX(2px);opacity:.88}
+}
+.studio-hero-metric-icon{
+  animation:motionMetricFloat 4.6s ease-in-out infinite alternate;
+}
+@keyframes motionMetricFloat{
+  to{transform:translate3d(0,-3px,0) rotate(-2deg)}
+}
 
 /* ---------- Botones ---------- */
 :where(

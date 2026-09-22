@@ -69,14 +69,19 @@ if (!shell.includes('mobileHaptic')) {
 if (!course.includes('mobile-outline-button') || !course.includes('learner-stage-nav')) {
   throw new Error('El reproductor perdió controles específicos de móvil.')
 }
-if (!users.includes('MOBILE_USER_COLUMN_LABELS') || !users.includes('data-label={MOBILE_USER_COLUMN_LABELS')) {
-  throw new Error('Usuarios no puede degradar su tabla a tarjetas móviles.')
-}
 if (!assignments.includes('MOBILE_ASSIGNMENT_COLUMN_LABELS') || !assignments.includes('data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS')) {
   throw new Error('Asignaciones no puede degradar su tabla a tarjetas móviles.')
 }
-for (const required of ['Share2','navigator.share','mobile-native-share','data-label="Persona"']) {
+for (const required of ['Share2','navigator.share','mobile-native-share','mobile-certificate-list','mobile-certificate-card']) {
   if (!certificates.includes(required)) throw new Error('Certificados móvil incompleto: falta ' + required)
+}
+
+for (const required of ['mobile-user-list','mobile-user-card','mobile-user-training']) {
+  if (!users.includes(required)) throw new Error('Usuarios móvil incompleto: falta ' + required)
+}
+
+for (const required of ['mobile-position-overview','mobile-position-card-list']) {
+  if (!compliance.includes(required)) throw new Error('Cargos móvil incompleto: falta ' + required)
 }
 
 for (const forbidden of [

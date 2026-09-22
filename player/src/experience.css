@@ -44,13 +44,13 @@
 }
 
 html{scroll-behavior:smooth}
-body{
+.learner-app-shell{
   color:var(--premium-text);
   text-rendering:optimizeLegibility;
   -webkit-font-smoothing:antialiased;
 }
-button,a,input,select,textarea,[role="button"]{-webkit-tap-highlight-color:transparent}
-button:not(:disabled),a,[role="button"],input,select,textarea{
+.learner-app-shell button,.learner-app-shell a,.learner-app-shell input,.learner-app-shell select,.learner-app-shell textarea,.learner-app-shell [role="button"]{-webkit-tap-highlight-color:transparent}
+.learner-app-shell button:not(:disabled),.learner-app-shell a,.learner-app-shell [role="button"],.learner-app-shell input,.learner-app-shell select,.learner-app-shell textarea{
   transition:
     transform var(--ux-fast) var(--ux-ease),
     box-shadow var(--ux-normal) var(--ux-ease),
@@ -60,12 +60,12 @@ button:not(:disabled),a,[role="button"],input,select,textarea{
     opacity var(--ux-normal) ease,
     filter var(--ux-normal) ease;
 }
-button:not(:disabled):active,[role="button"]:not([aria-disabled="true"]):active{transform:translateY(1px) scale(.985)}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[role="button"]:focus-visible{
+.learner-app-shell button:not(:disabled):active,.learner-app-shell [role="button"]:not([aria-disabled="true"]):active{transform:translateY(1px) scale(.985)}
+.learner-app-shell button:focus-visible,.learner-app-shell a:focus-visible,.learner-app-shell input:focus-visible,.learner-app-shell select:focus-visible,.learner-app-shell textarea:focus-visible,.learner-app-shell [role="button"]:focus-visible{
   outline:none;
   box-shadow:var(--ux-focus);
 }
-button:disabled,[aria-disabled="true"]{filter:saturate(.62);cursor:not-allowed}
+.learner-app-shell button:disabled,.learner-app-shell [aria-disabled="true"]{filter:saturate(.62);cursor:not-allowed}
 
 /* ---------- Ambiente global ---------- */
 .learner-shell-main{

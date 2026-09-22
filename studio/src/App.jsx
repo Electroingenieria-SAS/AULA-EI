@@ -4,7 +4,6 @@ import {
   ShieldCheck, Sparkles, Users, X,
 } from 'lucide-react'
 import { ADMIN_ROLES, STAFF_ROLES, fetchAllPages, getError, supabase } from './shared.js'
-import './styles.css'
 
 const AssignmentsCenter = lazy(() => import('./AssignmentsCenter.jsx'))
 const CoursesManager = lazy(() => import('./CoursesManager.jsx'))

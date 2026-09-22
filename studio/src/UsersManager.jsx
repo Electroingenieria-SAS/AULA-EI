@@ -15,16 +15,6 @@ import { ROLE_LABELS, ROLE_RANK, getError, supabase } from './shared.js'
 
 const ROLE_OPTIONS = ['colaborador', 'creador_contenido', 'revisor', 'admin', 'super_admin']
 const EMPTY_FORM = { full_name: '', email: '', password: '', role: 'colaborador' }
-const MOBILE_USER_COLUMN_LABELS = {
-  select: 'Seleccionar',
-  name: 'Usuario',
-  role: 'Rol',
-  status: 'Estado',
-  training: 'Formación',
-  created_at: 'Creado',
-  actions: 'Acciones',
-}
-
 export default function UsersManager({ profile, profiles, enrollments = [], refresh, setMessage }) {
   const allowedRoles = profile.role === 'super_admin'
     ? ROLE_OPTIONS

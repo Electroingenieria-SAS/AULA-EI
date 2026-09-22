@@ -12,6 +12,14 @@ import {
 } from 'lucide-react'
 import { ASSIGNMENT_STATUS, ROLE_LABELS, chunks, dateLabel, getError, supabase } from './shared.js'
 
+const MOBILE_ASSIGNMENT_COLUMN_LABELS = {
+  select: 'Seleccionar',
+  name: 'Persona',
+  role: 'Rol',
+  assignment_status: 'Estado',
+  due_at: 'Fecha límite',
+}
+
 export default function AssignmentsCenter({ courses, profiles, enrollments, refresh, setMessage }) {
   const publishedCourses = useMemo(() => courses.filter((course) => course.status === 'published'), [courses])
   const [courseId, setCourseId] = useState(publishedCourses[0]?.id || '')
@@ -291,7 +299,7 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
       <div className="data-table-wrap">
         <table className="data-table">
           <thead>{table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined} className={header.column.getCanSort() ? 'sortable' : ''}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === 'asc' ? <ArrowUp size={13} /> : header.column.getIsSorted() === 'desc' ? <ArrowDown size={13} /> : null}</th>)}</tr>)}</thead>
-          <tbody>{table.getRowModel().rows.map((row) => <tr key={row.id} className={row.getIsSelected() ? 'selected-row' : row.original.is_active === false ? 'inactive-row' : ''}>{row.getVisibleCells().map((cell) => <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}</tbody>
+          <tbody>{table.getRowModel().rows.map((row) => <tr key={row.id} className={row.getIsSelected() ? 'selected-row' : row.original.is_active === false ? 'inactive-row' : ''}>{row.getVisibleCells().map((cell) => <td key={cell.id} data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS[cell.column.id] || cell.column.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}</tbody>
         </table>
         {!table.getRowModel().rows.length && <div className="table-empty">No hay usuarios que coincidan con los filtros.</div>}
       </div>

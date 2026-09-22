@@ -1,7 +1,5 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import LearnerShell from './LearnerShell.jsx'
-import './styles.css'
-import './experience.css'
 
 const StudioApp = lazy(() => import('../../studio/src/App.jsx'))
 const CatalogPage = lazy(() => import('./CatalogPage.jsx'))

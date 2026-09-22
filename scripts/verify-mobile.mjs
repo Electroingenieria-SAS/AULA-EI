@@ -8,6 +8,7 @@ const app = await read('src/App.jsx')
 const main = await read('src/main.jsx')
 const runtime = await read('src/MobileViewportSync.jsx')
 const mobile = await read('src/mobile.css')
+const mobileApp = await read('src/mobile-app.css')
 const shell = await read('player/src/LearnerShell.jsx')
 const course = await read('player/src/CoursePlayer.jsx')
 const users = await read('studio/src/UsersManager.jsx')
@@ -25,8 +26,11 @@ for (const required of [
   if (!app.includes(required)) throw new Error('Runtime móvil incompleto: falta ' + required)
 }
 
-if (!main.includes("import './mobile.css'")) {
-  throw new Error('El sistema móvil debe cargarse como capa canónica final.')
+if (!main.includes("import './mobile.css'") || !main.includes("import './mobile-app.css'")) {
+  throw new Error('El sistema móvil debe cargar mobile.css y la capa Mobile App Experience al final.')
+}
+if (main.indexOf("import './mobile-app.css'") < main.indexOf("import './mobile.css'")) {
+  throw new Error('mobile-app.css debe cargarse después de mobile.css para resolver conflictos de composición.')
 }
 
 for (const required of [
@@ -63,11 +67,36 @@ for (const required of [
   if (!mobile.includes(required)) throw new Error('Cobertura mobile-first incompleta: falta ' + required)
 }
 
+for (const required of [
+  '.learner-mobile-appbar{',
+  '.learner-mobile-brand{',
+  '.learner-mobile-appbar .training-notification-center',
+  '.learner-mobile-global-nav{',
+  '.mobile-user-card{',
+  '.mobile-certificate-card{',
+  '.mobile-position-overview{',
+  '.lightbox-canvas.touch-zoom-canvas',
+  '@media(max-width:900px)',
+]) {
+  if (!mobileApp.includes(required)) throw new Error('Mobile App Experience v3 incompleta: falta ' + required)
+}
+
+for (const required of [
+  'learner-mobile-appbar',
+  'learner-mobile-brand',
+  'mobileTitle',
+]) {
+  if (!shell.includes(required)) throw new Error('Shell móvil dedicado incompleto: falta ' + required)
+}
+
 if (!shell.includes('mobileHaptic')) {
   throw new Error('La navegación móvil perdió feedback táctil.')
 }
 if (!course.includes('mobile-outline-button') || !course.includes('learner-stage-nav')) {
   throw new Error('El reproductor perdió controles específicos de móvil.')
+}
+for (const required of ['touchDistance','onTouchStart','onTouchMove','touch-zoom-canvas','double toque']) {
+  if (!course.includes(required)) throw new Error('El visor táctil de capacitaciones está incompleto: falta ' + required)
 }
 if (!assignments.includes('MOBILE_ASSIGNMENT_COLUMN_LABELS') || !assignments.includes('data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS')) {
   throw new Error('Asignaciones no puede degradar su tabla a tarjetas móviles.')
@@ -116,4 +145,4 @@ if (!index.includes('viewport-fit=cover')) {
   throw new Error('iOS safe-area requiere viewport-fit=cover.')
 }
 
-console.log('Mobile First v2.2 validado: render React móvil explícito para usuarios/cargos/ranking y notificaciones gobernadas solo por la campana.')
+console.log('Mobile App Experience v3 validada: shell táctil dedicado, cards operativas, notificaciones resilientes y zoom móvil.')

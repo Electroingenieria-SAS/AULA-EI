@@ -1,14 +1,384 @@
-#aula-pointer-dot,#aula-pointer-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;opacity:0;will-change:transform,width,height,opacity,border-color,background}
-#aula-pointer-dot{width:5px;height:5px;border-radius:50%;background:#003b8e;box-shadow:0 0 0 1px rgba(255,255,255,.75),0 2px 8px rgba(0,59,142,.25);transition:opacity .18s ease,background .18s ease,box-shadow .18s ease}
-#aula-pointer-ring{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(0,59,142,.38);background:rgba(255,255,255,.06);backdrop-filter:blur(1px);transition:opacity .18s ease,width .2s cubic-bezier(.2,.72,.22,1),height .2s cubic-bezier(.2,.72,.22,1),border-color .2s ease,background .2s ease,box-shadow .2s ease}
+/* ==========================================================================
+   Aula EI · Motion & Interaction System
+   Fuente transversal para fluidez, profundidad y feedback.
+   ========================================================================== */
+
+:where(.learner-app-shell,.embedded-studio,.certificate-export-page,.certificate-state-page,.auth-page,.startup-clean){
+  --motion-fast:150ms;
+  --motion-base:220ms;
+  --motion-slow:360ms;
+  --motion-enter:480ms;
+  --motion-ease:cubic-bezier(.2,.72,.22,1);
+  --motion-ease-out:cubic-bezier(.16,1,.3,1);
+  --motion-soft-shadow:0 14px 32px rgba(18,54,96,.085);
+  --motion-lift-shadow:0 22px 48px rgba(18,54,96,.13);
+}
+
+/* ---------- Cursor / click feedback ---------- */
+#aula-pointer-dot,#aula-pointer-ring{
+  position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;opacity:0;
+  will-change:transform,width,height,opacity,border-color,background
+}
+#aula-pointer-dot{
+  width:5px;height:5px;border-radius:50%;background:#003b8e;
+  box-shadow:0 0 0 1px rgba(255,255,255,.75),0 2px 8px rgba(0,59,142,.25);
+  transition:opacity .18s ease,background .18s ease,box-shadow .18s ease
+}
+#aula-pointer-ring{
+  width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(0,59,142,.38);
+  background:rgba(255,255,255,.06);backdrop-filter:blur(1px);
+  transition:opacity .18s ease,width .2s var(--motion-ease),height .2s var(--motion-ease),border-color .2s ease,background .2s ease,box-shadow .2s ease
+}
 body.aula-pointer-visible #aula-pointer-dot,body.aula-pointer-visible #aula-pointer-ring{opacity:1}
-body.aula-interactive-hover #aula-pointer-ring{width:42px;height:42px;border-color:rgba(255,210,0,.72);background:rgba(255,210,0,.08);box-shadow:0 0 0 6px rgba(0,59,142,.045)}
-body.aula-interactive-hover #aula-pointer-dot{background:#ffd200;box-shadow:0 0 0 1px rgba(0,59,142,.55),0 3px 10px rgba(255,210,0,.25)}
-body.aula-pointer-down #aula-pointer-ring{width:22px;height:22px;background:rgba(0,59,142,.11);border-color:rgba(0,59,142,.62)}
-.aula-click-burst{position:fixed;left:0;top:0;width:18px;height:18px;pointer-events:none;z-index:2147482999;border:2px solid rgba(0,59,142,.62);border-radius:50%;transform:translate(-50%,-50%) scale(.18);animation:aulaClickBurst .54s cubic-bezier(.16,1,.3,1) both}
-.aula-click-burst:before,.aula-click-burst:after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#ffd200;box-shadow:12px 0 0 #1d6dd2,-12px 0 0 #ffd200,0 12px 0 #1d6dd2,0 -12px 0 #ffd200;transform:translate(-50%,-50%) scale(.2);animation:aulaClickDots .54s cubic-bezier(.16,1,.3,1) both}
+body.aula-interactive-hover #aula-pointer-ring{
+  width:42px;height:42px;border-color:rgba(255,210,0,.72);
+  background:rgba(255,210,0,.08);box-shadow:0 0 0 6px rgba(0,59,142,.045)
+}
+body.aula-interactive-hover #aula-pointer-dot{
+  background:#ffd200;box-shadow:0 0 0 1px rgba(0,59,142,.55),0 3px 10px rgba(255,210,0,.25)
+}
+body.aula-pointer-down #aula-pointer-ring{
+  width:22px;height:22px;background:rgba(0,59,142,.11);border-color:rgba(0,59,142,.62)
+}
+.aula-click-burst{
+  position:fixed;left:0;top:0;width:18px;height:18px;pointer-events:none;z-index:2147482999;
+  border:2px solid rgba(0,59,142,.62);border-radius:50%;
+  transform:translate(-50%,-50%) scale(.18);
+  animation:aulaClickBurst .54s var(--motion-ease-out) both
+}
+.aula-click-burst:before,.aula-click-burst:after{
+  content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;
+  background:#ffd200;
+  box-shadow:12px 0 0 #1d6dd2,-12px 0 0 #ffd200,0 12px 0 #1d6dd2,0 -12px 0 #ffd200;
+  transform:translate(-50%,-50%) scale(.2);
+  animation:aulaClickDots .54s var(--motion-ease-out) both
+}
 .aula-click-burst:after{transform:translate(-50%,-50%) rotate(45deg) scale(.2);opacity:.72}
-@keyframes aulaClickBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.18)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(2.25)}}
-@keyframes aulaClickDots{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}24%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}}
-@media(prefers-reduced-motion:reduce){#aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}}
-@media(max-width:900px),(hover:none),(pointer:coarse){#aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}}
+@keyframes aulaClickBurst{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.18)}
+  18%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(2.25)}
+}
+@keyframes aulaClickDots{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}
+  24%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}
+}
+
+/* ---------- Scroll reveal común ---------- */
+.premium-reveal{
+  opacity:0;
+  transform:translate3d(0,12px,0) scale(.992);
+  filter:saturate(.95);
+  transition:
+    opacity var(--motion-enter) var(--motion-ease-out),
+    transform var(--motion-enter) var(--motion-ease-out),
+    filter var(--motion-enter) ease;
+}
+.premium-reveal.premium-reveal-in{opacity:1;transform:none;filter:none}
+.premium-reveal[data-reveal-order="2"]{transition-delay:45ms}
+.premium-reveal[data-reveal-order="3"]{transition-delay:90ms}
+.premium-reveal[data-reveal-order="4"]{transition-delay:135ms}
+
+/* ---------- Panels / cards ---------- */
+:where(
+  .panel-card,
+  .home-course-card,
+  .catalog-course-card,
+  .games-grid>article,
+  .course-library-card,
+  .pending-certificate-card,
+  .compliance-metrics article,
+  .certificate-metric-card,
+  .assignment-stats article,
+  .course-template-card,
+  .course-picker,
+  .import-box,
+  .compliance-flow article,
+  .user-metrics-grid article,
+  .course-metrics-grid article,
+  .certificate-metrics-grid article
+){
+  position:relative;
+  transform:translateZ(0);
+  transition:
+    transform var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-slow) var(--motion-ease),
+    border-color var(--motion-base) ease,
+    background-color var(--motion-base) ease,
+    filter var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  :where(
+    .panel-card,
+    .home-course-card,
+    .catalog-course-card,
+    .games-grid>article,
+    .course-library-card,
+    .pending-certificate-card,
+    .compliance-metrics article,
+    .certificate-metric-card,
+    .course-template-card,
+    .course-picker,
+    .compliance-flow article
+  ):hover{
+    transform:translate3d(0,-3px,0);
+    box-shadow:var(--motion-lift-shadow);
+  }
+  :where(.home-course-card,.catalog-course-card,.course-library-card,.pending-certificate-card):hover img{
+    transform:scale(1.025);
+  }
+}
+:where(.home-course-card,.catalog-course-card,.course-library-card,.pending-certificate-card) img{
+  transition:transform var(--motion-slow) var(--motion-ease-out),filter var(--motion-base) ease;
+}
+
+/* ---------- Métricas ---------- */
+:where(
+  .course-metrics-grid,
+  .user-metrics-grid,
+  .certificate-metrics-grid,
+  .compliance-metrics,
+  .home-metric-grid,
+  .catalog-original-metrics
+)>*{
+  transition:transform var(--motion-base) var(--motion-ease),box-shadow var(--motion-base) ease,border-color var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  :where(
+    .course-metrics-grid,
+    .user-metrics-grid,
+    .certificate-metrics-grid,
+    .compliance-metrics,
+    .home-metric-grid,
+    .catalog-original-metrics
+  )>*:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--motion-soft-shadow);
+  }
+  :where(
+    .course-metrics-grid,
+    .user-metrics-grid,
+    .certificate-metrics-grid,
+    .compliance-metrics
+  )>*:hover svg{
+    transform:scale(1.08) rotate(-3deg);
+  }
+}
+:where(
+  .course-metrics-grid,
+  .user-metrics-grid,
+  .certificate-metrics-grid,
+  .compliance-metrics
+) svg{transition:transform var(--motion-base) var(--motion-ease-out)}
+
+/* ---------- Chips, iconos y flujos ---------- */
+:where(.status-badge,.course-status-badge,.user-status-pill,.role-chip,.plain-chip,.account-state){
+  transition:transform var(--motion-fast) var(--motion-ease),filter var(--motion-base) ease,box-shadow var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  :where(.status-badge,.course-status-badge,.user-status-pill,.role-chip,.plain-chip,.account-state):hover{
+    transform:translateY(-1px);
+    filter:saturate(1.06);
+    box-shadow:0 7px 16px rgba(18,54,96,.07);
+  }
+}
+:where(.icon-button,.studio-navigation-button,.primary-button,.secondary-button) svg{
+  transition:transform var(--motion-base) var(--motion-ease-out);
+}
+@media(hover:hover) and (pointer:fine){
+  :where(.icon-button,.studio-navigation-button,.primary-button,.secondary-button):hover svg{
+    transform:translateY(-1px) scale(1.06);
+  }
+}
+.compliance-flow .flow-chevron{
+  transition:transform var(--motion-base) var(--motion-ease),color var(--motion-base) ease,opacity var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  .compliance-flow:hover .flow-chevron{transform:translateX(2px);opacity:.88}
+}
+.studio-hero-metric-icon{
+  animation:motionMetricFloat 4.6s ease-in-out infinite alternate;
+}
+@keyframes motionMetricFloat{
+  to{transform:translate3d(0,-3px,0) rotate(-2deg)}
+}
+
+/* ---------- Botones ---------- */
+:where(
+  .primary-button,.secondary-button,.danger-button,.file-button,.icon-button,.text-action,
+  .studio-navigation-button,.studio-refresh-button,
+  .home-yellow-button,.home-glass-button,
+  .catalog-original-yellow,.catalog-original-glass,
+  .course-edit-link,.course-library-card button,
+  .certificate-view-switch button,.compliance-tabs button
+){
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    filter var(--motion-base) ease,
+    background-color var(--motion-base) ease,
+    border-color var(--motion-base) ease,
+    color var(--motion-base) ease;
+}
+:where(
+  .primary-button,.secondary-button,.danger-button,.file-button,.icon-button,
+  .studio-navigation-button,.studio-refresh-button,
+  .home-yellow-button,.home-glass-button,
+  .catalog-original-yellow,.catalog-original-glass,
+  .certificate-view-switch button,.compliance-tabs button
+):active:not(:disabled){
+  transform:translateY(1px) scale(.985);
+}
+
+/* ---------- Studio: cambio de herramientas ---------- */
+.studio-tab-stage{
+  transform-origin:top center;
+  animation:motionStageIn .32s var(--motion-ease-out) both;
+}
+@keyframes motionStageIn{
+  from{opacity:.25;transform:translateY(5px) scale(.997)}
+  to{opacity:1;transform:none}
+}
+.studio-navigation-button .studio-navigation-icon{
+  transition:transform var(--motion-base) var(--motion-ease-out),background var(--motion-base) ease,color var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  .studio-navigation-button:hover .studio-navigation-icon{transform:translateY(-1px) scale(1.08)}
+}
+.studio-navigation-button.is-active .studio-navigation-icon{transform:scale(1.05)}
+
+/* ---------- Modales / drawers ---------- */
+.modal-backdrop,.drawer-backdrop{
+  animation:motionBackdropIn .22s ease both;
+}
+:where(.course-create-modal,.user-create-modal,.certificate-modal,.modal-card){
+  transform-origin:center 18%;
+  animation:motionModalIn .32s var(--motion-ease-out) both;
+}
+.user-detail-drawer{
+  animation:motionDrawerIn .34s var(--motion-ease-out) both;
+}
+@keyframes motionBackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes motionModalIn{
+  from{opacity:0;transform:translateY(10px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+@keyframes motionDrawerIn{
+  from{opacity:.45;transform:translateX(26px)}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- Mensajes / barras de acciones ---------- */
+.message-banner,.bulk-action-bar,.user-bulk-bar,.studio-sync-feedback{
+  animation:motionToastIn .3s var(--motion-ease-out) both;
+}
+@keyframes motionToastIn{
+  from{opacity:0;transform:translateY(-8px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- Tablas ---------- */
+.data-table tbody tr{
+  transition:background-color var(--motion-fast) ease,box-shadow var(--motion-fast) ease,opacity var(--motion-base) ease;
+}
+@media(hover:hover) and (pointer:fine){
+  .data-table tbody tr:hover{
+    box-shadow:inset 3px 0 0 rgba(0,91,190,.28);
+  }
+}
+.data-table th.sortable{
+  transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease;
+}
+.data-table th.sortable:hover{background:#eaf2fb;color:#174f8e}
+
+/* ---------- Inputs ---------- */
+:where(
+  .embedded-studio input,.embedded-studio select,.embedded-studio textarea,
+  .auth-page input,.certificate-export-page input
+){
+  transition:
+    border-color var(--motion-base) ease,
+    box-shadow var(--motion-base) ease,
+    background-color var(--motion-base) ease,
+    transform var(--motion-fast) var(--motion-ease);
+}
+:where(
+  .embedded-studio input,.embedded-studio select,.embedded-studio textarea,
+  .auth-page input,.certificate-export-page input
+):focus{
+  transform:translateY(-1px);
+}
+
+/* ---------- Progreso ---------- */
+:where(
+  .catalog-card-progress>div,
+  .home-training-path-track,
+  .authoring-progress-track,
+  .certificate-score-track
+){
+  position:relative;
+  overflow:hidden;
+}
+:where(
+  .catalog-card-progress>div,
+  .home-training-path-track,
+  .authoring-progress-track,
+  .certificate-score-track
+):after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.52) 50%,transparent 65%);
+  transform:translateX(-130%);
+  animation:motionProgressGlint 4.8s ease-in-out infinite;
+}
+@keyframes motionProgressGlint{
+  0%,72%{transform:translateX(-130%);opacity:0}
+  78%{opacity:.8}
+  100%{transform:translateX(130%);opacity:0}
+}
+
+/* ---------- View Transitions API (progresivo) ---------- */
+.learner-route-transition{view-transition-name:aula-route}
+.studio-tab-stage{view-transition-name:aula-studio-stage}
+::view-transition-old(aula-route),
+::view-transition-old(aula-studio-stage){
+  animation:motionViewOld .16s ease both;
+}
+::view-transition-new(aula-route),
+::view-transition-new(aula-studio-stage){
+  animation:motionViewNew .26s var(--motion-ease-out) both;
+}
+@keyframes motionViewOld{to{opacity:0;filter:blur(1.5px)}}
+@keyframes motionViewNew{
+  from{opacity:0;transform:translateY(4px)}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- Responsive / accessibility ---------- */
+@media(max-width:900px){
+  .premium-reveal{
+    transform:none;
+    transition:opacity .24s ease,filter .24s ease;
+  }
+  .studio-tab-stage{animation-duration:.22s}
+  :where(
+    .panel-card,.home-course-card,.catalog-course-card,.games-grid>article,
+    .course-library-card,.pending-certificate-card,.compliance-metrics article
+  ){
+    transition:box-shadow .2s ease,border-color .2s ease,background-color .2s ease;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}
+  .premium-reveal{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
+  :where(.modal-backdrop,.drawer-backdrop,.course-create-modal,.user-create-modal,.user-detail-drawer,.message-banner,.bulk-action-bar,.user-bulk-bar,.studio-sync-feedback,.studio-tab-stage){
+    animation:none!important
+  }
+  *{scroll-behavior:auto!important}
+}
+@media(max-width:900px),(hover:none),(pointer:coarse){
+  #aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}
+}

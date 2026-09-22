@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { flushSync } from 'react-dom'
 import {
   BookOpen, Briefcase, ClipboardList, GraduationCap, RefreshCw,
   ShieldCheck, Sparkles, Users, X,
@@ -112,6 +113,19 @@ export default function App({ initialProfile = null }) {
 
   const busy = loading.courses || loading.profiles || loading.enrollments
 
+  const changeTab = useCallback((nextTab) => {
+    if (nextTab === tab) return
+    const commit = () => flushSync(() => setTab(nextTab))
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+
+    if (!reduceMotion && typeof document.startViewTransition === 'function') {
+      document.startViewTransition(commit)
+      return
+    }
+
+    setTab(nextTab)
+  }, [tab])
+
   if (!profile || !STAFF_ROLES.has(profile.role)) {
     return <section className="studio-inline-state error">
       <ShieldCheck size={28} />
@@ -154,7 +168,7 @@ export default function App({ initialProfile = null }) {
             key={id}
             className={'studio-navigation-button' + (tab === id ? ' is-active' : '')}
             aria-pressed={tab === id}
-            onClick={() => setTab(id)}
+            onClick={() => changeTab(id)}
           >
             <span className="studio-navigation-icon"><Icon size={17} /></span>
             <span>{label}</span>

@@ -481,7 +481,7 @@ function UserDetailDrawer({ person, profile, canManage, canChangeRole, working, 
 
       {person.stats.recent.length > 0 && <section className="detail-section">
         <h3>Formación reciente</h3>
-        <div className="detail-training-list">{person.stats.recent.slice(0, 6).map((item) => <article key={item.id}><div><strong>{item.course?.title || 'Capacitación'}</strong><small>{item.status === 'completed' ? 'Completada' : item.status === 'in_progress' ? 'En progreso' : item.status === 'cancelled' ? 'Cancelada' : 'Asignada'}</small></div><ChevronRight size={15} /></article>)}</div>
+        <div className="detail-training-list">{person.stats.recent.slice(0, 6).map((item) => <article key={item.id}><div><strong>{item.course?.title || 'Capacitación'}</strong><small>{item.status === 'completed' ? 'Completada' : item.status === 'in_progress' ? 'En progreso' : item.status === 'expired' ? 'Vencida' : item.status === 'cancelled' ? 'Cancelada' : 'Asignada'}</small></div><ChevronRight size={15} /></article>)}</div>
       </section>}
 
       {(canChangeRole || canManage) && <section className="detail-section detail-actions-section">

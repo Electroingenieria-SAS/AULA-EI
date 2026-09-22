@@ -15,6 +15,8 @@ const playerExperience = await read('player/src/experience.css')
 const studioApp = await read('studio/src/App.jsx')
 const studio = await read('studio/src/styles.css')
 const certificate = await read('certificate/src/styles.css')
+const index = await read('index.html')
+const globalExperience = await read('src/global-experience.css')
 
 for (const required of [
   "AuthVisualShell",
@@ -74,6 +76,9 @@ if (!player.includes("var(--aula-photo-image)")) {
 }
 if (!player.includes(".learner-app-shell:before") || !player.includes(".learner-app-shell:after")) {
   throw new Error('Faltan las capas de fondo/ambiente del shell autenticado.')
+}
+if (!player.includes(".learner-mobile-global-nav{display:none}")) {
+  throw new Error('La navegación móvil debe permanecer oculta por defecto.')
 }
 if (!player.includes("grid-template-columns:repeat(var(--mobile-nav-items,4),minmax(0,1fr))")) {
   throw new Error('La navegación móvil canónica no está definida.')
@@ -138,4 +143,12 @@ if (certificate.startsWith(':root{') || certificate.includes('\nbody{background:
   throw new Error('Certificados volvió a contaminar root/body global.')
 }
 
-console.log('Visual stability validada: Login/MFA compartidos, fondo real, mobile nav canónica y cargas sin saltos de layout.')
+if (!index.includes('viewport-fit=cover')) throw new Error('Falta soporte de safe area móvil.')
+if (!index.includes('%BASE_URL%brand/fondo.jpg') || !index.includes('rel="preload" as="image"')) {
+  throw new Error('El fondo institucional debe precargarse desde el HTML.')
+}
+if (!globalExperience.includes('@media(max-width:900px),(hover:none),(pointer:coarse)')) {
+  throw new Error('El cursor de escritorio debe desactivarse en móvil.')
+}
+
+console.log('Visual stability validada: Login/MFA compartidos, fondo precargado, mobile nav canónica, safe areas y cargas sin saltos.')

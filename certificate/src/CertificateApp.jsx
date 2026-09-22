@@ -1,6 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import './styles.css'
-import './experience.css'
 import {
   CheckCircle2, ClipboardPaste, Download, FileImage, FileText, Loader2,
   Printer, ShieldCheck, Trash2, Upload, XCircle,

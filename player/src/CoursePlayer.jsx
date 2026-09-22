@@ -58,12 +58,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setLoading(true)
     setMessage('')
     try {
-      let user = suppliedSessionUser
-      if (!user) {
-        const { data: sessionResult, error: sessionError } = await supabase.auth.getSession()
-        if (sessionError) throw sessionError
-        user = sessionResult.session?.user
-      }
+      const user = suppliedSessionUser
       if (!user) {
         navigateLearner('/login', { replace: true })
         return

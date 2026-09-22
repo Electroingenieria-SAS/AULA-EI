@@ -13,8 +13,10 @@ const course = await read('player/src/CoursePlayer.jsx')
 const users = await read('studio/src/UsersManager.jsx')
 const assignments = await read('studio/src/AssignmentsCenter.jsx')
 const certificates = await read('studio/src/CertificatesManager.jsx')
+const compliance = await read('studio/src/ComplianceCenter.jsx')
 const index = await read('index.html')
 const experience = await read('src/ExperienceLayer.jsx')
+const playerStyles = await read('player/src/styles.css')
 
 for (const required of [
   "import MobileViewportSync from './MobileViewportSync.jsx'",
@@ -89,19 +91,24 @@ for (const forbidden of [
 }
 
 for (const required of [
-  '.users-data-wrap,',
-  '.certificates-data-wrap,',
-  '.compliance-two-column{',
-  'opacity:1!important',
-  'visibility:visible!important',
+  '.mobile-data-view{display:none}',
+  '.desktop-data-view{display:block}',
+  '.mobile-user-list,',
+  '.mobile-certificate-list{',
+  '.mobile-position-overview{',
+  '.mobile-position-card-list{',
 ]) {
   if (!mobile.includes(required)) {
-    throw new Error('Las listas móviles deben ser deterministas y visibles: falta ' + required)
+    throw new Error('Las vistas móviles explícitas están incompletas: falta ' + required)
   }
+}
+
+if (playerStyles.includes('.learner-app-shell>.training-notification-center .training-notification-panel{position:fixed')) {
+  throw new Error('Notificaciones móvil volvió a competir con mobile.css usando position:fixed.')
 }
 
 if (!index.includes('viewport-fit=cover')) {
   throw new Error('iOS safe-area requiere viewport-fit=cover.')
 }
 
-console.log('Mobile First v2.1 validado: datos siempre visibles, cargos/rankings/usuarios estables y notificaciones ancladas a la campana.')
+console.log('Mobile First v2.2 validado: render React móvil explícito para usuarios/cargos/ranking y notificaciones gobernadas solo por la campana.')

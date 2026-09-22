@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { BookOpen, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
+import NotificationCenter from './NotificationCenter.jsx'
 import { supabase } from './supabase.js'
 
 export default function LearnerShell({ children, activeRoute = 'catalog', profile = null }) {
@@ -29,6 +30,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         <div><strong>{displayName}</strong><span>{role}</span></div>
       </div>
 
+
       <nav className="learner-sidebar-nav" aria-label="Navegación principal">
         <SidebarLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
         <SidebarLink icon={BookOpen} label="Mis capacitaciones" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
@@ -41,6 +43,8 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         <div className="learner-sidebar-security"><Sparkles size={16} /><span>Contenido protegido con Supabase Auth y RLS.</span></div>
       </div>
     </aside>
+
+    <NotificationCenter profile={profile} />
 
     <div className="learner-shell-main">{children}</div>
 

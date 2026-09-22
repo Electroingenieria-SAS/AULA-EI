@@ -5,6 +5,9 @@ import {
   Search, Settings2, ShieldCheck, Sparkles, Target, UserCheck, Users, X,
 } from 'lucide-react'
 import { getError, slugify, supabase } from './shared.js'
+import {
+  AutomationRunPanel, ComplianceAnalytics, CompetencyCourseMapper, SupervisorAssignments,
+} from './ComplianceAdvanced.jsx'
 
 const SECTION_LABELS = {
   overview: 'Resumen',
@@ -13,6 +16,7 @@ const SECTION_LABELS = {
   paths: 'Rutas',
   automation: 'Automatizaciones',
   compliance: 'Cumplimiento',
+  analytics: 'Analítica',
 }
 
 const STATE_LABELS = {
@@ -81,7 +85,7 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
         supabase.from('learning_paths').select('*').order('name'),
         supabase.from('learning_path_courses').select('path_id,course_id,sort_order,required,due_days,recertification_months').order('sort_order'),
         supabase.from('job_position_paths').select('position_id,path_id,required,due_days,recertification_months'),
-        supabase.from('profiles').select('id,email,full_name,is_active,job_position_id').order('full_name'),
+        supabase.from('profiles').select('id,email,full_name,is_active,job_position_id,supervisor_id').order('full_name'),
         supabase.from('training_automation_rules').select('*').order('created_at'),
         supabase.rpc('admin_training_engine_snapshot'),
         supabase.rpc('admin_training_compliance_rows'),
@@ -354,37 +358,43 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
       setSection={setSection}
     />}
 
-    {section === 'positions' && <PositionsPanel
-      positions={positions}
-      selectedPosition={selectedPosition}
-      setSelectedPositionId={setSelectedPositionId}
-      positionDraft={positionDraft}
-      setPositionDraft={setPositionDraft}
-      createPosition={createPosition}
-      creating={busy === 'create-position'}
-      people={filteredPeople}
-      peopleQuery={peopleQuery}
-      setPeopleQuery={setPeopleQuery}
-      assignPosition={assignPosition}
-      busy={busy}
-      paths={paths}
-      positionPaths={positionPaths}
-      setPathForPosition={setPathForPosition}
-    />}
+    {section === 'positions' && <>
+      <PositionsPanel
+        positions={positions}
+        selectedPosition={selectedPosition}
+        setSelectedPositionId={setSelectedPositionId}
+        positionDraft={positionDraft}
+        setPositionDraft={setPositionDraft}
+        createPosition={createPosition}
+        creating={busy === 'create-position'}
+        people={filteredPeople}
+        peopleQuery={peopleQuery}
+        setPeopleQuery={setPeopleQuery}
+        assignPosition={assignPosition}
+        busy={busy}
+        paths={paths}
+        positionPaths={positionPaths}
+        setPathForPosition={setPathForPosition}
+      />
+      <SupervisorAssignments people={people} refresh={load} setMessage={setMessage} />
+    </>}
 
-    {section === 'competencies' && <CompetenciesPanel
-      positions={positions}
-      selectedPosition={selectedPosition}
-      setSelectedPositionId={setSelectedPositionId}
-      competencies={competencies}
-      mappings={positionCompetencies}
-      setCompetencyForPosition={setCompetencyForPosition}
-      updateCompetencyLevel={updateCompetencyLevel}
-      busy={busy}
-      draft={competencyDraft}
-      setDraft={setCompetencyDraft}
-      createCompetency={createCompetency}
-    />}
+    {section === 'competencies' && <>
+      <CompetenciesPanel
+        positions={positions}
+        selectedPosition={selectedPosition}
+        setSelectedPositionId={setSelectedPositionId}
+        competencies={competencies}
+        mappings={positionCompetencies}
+        setCompetencyForPosition={setCompetencyForPosition}
+        updateCompetencyLevel={updateCompetencyLevel}
+        busy={busy}
+        draft={competencyDraft}
+        setDraft={setCompetencyDraft}
+        createCompetency={createCompetency}
+      />
+      <CompetencyCourseMapper competencies={competencies} courses={publishedCourses} setMessage={setMessage} />
+    </>}
 
     {section === 'paths' && <PathsPanel
       paths={paths}
@@ -401,13 +411,16 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
       createPath={createPath}
     />}
 
-    {section === 'automation' && <AutomationPanel
-      rules={automationRules}
-      toggleAutomation={toggleAutomation}
-      busy={busy}
-      syncEngine={syncEngine}
-      syncing={busy === 'sync-engine'}
-    />}
+    {section === 'automation' && <>
+      <AutomationPanel
+        rules={automationRules}
+        toggleAutomation={toggleAutomation}
+        busy={busy}
+        syncEngine={syncEngine}
+        syncing={busy === 'sync-engine'}
+      />
+      <AutomationRunPanel setMessage={setMessage} />
+    </>}
 
     {section === 'compliance' && <CompliancePanel
       rows={filteredCompliance}
@@ -415,6 +428,8 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
       setQuery={setComplianceQuery}
       snapshot={snapshot}
     />}
+
+    {section === 'analytics' && <ComplianceAnalytics setMessage={setMessage} />}
   </div>
 }
 
@@ -761,6 +776,7 @@ function sectionIcon(key) {
     paths: <Layers3 size={16} />,
     automation: <Settings2 size={16} />,
     compliance: <ShieldCheck size={16} />,
+    analytics: <Activity size={16} />,
   }
   return map[key]
 }

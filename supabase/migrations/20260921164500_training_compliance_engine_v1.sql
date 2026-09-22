@@ -360,7 +360,7 @@ begin
     on conflict(course_id,user_id) do update
     set
       status=case
-        when public.enrollments.status='cancelled' then 'assigned'
+        when public.enrollments.status='expired' then 'assigned'
         else public.enrollments.status
       end,
       due_at=case
@@ -372,7 +372,7 @@ begin
 
     if v_existing_status is null then
       v_inserted:=v_inserted+1;
-    elsif v_existing_status='cancelled' then
+    elsif v_existing_status='expired' then
       v_reactivated:=v_reactivated+1;
     end if;
   end loop;
@@ -751,7 +751,7 @@ as $$
   )
   from public.profiles p
   left join public.job_positions jp on jp.id=p.job_position_id
-  where p.id=auth.uid() and public.is_aula_active()
+  where p.id=auth.uid() and public.is_aula_active(auth.uid())
   limit 1;
 $$;
 
@@ -771,7 +771,7 @@ alter table public.training_automation_rules enable row level security;
 drop policy if exists job_positions_read on public.job_positions;
 create policy job_positions_read on public.job_positions
 for select to authenticated
-using ((select public.is_aula_active()));
+using ((select public.is_aula_active(auth.uid())));
 
 drop policy if exists job_positions_admin_write on public.job_positions;
 create policy job_positions_admin_write on public.job_positions
@@ -782,7 +782,7 @@ with check ((select public.is_admin()));
 drop policy if exists training_competencies_read on public.training_competencies;
 create policy training_competencies_read on public.training_competencies
 for select to authenticated
-using ((select public.is_aula_active()));
+using ((select public.is_aula_active(auth.uid())));
 
 drop policy if exists training_competencies_admin_write on public.training_competencies;
 create policy training_competencies_admin_write on public.training_competencies
@@ -793,7 +793,7 @@ with check ((select public.is_admin()));
 drop policy if exists job_position_competencies_read on public.job_position_competencies;
 create policy job_position_competencies_read on public.job_position_competencies
 for select to authenticated
-using ((select public.is_aula_active()));
+using ((select public.is_aula_active(auth.uid())));
 
 drop policy if exists job_position_competencies_admin_write on public.job_position_competencies;
 create policy job_position_competencies_admin_write on public.job_position_competencies
@@ -804,7 +804,7 @@ with check ((select public.is_admin()));
 drop policy if exists learning_paths_read on public.learning_paths;
 create policy learning_paths_read on public.learning_paths
 for select to authenticated
-using ((select public.is_aula_active()));
+using ((select public.is_aula_active(auth.uid())));
 
 drop policy if exists learning_paths_admin_write on public.learning_paths;
 create policy learning_paths_admin_write on public.learning_paths
@@ -815,7 +815,7 @@ with check ((select public.is_admin()));
 drop policy if exists learning_path_courses_read on public.learning_path_courses;
 create policy learning_path_courses_read on public.learning_path_courses
 for select to authenticated
-using ((select public.is_aula_active()));
+using ((select public.is_aula_active(auth.uid())));
 
 drop policy if exists learning_path_courses_admin_write on public.learning_path_courses;
 create policy learning_path_courses_admin_write on public.learning_path_courses
@@ -826,7 +826,7 @@ with check ((select public.is_admin()));
 drop policy if exists job_position_paths_read on public.job_position_paths;
 create policy job_position_paths_read on public.job_position_paths
 for select to authenticated
-using ((select public.is_aula_active()));
+using ((select public.is_aula_active(auth.uid())));
 
 drop policy if exists job_position_paths_admin_write on public.job_position_paths;
 create policy job_position_paths_admin_write on public.job_position_paths

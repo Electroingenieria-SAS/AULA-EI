@@ -71,6 +71,13 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
       setSessionUser(user)
 
+      const { data: accessState, error: accessError } = await supabase.rpc('get_my_course_route_access', {
+        p_course_id: courseId,
+      })
+      if (!accessError && accessState?.allowed === false) {
+        throw new Error(accessState.reason || 'Esta capacitación todavía está bloqueada dentro de tu ruta de aprendizaje.')
+      }
+
       const [courseResult, progressResult, enrollmentResult] = await Promise.all([
         supabase
           .from('courses')

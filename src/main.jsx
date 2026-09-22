@@ -9,6 +9,7 @@ import '../certificate/src/experience.css'
 import './auth.css'
 import './global-experience.css'
 import './mobile.css'
+import './mobile-app.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

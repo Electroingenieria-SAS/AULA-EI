@@ -1,16 +1,35 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, BellRing, BookOpen, CheckCheck, Clock3, X } from 'lucide-react'
+import { Bell, BellRing, BookOpen, CheckCheck, Clock3, WifiOff, X } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'
+
+const POLL_INTERVAL = 180000
+
+function connectionMessage(error) {
+  const raw = String(error?.message || error || '').toLowerCase()
+  if (!navigator.onLine || raw.includes('failed to fetch') || raw.includes('network')) {
+    return 'Conexión inestable. Conservamos tus avisos y volveremos a sincronizar cuando regrese la red.'
+  }
+  return 'No pudimos actualizar los avisos en este momento. Puedes seguir usando Aula EI.'
+}
 
 export default function NotificationCenter({ profile = null }) {
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [networkIssue, setNetworkIssue] = useState('')
   const rootRef = useRef(null)
+  const requestRef = useRef(false)
 
   const load = useCallback(async ({ silent = false } = {}) => {
-    if (!profile?.id) return
+    if (!profile?.id || requestRef.current) return
+    if (!navigator.onLine) {
+      setNetworkIssue('Sin conexión. Tus avisos se actualizarán automáticamente cuando vuelva la red.')
+      if (!silent) setLoading(false)
+      return
+    }
+
+    requestRef.current = true
     if (!silent) setLoading(true)
     try {
       const { data, error } = await supabase
@@ -21,22 +40,39 @@ export default function NotificationCenter({ profile = null }) {
         .limit(40)
       if (error) throw error
       setItems(data || [])
-    } catch {
-      setItems([])
+      setNetworkIssue('')
+    } catch (error) {
+      setNetworkIssue(connectionMessage(error))
     } finally {
+      requestRef.current = false
       if (!silent) setLoading(false)
     }
   }, [profile?.id])
 
   useEffect(() => {
     if (!profile?.id) return
-    load()
-    const interval = window.setInterval(() => load({ silent: true }), 60000)
-    const refresh = () => load({ silent: true })
+    void load()
+
+    const refresh = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) void load({ silent: true })
+    }
+    const offline = () => setNetworkIssue('Sin conexión. Tus avisos se actualizarán automáticamente cuando vuelva la red.')
+    const visibility = () => {
+      if (document.visibilityState === 'visible') refresh()
+    }
+
+    const interval = window.setInterval(refresh, POLL_INTERVAL)
     window.addEventListener('focus', refresh)
+    window.addEventListener('online', refresh)
+    window.addEventListener('offline', offline)
+    document.addEventListener('visibilitychange', visibility)
+
     return () => {
       window.clearInterval(interval)
       window.removeEventListener('focus', refresh)
+      window.removeEventListener('online', refresh)
+      window.removeEventListener('offline', offline)
+      document.removeEventListener('visibilitychange', visibility)
     }
   }, [profile?.id, load])
 
@@ -62,18 +98,33 @@ export default function NotificationCenter({ profile = null }) {
     if (!item?.id || item.read_at) return
     const readAt = new Date().toISOString()
     setItems((current) => current.map((row) => row.id === item.id ? { ...row, read_at: readAt } : row))
-    await supabase.from('training_notifications').update({ read_at: readAt }).eq('id', item.id)
+    try {
+      const { error } = await supabase.from('training_notifications').update({ read_at: readAt }).eq('id', item.id)
+      if (error) throw error
+      setNetworkIssue('')
+    } catch (error) {
+      setItems((current) => current.map((row) => row.id === item.id ? { ...row, read_at: item.read_at || null } : row))
+      setNetworkIssue(connectionMessage(error))
+    }
   }
 
   const markAllRead = async () => {
     if (!unread) return
+    const previous = items
     const readAt = new Date().toISOString()
     setItems((current) => current.map((row) => ({ ...row, read_at: row.read_at || readAt })))
-    await supabase
-      .from('training_notifications')
-      .update({ read_at: readAt })
-      .eq('user_id', profile.id)
-      .is('read_at', null)
+    try {
+      const { error } = await supabase
+        .from('training_notifications')
+        .update({ read_at: readAt })
+        .eq('user_id', profile.id)
+        .is('read_at', null)
+      if (error) throw error
+      setNetworkIssue('')
+    } catch (error) {
+      setItems(previous)
+      setNetworkIssue(connectionMessage(error))
+    }
   }
 
   const openItem = async (item) => {
@@ -91,7 +142,7 @@ export default function NotificationCenter({ profile = null }) {
       aria-expanded={open}
       onClick={() => setOpen((value) => !value)}
     >
-      {unread ? <BellRing size={19} /> : <Bell size={19} />}
+      {unread ? <BellRing size={20} /> : <Bell size={20} />}
       <span>Notificaciones</span>
       {unread > 0 && <b>{unread > 99 ? '99+' : unread}</b>}
     </button>
@@ -103,10 +154,16 @@ export default function NotificationCenter({ profile = null }) {
           <strong>Notificaciones</strong>
         </div>
         <div>
-          {unread > 0 && <button title="Marcar todas como leídas" onClick={markAllRead}><CheckCheck size={17} /></button>}
-          <button title="Cerrar" onClick={() => setOpen(false)}><X size={17} /></button>
+          {unread > 0 && <button type="button" title="Marcar todas como leídas" onClick={markAllRead}><CheckCheck size={18} /></button>}
+          <button type="button" title="Cerrar" onClick={() => setOpen(false)}><X size={19} /></button>
         </div>
       </header>
+
+      {networkIssue && <div className="training-notification-network" role="status">
+        <WifiOff size={17} />
+        <span>{networkIssue}</span>
+        <button type="button" onClick={() => load()}>Reintentar</button>
+      </div>}
 
       <div className="training-notification-list">
         {loading && <div className="training-notification-empty"><i /><strong>Actualizando avisos…</strong></div>}
@@ -115,7 +172,7 @@ export default function NotificationCenter({ profile = null }) {
           className={'training-notification-item ' + (!item.read_at ? 'unread' : '')}
           onClick={() => openItem(item)}
         >
-          <span className="training-notification-icon">{item.course_id ? <BookOpen size={17} /> : <Bell size={17} />}</span>
+          <span className="training-notification-icon">{item.course_id ? <BookOpen size={18} /> : <Bell size={18} />}</span>
           <span className="training-notification-copy">
             <strong>{item.title}</strong>
             <small>{item.message}</small>
@@ -123,7 +180,7 @@ export default function NotificationCenter({ profile = null }) {
           </span>
           {!item.read_at && <i className="training-notification-dot" />}
         </button>)}
-        {!loading && !items.length && <div className="training-notification-empty"><Bell size={24} /><strong>Todo al día</strong><span>Los vencimientos, recertificaciones y novedades aparecerán aquí.</span></div>}
+        {!loading && !items.length && <div className="training-notification-empty"><Bell size={26} /><strong>Todo al día</strong><span>Los vencimientos, recertificaciones y novedades aparecerán aquí.</span></div>}
       </div>
     </section>}
   </div>
@@ -138,7 +195,7 @@ function relativeTime(value) {
   if (minutes < 1) return 'Ahora'
   if (minutes < 60) return 'Hace ' + minutes + ' min'
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return 'Hace ' + hours + (hours === 1 ? ' h' : ' h')
+  if (hours < 24) return 'Hace ' + hours + ' h'
   const days = Math.floor(hours / 24)
   if (days < 7) return 'Hace ' + days + (days === 1 ? ' día' : ' días')
   return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short' }).format(new Date(value))

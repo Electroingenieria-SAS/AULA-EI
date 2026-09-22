@@ -1,13 +1,16 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react'
 import AdminMfaGate from './AdminMfaGate.jsx'
+import AuthVisualShell, { AuthPanelBrand } from './AuthVisualShell.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
 import { appUrl, assetUrl } from './paths.js'
 import { clearDataCache } from './data-cache.js'
 import { supabase } from './supabase.js'
 
-const CertificateApp = lazy(() => import('../certificate/src/CertificateApp.jsx'))
-const LearnerApp = lazy(() => import('../player/src/LearnerApp.jsx'))
+const loadCertificateApp = () => import('../certificate/src/CertificateApp.jsx')
+const loadLearnerApp = () => import('../player/src/LearnerApp.jsx')
+const CertificateApp = lazy(loadCertificateApp)
+const LearnerApp = lazy(loadLearnerApp)
 
 function routeInfo() {
   const hash = window.location.hash || '#/'
@@ -126,6 +129,16 @@ export default function App() {
     if (route.isLogin) window.location.replace(appUrl('/'))
   }, [sessionReady, session?.user?.id, profile?.id, mustChangePassword, route.isLogin])
 
+  useEffect(() => {
+    if (!session?.user) return
+    if (route.isCertificate) {
+      void loadCertificateApp()
+    } else {
+      void loadLearnerApp()
+    }
+  }, [session?.user?.id, route.isCertificate])
+
+
   const content = useMemo(() => {
     if (!sessionReady) return <Startup title="Preparando Aula EI…" />
     if (!session?.user) return <LoginPage error={authError} preserveRoute={route.isCertificate} />
@@ -176,72 +189,35 @@ function LoginPage({ error = '', preserveRoute = false }) {
     }
   }
 
-  return <main
-    className="auth-page"
-    style={{ '--auth-photo': `url("${assetUrl('brand/fondo.jpg')}")` }}
-  >
-    <div className="auth-backdrop" aria-hidden="true">
-      <span className="auth-orb auth-orb-one" />
-      <span className="auth-orb auth-orb-two" />
-      <span className="auth-orb auth-orb-three" />
-      <span className="auth-grid-glow" />
+  return <AuthVisualShell>
+    <AuthPanelBrand />
+    <div className="auth-panel-copy">
+      <span className="eyebrow">Aula EI · Acceso</span>
+      <h2>Bienvenido de nuevo</h2>
+      <p>Ingresa con la cuenta habilitada por el administrador de la plataforma.</p>
     </div>
 
-    <section className="auth-hero-clean">
-      <div className="auth-brand-row">
-        <div className="auth-brand-card">
-          <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
-        </div>
-        <span className="auth-kicker">Academia interna · Electroingeniería</span>
-      </div>
+    <form className="auth-form-clean" onSubmit={submit}>
+      <label>
+        <span>Correo electrónico</span>
+        <input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nombre@ei.com.co" required />
+      </label>
+      <label>
+        <span>Contraseña</span>
+        <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••••••" required />
+      </label>
+      <button className="auth-primary" disabled={busy}>
+        <span>{busy ? 'Validando acceso…' : 'Ingresar a Aula EI'}</span>
+        <span className="auth-button-arrow" aria-hidden="true">→</span>
+      </button>
+      {message && <div className="auth-message error" role="alert">{message}</div>}
+    </form>
 
-      <div className="auth-copy">
-        <span className="auth-overline">Aprendizaje que deja evidencia</span>
-        <h1>Formación que se siente moderna, clara y segura.</h1>
-        <p>Aula EI reúne capacitaciones, evaluaciones, certificados y rutas de aprendizaje en una experiencia visual pensada para trabajar rápido desde computador o celular.</p>
-      </div>
-
-      <div className="auth-feature-row" aria-label="Características principales">
-        <span><strong>01</strong><small>Rutas y competencias</small></span>
-        <span><strong>02</strong><small>Certificación trazable</small></span>
-        <span><strong>03</strong><small>Seguridad con RLS + MFA</small></span>
-      </div>
-    </section>
-
-    <section className="auth-panel-clean">
-      <div className="auth-panel-brand">
-        <img className="company-logo" src={assetUrl('brand/logo-electroingenieria.jpg')} alt="Electroingeniería" />
-        <span className="auth-panel-badge"><ShieldCheck size={15} /> Acceso protegido</span>
-      </div>
-
-      <div className="auth-panel-copy">
-        <span className="eyebrow">Aula EI · Acceso</span>
-        <h2>Bienvenido de nuevo</h2>
-        <p>Ingresa con la cuenta habilitada por el administrador de la plataforma.</p>
-      </div>
-
-      <form className="auth-form-clean" onSubmit={submit}>
-        <label>
-          <span>Correo electrónico</span>
-          <input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nombre@ei.com.co" required />
-        </label>
-        <label>
-          <span>Contraseña</span>
-          <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••••••" required />
-        </label>
-        <button className="auth-primary" disabled={busy}>
-          <span>{busy ? 'Validando acceso…' : 'Ingresar a Aula EI'}</span>
-          <span className="auth-button-arrow" aria-hidden="true">→</span>
-        </button>
-        {message && <div className="auth-message error" role="alert">{message}</div>}
-      </form>
-
-      <div className="auth-security-note">
-        <ShieldCheck size={18} />
-        <span>Sin registro público. Las cuentas y permisos se administran desde Gestión Aula EI.</span>
-      </div>
-    </section>
-  </main>
+    <div className="auth-security-note">
+      <ShieldCheck size={18} />
+      <span>Sin registro público. Las cuentas y permisos se administran desde Gestión Aula EI.</span>
+    </div>
+  </AuthVisualShell>
 }
 
 function PasswordGate({ profile }) {
@@ -333,11 +309,19 @@ function AccessError({ message }) {
 }
 
 function Startup({ title }) {
-  return <main className="startup-clean">
-    <section>
-      <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
-      <Loader2 className="spin" size={30} />
-      <h1>{title}</h1>
-    </section>
-  </main>
+  return <AuthVisualShell
+    overline="Preparando tu experiencia"
+    title="Aula EI está lista para continuar contigo."
+    description="Validamos la sesión y preparamos únicamente los módulos que necesitas para evitar saltos visuales y cargas innecesarias."
+    panelClassName="auth-loading-panel"
+  >
+    <AuthPanelBrand secureLabel="Sesión protegida" />
+    <div className="auth-loading-state" role="status" aria-live="polite">
+      <div className="auth-loading-orbit" aria-hidden="true"><span /><span /><span /></div>
+      <span className="eyebrow">Un momento</span>
+      <h2>{title}</h2>
+      <p>Estamos sincronizando tu acceso de forma segura.</p>
+      <div className="auth-loading-bars" aria-hidden="true"><i /><i /><i /></div>
+    </div>
+  </AuthVisualShell>
 }

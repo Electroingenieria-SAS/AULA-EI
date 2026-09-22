@@ -8,12 +8,17 @@
   --line:#dce6f1;
   --panel:#ffffff;
   --shadow:0 20px 55px rgba(15,40,74,.10);
+  --aula-blue:#003b8e;
+  --aula-navy:#001e4a;
+  --aula-yellow:#ffd200;
+  --aula-line:#e6edf7;
+  --aula-muted:#64748b;
+  --aula-shadow:0 22px 55px rgba(15,23,42,.09);
+  --aula-sidebar-width:278px;
   position:relative;
   isolation:isolate;
   min-height:100vh;
-  display:grid;
-  grid-template-columns:252px minmax(0,1fr);
-  overflow-x:hidden;
+  overflow-x:clip;
   font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;
   color:#0f172a;
   background:#edf3fa;
@@ -42,7 +47,6 @@
   animation:aulaShellAmbient 16s ease-in-out infinite alternate;
 }
 @keyframes aulaShellAmbient{to{transform:translate3d(0,-10px,0) scale(1.018)}}
-.learner-global-sidebar,
 .learner-shell-main,
 .learner-mobile-global-nav,
 .learner-notification-center,
@@ -50,7 +54,13 @@
   position:relative;
   z-index:1;
 }
-.learner-shell-main{min-width:0;background:transparent}
+.learner-shell-main{
+  min-width:0;
+  min-height:100vh;
+  margin-left:var(--aula-sidebar-width);
+  width:calc(100% - var(--aula-sidebar-width));
+  background:transparent;
+}
 .learner-app-shell button,.learner-app-shell input{font:inherit}
 .learner-app-shell button{cursor:pointer}
 .learner-app-shell button:disabled{cursor:not-allowed;opacity:.52}
@@ -2386,42 +2396,29 @@
 /* =========================================================
    FINAL VISUAL LANGUAGE — Aula EI original, evolucionada
    ========================================================= */
-.learner-app-shell{
-  --aula-blue:#003b8e;
-  --aula-navy:#001e4a;
-  --aula-yellow:#ffd200;
-  --aula-line:#e6edf7;
-  --aula-muted:#64748b;
-  --aula-shadow:0 22px 55px rgba(15,23,42,.09);
-}
-
-.learner-app-shell{
-  min-height:100vh;
-  display:grid;
-  grid-template-columns:278px minmax(0,1fr);
-  background:transparent;
-}
-.learner-shell-main{
-  min-width:0;
-  min-height:100vh;
-  background:transparent;
-}
-
 /* Sidebar: vuelve a la geometría y jerarquía del Aula EI original */
 .learner-global-sidebar{
-  position:sticky;
-  top:0;
+  position:fixed;
   z-index:110;
-  width:278px;
+  inset:0 auto 0 0;
+  width:var(--aula-sidebar-width);
   height:100vh;
+  height:100dvh;
+  max-height:100dvh;
+  box-sizing:border-box;
   padding:22px;
+  padding-bottom:max(22px,env(safe-area-inset-bottom,0px));
   display:flex;
   flex-direction:column;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:none;
   border-right:1px solid rgba(255,255,255,.80);
   background:rgba(255,255,255,.93);
   backdrop-filter:blur(18px);
-  box-shadow:0 12px 35px rgba(15,23,42,.06);
+  box-shadow:10px 0 35px rgba(15,23,42,.07);
 }
+.learner-global-sidebar::-webkit-scrollbar{display:none}
 .learner-sidebar-brand-original{
   min-height:112px;
   padding:2px 2px 14px;
@@ -3152,6 +3149,10 @@
 .catalog-skeleton-grid .skeleton-visual{height:154px}
 
 /* Responsive mantiene la navegación móvil existente */
+@media(max-width:1180px) and (min-width:901px){
+  .learner-app-shell{--aula-sidebar-width:224px}
+  .learner-global-sidebar{padding-inline:18px}
+}
 @media(max-width:1180px){
   .catalog-original-metrics{
     grid-template-columns:repeat(2,minmax(0,1fr));
@@ -3161,8 +3162,6 @@
   }
 }
 @media(max-width:900px){
-  .learner-app-shell{display:block}
-  .learner-global-sidebar{display:none}
   .catalog-original-page{
     max-width:none;
     padding:18px 14px 90px;
@@ -3234,12 +3233,14 @@
 
 @media(max-width:900px){
   .learner-app-shell{
-    display:block;
+    --aula-sidebar-width:0px;
     min-height:100dvh;
   }
   .learner-global-sidebar{display:none}
   .learner-shell-main{
     min-height:100dvh;
+    margin-left:0;
+    width:100%;
     padding-bottom:calc(86px + env(safe-area-inset-bottom,0px));
   }
   .learner-shell-main .learner-topbar{

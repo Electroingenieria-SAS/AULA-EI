@@ -112,9 +112,9 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
   })
 
   const selectedRows = useMemo(() => rows.filter((row) => rowSelection[row.id]), [rows, rowSelection])
-  const assignedCount = rows.filter((row) => !['none', 'cancelled'].includes(row.assignment_status)).length
+  const assignedCount = rows.filter((row) => !['none', 'cancelled', 'expired'].includes(row.assignment_status)).length
   const completedCount = rows.filter((row) => row.assignment_status === 'completed').length
-  const unassignedCount = rows.filter((row) => ['none', 'cancelled'].includes(row.assignment_status)).length
+  const unassignedCount = rows.filter((row) => ['none', 'cancelled', 'expired'].includes(row.assignment_status)).length
 
   const selectAllFiltered = () => {
     const next = {}
@@ -139,7 +139,7 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
           course_id: selectedCourse.id,
           user_id: person.id,
           due_at: dueAt,
-          status: current && current.status !== 'cancelled' ? current.status : 'assigned',
+          status: current && !['cancelled', 'expired'].includes(current.status) ? current.status : 'assigned',
         }
       })
       for (const batch of chunks(payload, 250)) {
@@ -148,7 +148,7 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
       }
       const created = selectedRows.filter((person) => {
         const current = enrollmentMap.get(person.id)
-        return !current || current.status === 'cancelled'
+        return !current || ['cancelled', 'expired'].includes(current.status)
       }).length
       const preserved = selectedRows.length - created
       setMessage(String(selectedRows.length) + ' matrícula(s) procesadas: ' + String(created) + ' nueva(s) y ' + String(preserved) + ' existente(s) preservando su progreso.')
@@ -280,7 +280,7 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
         <div className="search-field wide-search"><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre o correo…" /></div>
         <label className="filter-select"><Filter size={15} /><select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}><option value="all">Todos los roles</option>{Object.entries(ROLE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <label className="filter-select"><Users size={15} /><select value={activityFilter} onChange={(event) => setActivityFilter(event.target.value)}><option value="active">Solo activos</option><option value="all">Activos e inactivos</option><option value="inactive">Solo inactivos</option></select></label>
-        <label className="filter-select"><UserCheck size={15} /><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">Cualquier estado</option><option value="none">Sin asignar</option><option value="assigned">Asignada</option><option value="in_progress">En progreso</option><option value="completed">Completada</option><option value="cancelled">Cancelada</option></select></label>
+        <label className="filter-select"><UserCheck size={15} /><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">Cualquier estado</option><option value="none">Sin asignar</option><option value="assigned">Asignada</option><option value="in_progress">En progreso</option><option value="completed">Completada</option><option value="expired">Vencida</option><option value="cancelled">Cancelada</option></select></label>
       </div>
 
       <div className="selection-toolbar">

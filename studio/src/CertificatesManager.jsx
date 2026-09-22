@@ -5,6 +5,7 @@ import {
   RefreshCw, Search, Users, X,
 } from 'lucide-react'
 import { getError, supabase } from './shared.js'
+import { appUrl } from '../../src/paths.js'
 
 export default function CertificatesManager({ setMessage }) {
   const [ranking, setRanking] = useState([])
@@ -95,7 +96,7 @@ export default function CertificatesManager({ setMessage }) {
 
   const selectedCertificate = issuedRows.find((item) => item.certificate_code === detailCode) || null
 
-  const certificateUrl = (code) => new URL('/#/certificate/' + encodeURIComponent(code), window.location.origin).href
+  const certificateUrl = (code) => new URL(appUrl('/certificate/' + encodeURIComponent(code)), window.location.origin).href
 
   const openCertificate = (code) => {
     if (!code) return

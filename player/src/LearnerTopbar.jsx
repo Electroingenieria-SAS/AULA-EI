@@ -1,3 +1,4 @@
+import { assetUrl } from './navigation.js'
 import React from 'react'
 import { BookOpen } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
@@ -5,7 +6,7 @@ import { navigateLearner } from './navigation.js'
 export default function LearnerTopbar({ center, actions, mobileAction }) {
   return <header className="learner-topbar learner-shared-topbar">
     <button className="learner-brand" onClick={() => navigateLearner('/catalog')}>
-      <img src="/brand/logo-aula-ei.png" alt="Aula EI" />
+      <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
       <span><strong>Aula EI</strong><small>Experiencia de aprendizaje</small></span>
     </button>
 

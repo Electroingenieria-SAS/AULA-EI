@@ -4,7 +4,7 @@ import {
   Clock3, FileCheck2, Filter, GraduationCap, PlayCircle,
   Search, SlidersHorizontal, Sparkles, Trophy, X, Zap,
 } from 'lucide-react'
-import { navigateLearner, openLearnerCourse } from './navigation.js'
+import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
 const FILTERS = [
@@ -289,7 +289,7 @@ function CourseCard({ item, index }) {
     event.stopPropagation()
     const code = item.certificate?.certificate_code
     if (!code) return
-    window.open('/#/certificate/' + encodeURIComponent(code), '_blank', 'noopener,noreferrer')
+    window.open(appUrl('/certificate/' + encodeURIComponent(code)), '_blank', 'noopener,noreferrer')
   }
 
   return <article

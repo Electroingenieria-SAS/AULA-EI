@@ -12,7 +12,7 @@ export const ADMIN_ROLES = new Set(['admin', 'super_admin'])
 export const STAFF_ROLES = new Set(['creador_contenido', 'revisor', 'admin', 'super_admin'])
 export const ASSIGNMENT_STATUS = {
   none: ['Sin asignar', 'neutral'], assigned: ['Asignada', 'blue'], in_progress: ['En progreso', 'yellow'],
-  completed: ['Completada', 'green'], cancelled: ['Cancelada', 'red'],
+  completed: ['Completada', 'green'], expired: ['Vencida', 'red'], cancelled: ['Cancelada', 'red'],
 }
 export const cx = (...parts) => parts.filter(Boolean).join(' ')
 export function dateLabel(value) {

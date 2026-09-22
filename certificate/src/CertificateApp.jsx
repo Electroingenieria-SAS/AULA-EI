@@ -6,8 +6,9 @@ import {
 import QRCode from 'qrcode'
 import CertificateTemplate from './CertificateTemplate.jsx'
 import { supabase } from './supabase.js'
+import { appUrl, assetUrl } from '../../src/paths.js'
 
-export default function CertificateApp() {
+export default function CertificateApp({ sessionUser = null }) {
   const svgRef = useRef(null)
   const [row, setRow] = useState(null)
   const [participantSignature, setParticipantSignature] = useState('')
@@ -31,12 +32,7 @@ export default function CertificateApp() {
     ;(async () => {
       try {
         if (!code) throw new Error('No se recibió el código del certificado.')
-        const { data: sessionResult, error: sessionError } = await supabase.auth.getSession()
-        if (sessionError) throw sessionError
-        if (!sessionResult.session?.user) {
-          window.location.replace('/#/login')
-          return
-        }
+        if (!sessionUser) throw new Error('Debes iniciar sesión para abrir este certificado.')
 
         const [{ data: certificateData, error: certificateError }, { data: signatureData, error: signatureError }] = await Promise.all([
           supabase.rpc('get_certificate_by_code', { p_certificate_code: code }),
@@ -49,11 +45,11 @@ export default function CertificateApp() {
 
         const certificateRow = certificateRows[0]
         const signatures = normalizeRpcRow(signatureData)
-        const verificationUrl = new URL('/#/certificate/' + encodeURIComponent(certificateRow.certificate_code || code), window.location.origin).href
+        const verificationUrl = new URL(appUrl('/certificate/' + encodeURIComponent(certificateRow.certificate_code || code)), window.location.origin).href
 
         const [logo, seal, qr] = await Promise.all([
-          assetToDataUrl('/brand/logo-aula-ei.png'),
-          assetToDataUrl('/brand/certificate-sello-ei.png'),
+          assetToDataUrl(assetUrl('brand/logo-aula-ei.png')),
+          assetToDataUrl(assetUrl('brand/certificate-sello-ei.png')),
           QRCode.toDataURL(verificationUrl, {
             width: 480,
             margin: 1,
@@ -77,7 +73,7 @@ export default function CertificateApp() {
       }
     })()
     return () => { active = false }
-  }, [code])
+  }, [code, sessionUser?.id])
 
   const certificate = useMemo(() => {
     if (!row || !logoData || !sealData || !qrData) return null
@@ -235,7 +231,7 @@ export default function CertificateApp() {
   return <main className="certificate-export-page">
     <header className="certificate-export-toolbar">
       <div className="certificate-toolbar-brand">
-        <img src="/brand/logo-aula-ei.png" alt="Aula EI" />
+        <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
         <div><strong>Certificado Aula EI</strong><span>{certificate.code}</span></div>
       </div>
 
@@ -312,7 +308,7 @@ function SignatureControl({ label, type, value, working, onUpload, onPaste, onCl
 function StatePage({ icon: Icon, title, text, spin, error }) {
   return <main className="certificate-state-page"><section aria-busy={spin ? 'true' : undefined}>
     {spin ? <div className="certificate-state-loader" aria-hidden="true"><i /><i /><i /></div> : <Icon size={34} className={error ? 'state-error' : ''} />}
-    <h1>{title}</h1><p>{text}</p>{error && <a href="/#/">Volver a Aula EI</a>}
+    <h1>{title}</h1><p>{text}</p>{error && <a href={appUrl('/')}>Volver a Aula EI</a>}
   </section></main>
 }
 

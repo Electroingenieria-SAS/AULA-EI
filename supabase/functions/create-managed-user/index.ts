@@ -38,6 +38,18 @@ async function pwnedPasswordCount(password: string) {
     clearTimeout(timer);
   }
 }
+async function validateLiveAdminSession(admin: ReturnType<typeof createClient>, callerId: string, token: string) {
+  const claims = decodeJwtClaims(token);
+  const sessionId = String(claims.session_id || "").trim();
+  if (claims.aal !== "aal2" || !sessionId) return false;
+  const { data, error } = await admin.rpc("validate_aula_admin_session", {
+    p_user_id: callerId,
+    p_session_id: sessionId,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
 async function consumeRateLimit(admin: ReturnType<typeof createClient>, scope: string, actorId: string, limit: number, windowSeconds: number) {
   const { data, error } = await admin.rpc("consume_aula_security_rate_limit", {
     p_scope: scope,
@@ -101,7 +113,7 @@ serve(async (req) => {
       return fail("Tu sesión no tiene una membresía confiable de Aula EI. Cierra sesión e ingresa nuevamente.", "AULA_MEMBERSHIP_INVALID");
     }
     if (!["admin", "super_admin"].includes(callerRole)) return fail("Solo Admin o Super Admin pueden crear usuarios.", "FORBIDDEN");
-    if (decodeJwtClaims(token).aal !== "aal2") return fail("Confirma tu segundo factor antes de administrar usuarios.", "MFA_REQUIRED");
+    if (!await validateLiveAdminSession(admin, caller.id, token)) return fail("Tu sesión administrativa no está activa o no tiene MFA verificado. Vuelve a autenticarte.", "MFA_REQUIRED");
 
     if (!await consumeRateLimit(admin, "create_managed_user", caller.id, 10, 600)) {
       await admin.from("audit_logs").insert({ actor_id: caller.id, action: "rate_limit_block", entity_type: "security", entity_id: caller.id, metadata: { scope: "create_managed_user" } });

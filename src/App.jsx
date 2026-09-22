@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react'
-import CertificateApp from '../certificate/src/CertificateApp.jsx'
 import AdminMfaGate from './AdminMfaGate.jsx'
-import LearnerApp from '../player/src/LearnerApp.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
 import { appUrl, assetUrl } from './paths.js'
 import { supabase } from './supabase.js'
+
+const CertificateApp = lazy(() => import('../certificate/src/CertificateApp.jsx'))
+const LearnerApp = lazy(() => import('../player/src/LearnerApp.jsx'))
 
 function routeInfo() {
   const hash = window.location.hash || '#/'
@@ -132,7 +133,11 @@ export default function App() {
     const securedContent = route.isCertificate
       ? <CertificateApp sessionUser={session.user} />
       : <LearnerApp profile={profile} sessionUser={session.user} />
-    return <AdminMfaGate profile={profile}>{securedContent}</AdminMfaGate>
+    return <AdminMfaGate profile={profile}>
+      <Suspense fallback={<Startup title="Cargando módulo…" />}>
+        {securedContent}
+      </Suspense>
+    </AdminMfaGate>
   }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, route.isCertificate, authError])
 
   return <>

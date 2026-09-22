@@ -7,6 +7,7 @@ import {
   Trash2, Upload, Video, X,
 } from 'lucide-react'
 import { getError, signedAsset, slugify, supabase, uploadCourseAsset } from './shared.js'
+import { appUrl } from '../../src/paths.js'
 
 const EMPTY_COURSE = { title: '', description: '', passing_score: 80 }
 const EMPTY_BLOCK = {
@@ -484,7 +485,7 @@ function CourseBuilder({ course, onBack, refresh, setMessage }) {
 
   const preview = () => {
     const anchor = document.createElement('a')
-    anchor.href = new URL('/#/course/' + course.id, window.location.origin).href
+    anchor.href = new URL(appUrl('/course/' + course.id), window.location.origin).href
     anchor.target = '_blank'
     anchor.rel = 'noopener noreferrer'
     anchor.click()

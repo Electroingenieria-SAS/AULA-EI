@@ -13,6 +13,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     return (parts.slice(0, 2).map((part) => part[0]).join('') || 'EI').toUpperCase()
   }, [displayName])
   const canManage = ['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))
+  const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -48,7 +49,13 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
       </div>
     </aside>
 
-    <NotificationCenter profile={profile} />
+    <header className="learner-mobile-appbar" aria-label="Cabecera de Aula EI">
+      <button className="learner-mobile-brand" type="button" onClick={() => navigateLearner('/')} aria-label="Ir al inicio de Aula EI">
+        <img src={assetUrl('brand/logo-aula-ei.png')} alt="" />
+        <span><small>Aula EI</small><strong>{mobileTitle}</strong></span>
+      </button>
+      <NotificationCenter profile={profile} />
+    </header>
 
     <div className="learner-shell-main">{children}</div>
 

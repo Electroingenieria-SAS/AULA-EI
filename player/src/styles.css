@@ -4085,3 +4085,14 @@ html,#root{
   .training-notification-list{max-height:calc(100dvh - 215px)}
   .home-training-route-content{grid-template-columns:1fr!important}
 }
+
+
+/* Global placement: keep the bell outside any sidebar that may be hidden on mobile. */
+.learner-app-shell>.training-notification-center{position:fixed;right:20px;top:18px;width:auto;margin:0;z-index:150}
+.learner-app-shell>.training-notification-center .training-notification-trigger{width:auto;min-width:150px}
+.learner-app-shell>.training-notification-center .training-notification-panel{left:auto;right:0;top:52px}
+@media(max-width:900px){
+  .learner-app-shell>.training-notification-center{right:12px;top:max(10px,env(safe-area-inset-top))}
+  .learner-app-shell>.training-notification-center .training-notification-trigger{width:44px;min-width:44px}
+  .learner-app-shell>.training-notification-center .training-notification-panel{position:fixed;left:12px;right:12px;top:calc(max(10px,env(safe-area-inset-top)) + 52px);width:auto}
+}

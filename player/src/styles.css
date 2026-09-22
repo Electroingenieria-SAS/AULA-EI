@@ -4029,3 +4029,59 @@ html,#root{
 @media(max-width:760px){
   .home-training-route-content{grid-template-columns:1fr}
 }
+
+
+/* ========================================================================== */
+/* Formación y cumplimiento v2 · notificaciones + ruta progresiva             */
+/* ========================================================================== */
+.training-notification-center{position:relative;margin:12px 0 4px;z-index:70}
+.training-notification-trigger{width:100%;min-height:44px;border:1px solid rgba(25,75,139,.15);border-radius:14px;background:rgba(255,255,255,.76);display:flex;align-items:center;gap:10px;padding:10px 12px;color:#174b86;font:inherit;font-weight:700;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.training-notification-trigger:hover{transform:translateY(-1px);background:#fff;box-shadow:0 10px 26px rgba(20,59,106,.1)}
+.training-notification-trigger b{margin-left:auto;min-width:22px;height:22px;border-radius:999px;display:grid;place-items:center;background:#ffd736;color:#153c6c;font-size:11px;padding:0 6px}
+.training-notification-panel{position:absolute;left:calc(100% + 14px);top:-18px;width:min(430px,calc(100vw - 34px));max-height:min(620px,calc(100vh - 34px));background:rgba(255,255,255,.98);border:1px solid rgba(25,75,139,.13);border-radius:22px;box-shadow:0 24px 70px rgba(22,52,91,.22);overflow:hidden;backdrop-filter:blur(18px)}
+.training-notification-panel>header{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 14px;border-bottom:1px solid rgba(20,64,118,.09);background:linear-gradient(135deg,rgba(231,242,255,.92),rgba(255,255,255,.98))}
+.training-notification-panel>header>div:first-child{display:flex;flex-direction:column;gap:2px}
+.training-notification-panel>header span{font-size:10px;letter-spacing:.14em;font-weight:800;color:#6280a4;text-transform:uppercase}
+.training-notification-panel>header strong{font-size:18px;color:#143f73}
+.training-notification-panel>header>div:last-child{display:flex;gap:6px}
+.training-notification-panel>header button{width:34px;height:34px;border:0;border-radius:11px;background:#fff;color:#285a94;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 12px rgba(31,69,112,.08)}
+.training-notification-list{max-height:520px;overflow:auto;padding:10px}
+.training-notification-item{width:100%;display:grid;grid-template-columns:38px 1fr 9px;gap:10px;align-items:start;text-align:left;border:0;border-radius:15px;background:transparent;padding:11px;cursor:pointer;color:#173d6c;transition:background .16s ease,transform .16s ease}
+.training-notification-item:hover{background:#f4f8fd;transform:translateX(2px)}
+.training-notification-item.unread{background:#eef6ff}
+.training-notification-icon{width:36px;height:36px;border-radius:12px;background:#e5f0ff;display:grid;place-items:center;color:#1d5da7}
+.training-notification-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.training-notification-copy strong{font-size:13px;line-height:1.25;color:#163f73}
+.training-notification-copy small{font-size:11.5px;line-height:1.42;color:#607792}
+.training-notification-copy em{display:flex;align-items:center;gap:4px;font-size:10.5px;color:#8a9caf;font-style:normal}
+.training-notification-dot{width:8px;height:8px;border-radius:50%;background:#2d78cf;margin-top:8px}
+.training-notification-empty{min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#71869f;text-align:center;padding:22px}
+.training-notification-empty strong{color:#315d8f}
+.training-notification-empty i{width:88%;height:10px;border-radius:99px;background:linear-gradient(90deg,#eef4fb,#dfeaf7,#eef4fb);background-size:200% 100%;animation:shimmer 1.3s linear infinite}
+
+.home-training-supervisor{display:block;margin-top:5px;color:#6683a6!important;font-size:11px!important}
+.home-training-chip-list span.is-complete{border-color:rgba(32,151,102,.22);background:rgba(224,248,238,.72)}
+.home-training-chip-list span.is-complete b{background:#d7f3e6;color:#17784f}
+.home-training-path-list{display:flex!important;flex-direction:column;gap:10px!important}
+.home-training-path-progress{border:1px solid rgba(31,82,143,.11);border-radius:14px;padding:11px;background:rgba(249,252,255,.88);display:flex;flex-direction:column;gap:8px}
+.home-training-path-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.home-training-path-title>span{display:flex;align-items:center;gap:7px;font-weight:750;color:#244f83}
+.home-training-path-title>b{font-size:12px;color:#1d5caa}
+.home-training-path-track{height:6px;border-radius:999px;background:#e8eef6;overflow:hidden}
+.home-training-path-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#1f5caa,#46a3ec);transition:width .45s ease}
+.home-training-path-steps{display:flex;flex-wrap:wrap;gap:6px}
+.home-training-path-steps span{max-width:100%;display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:10.5px;background:#f3f6fa;color:#6e7f92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-training-path-steps span.done{background:#e6f6ee;color:#237a56}
+.home-training-path-steps span.ready{background:#e9f2ff;color:#1c5fae}
+.home-training-path-steps span.locked{background:#f3f4f6;color:#8a939f}
+.home-training-path-progress>button{align-self:flex-start;border:0;border-radius:10px;padding:7px 10px;background:#174f91;color:#fff;display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+
+@media(max-width:900px){
+  .training-notification-center{position:fixed;right:12px;top:max(10px,env(safe-area-inset-top));margin:0;z-index:140}
+  .training-notification-trigger{width:44px;height:44px;padding:0;justify-content:center;border-radius:14px;background:rgba(255,255,255,.96);box-shadow:0 10px 28px rgba(22,53,92,.16)}
+  .training-notification-trigger>span{display:none}
+  .training-notification-trigger b{position:absolute;right:-4px;top:-5px;min-width:18px;height:18px;font-size:9px;padding:0 4px}
+  .training-notification-panel{position:fixed;left:12px;right:12px;top:calc(max(10px,env(safe-area-inset-top)) + 52px);width:auto;max-height:calc(100dvh - 132px)}
+  .training-notification-list{max-height:calc(100dvh - 215px)}
+  .home-training-route-content{grid-template-columns:1fr!important}
+}

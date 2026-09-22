@@ -3683,23 +3683,6 @@ html,#root{
   margin:0 auto;
   padding:28px;
 }
-.studio-single-content .integrated-admin-hero{
-  margin-bottom:18px;
-}
-.studio-single-content .studio-control-row{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:14px;
-  margin-bottom:18px;
-}
-.studio-single-content .integrated-tab-bar{
-  flex:1;
-  margin-bottom:0;
-}
-.studio-single-content .studio-refresh{
-  flex:none;
-}
 .global-module-loading,
 .studio-inline-state{
   min-height:520px;
@@ -3738,13 +3721,6 @@ html,#root{
 @media(max-width:760px){
   .studio-single-content .studio-single-page{
     padding:14px 12px 92px;
-  }
-  .studio-single-content .studio-control-row{
-    align-items:stretch;
-    flex-direction:column;
-  }
-  .studio-single-content .studio-refresh{
-    align-self:flex-end;
   }
 }
 

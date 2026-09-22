@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
+import { cachedQuery } from '../../src/data-cache.js'
 
 const FILTERS = [
   { key: 'all', label: 'Todas' },
@@ -40,40 +41,28 @@ export default function CatalogPage({ profile = null, sessionUser = null }) {
     try {
       if (!sessionUser?.id) return
 
-      const [enrollmentsResult, phasesResult, progressResult, certificatesResult] = await Promise.all([
-        supabase
-          .from('enrollments')
-          .select('id,status,due_at,created_at,updated_at,course:courses(id,title,description,passing_score,status,cover_path)')
-          .eq('user_id', sessionUser.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('course_phases')
-          .select('id,course_id,blocks:content_blocks(id,required,status)'),
-        supabase
-          .from('block_progress')
-          .select('block_id,status,progress_percent,completed_at')
-          .eq('user_id', sessionUser.id),
-        supabase.rpc('get_my_certificates'),
-      ])
+      const userId = sessionUser.id
+      const snapshot = await cachedQuery('catalog:snapshot:' + userId, async () => {
+        const result = await supabase.rpc('get_my_catalog_snapshot')
+        if (result.error) throw result.error
+        return result.data || {}
+      }, { ttl: 30000, force: silent })
 
-      if (enrollmentsResult.error) throw enrollmentsResult.error
-      if (phasesResult.error) throw phasesResult.error
-      if (progressResult.error) throw progressResult.error
-
-      const enrollments = enrollmentsResult.data || []
+      const enrollments = Array.isArray(snapshot.enrollments) ? snapshot.enrollments : []
+      const phases = Array.isArray(snapshot.phases) ? snapshot.phases : []
+      const progressRows = Array.isArray(snapshot.progress) ? snapshot.progress : []
+      const certificates = Array.isArray(snapshot.certificates) ? snapshot.certificates : []
       const visible = enrollments.filter((item) => item?.course?.id)
       setHiddenCount(enrollments.length - visible.length)
 
       const phaseMap = new Map()
-      for (const phase of phasesResult.data || []) {
+      for (const phase of phases) {
         const current = phaseMap.get(phase.course_id) || []
         current.push(...(phase.blocks || []).filter((block) => block.status !== 'draft'))
         phaseMap.set(phase.course_id, current)
       }
 
-      const completed = new Set((progressResult.data || []).filter((item) => item.status === 'completed').map((item) => item.block_id))
-      const certificates = certificatesResult.error ? [] : (certificatesResult.data || [])
-
+      const completed = new Set(progressRows.filter((item) => item.status === 'completed').map((item) => item.block_id))
       const normalized = visible.map((enrollment) => {
         const course = enrollment.course
         const blocks = phaseMap.get(course.id) || []

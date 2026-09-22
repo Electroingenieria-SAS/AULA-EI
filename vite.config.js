@@ -24,6 +24,7 @@ export default defineConfig({
     outDir: path.resolve('dist'),
     emptyOutDir: true,
     sourcemap: false,
+    manifest: true,
     target: 'es2020',
   },
 })

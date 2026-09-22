@@ -1,11 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react'
-import CertificateApp from '../certificate/src/CertificateApp.jsx'
 import AdminMfaGate from './AdminMfaGate.jsx'
-import LearnerApp from '../player/src/LearnerApp.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
 import { appUrl, assetUrl } from './paths.js'
+import { clearDataCache } from './data-cache.js'
 import { supabase } from './supabase.js'
+
+const CertificateApp = lazy(() => import('../certificate/src/CertificateApp.jsx'))
+const LearnerApp = lazy(() => import('../player/src/LearnerApp.jsx'))
 
 function routeInfo() {
   const hash = window.location.hash || '#/'
@@ -55,8 +57,9 @@ export default function App() {
         setSessionReady(true)
       })
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
+      if (event === 'SIGNED_OUT' || !nextSession) clearDataCache()
       if (!nextSession) setProfile(null)
       setAuthError('')
       setSessionReady(true)
@@ -132,7 +135,11 @@ export default function App() {
     const securedContent = route.isCertificate
       ? <CertificateApp sessionUser={session.user} />
       : <LearnerApp profile={profile} sessionUser={session.user} />
-    return <AdminMfaGate profile={profile}>{securedContent}</AdminMfaGate>
+    return <AdminMfaGate profile={profile}>
+      <Suspense fallback={<Startup title="Cargando módulo…" />}>
+        {securedContent}
+      </Suspense>
+    </AdminMfaGate>
   }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, route.isCertificate, authError])
 
   return <>

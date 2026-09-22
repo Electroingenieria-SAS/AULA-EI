@@ -49,4 +49,13 @@ if (!index.includes('Content-Security-Policy')) throw new Error('GitHub Pages de
 
 await access(path.join(root,'package-lock.json'))
 
-console.log('Performance v4 validada: lazy loading, carga de datos bajo demanda, caché, Storage batch, CSP y lockfile.')
+const home = await read('player/src/HomePage.jsx')
+const catalog = await read('player/src/CatalogPage.jsx')
+if (!home.includes("rpc('get_my_home_snapshot')")) throw new Error('Inicio debe usar un único snapshot RPC.')
+if (!catalog.includes("rpc('get_my_catalog_snapshot')")) throw new Error('Catálogo debe usar un único snapshot RPC.')
+
+const workflow = await read('.github/workflows/deploy-pages.yml')
+if (!workflow.includes('npm ci --no-audit --no-fund')) throw new Error('GitHub Actions debe usar npm ci.')
+if (!workflow.includes('npm audit --omit=dev --audit-level=high')) throw new Error('Falta auditoría de dependencias de producción.')
+
+console.log('Performance v4 validada: lazy loading, datos bajo demanda, snapshots, caché, Storage batch, CSP, lockfile y npm ci.')

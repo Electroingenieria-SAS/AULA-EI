@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, BookOpen, Briefcase, CheckCircle2, Gamepad2, GraduationCap, Layers3, LockKeyhole, Medal, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
-import { navigateLearner, openLearnerCourse } from './navigation.js'
+import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
 export default function HomePage({ profile, sessionUser }) {

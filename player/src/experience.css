@@ -1531,9 +1531,6 @@ body.aula-interactive-hover [role="button"]{
 }
 
 /* ---------- Responsive ---------- */
-@media(max-width:1180px){
-  .studio-control-row{position:relative;top:auto}
-}
 @media(max-width:900px){
   .experience-route-progress{left:0}
   .studio-sync-feedback{top:10px;right:10px}

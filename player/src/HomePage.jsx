@@ -133,7 +133,7 @@ export default function HomePage({ profile, sessionUser }) {
       certificates.length ? <div className="home-certificate-list">
         {certificates.map((item)=><article key={item.certificate_code}>
           <div><b>{item.course_title || 'Capacitación Aula EI'}</b><span>Código: {item.certificate_code}</span><small>{new Date(item.issued_at).toLocaleDateString('es-CO')} · {item.score}%</small></div>
-          <button onClick={() => window.open('/#/certificate/' + encodeURIComponent(item.certificate_code), '_blank', 'noopener,noreferrer')}><Trophy size={16}/> Abrir certificado</button>
+          <button onClick={() => window.open(appUrl('/certificate/' + encodeURIComponent(item.certificate_code)), '_blank', 'noopener,noreferrer')}><Trophy size={16}/> Abrir certificado</button>
         </article>)}
       </div> : <div className="home-empty compact"><Trophy size={28}/><h3>Aún no tienes certificados</h3><p>Aprueba una capacitación con la nota mínima para generarlo automáticamente.</p></div>}
   </main>

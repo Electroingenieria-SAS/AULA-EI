@@ -20,11 +20,9 @@ const REVEAL = [
   '.pending-certificate-card',
   '.compliance-metrics article',
   '.compliance-overview-grid',
-  '.compliance-two-column',
   '.course-metrics-grid article',
   '.user-metrics-grid article',
   '.certificate-metrics-grid article',
-  '.data-table-wrap',
   '.studio-navigation-shell',
 ].join(',')
 

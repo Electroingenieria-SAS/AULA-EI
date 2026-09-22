@@ -1,19 +1,9 @@
-export function navigateLearner(target) {
-  const raw = String(target || '')
-  const hashPath = raw.startsWith('/#/') ? raw.slice(2) : raw.startsWith('#/') ? raw.slice(1) : raw
-  const normalized = hashPath.startsWith('/') ? hashPath : '/' + hashPath
+import { appUrl, assetUrl } from '../../src/paths.js'
 
-  const isLearnerModule = /^\/(?:$|catalog(?:\/|$)|course\/[^/?#]+|games(?:\/|$)|studio(?:\/|$))/.test(normalized)
-  if (isLearnerModule) {
-    if (window.location.hash === '#' + normalized) return
-    window.location.hash = normalized
-    return
-  }
+export { appUrl, assetUrl }
 
-  window.location.assign('/#' + normalized)
-}
-
-export function openLearnerCourse(courseId) {
-  if (!courseId) return
-  navigateLearner('/course/' + encodeURIComponent(courseId))
+export function navigateLearner(path = '/', options = {}) {
+  const target = appUrl(path)
+  if (options.replace) window.location.replace(target)
+  else window.location.assign(target)
 }

@@ -5,7 +5,7 @@
    Mantiene intacta la arquitectura y la identidad institucional.
    ========================================================= */
 
-:root{
+.learner-app-shell{
   --ux-fast:140ms;
   --ux-normal:220ms;
   --ux-slow:380ms;

@@ -95,7 +95,7 @@ if (!shell.includes('mobileHaptic')) {
 if (!course.includes('mobile-outline-button') || !course.includes('learner-stage-nav')) {
   throw new Error('El reproductor perdió controles específicos de móvil.')
 }
-for (const required of ['touchDistance','onTouchStart','onTouchMove','touch-zoom-canvas','double toque']) {
+for (const required of ['touchDistance','onTouchStart','onTouchMove','touch-zoom-canvas','onDoubleClick']) {
   if (!course.includes(required)) throw new Error('El visor táctil de capacitaciones está incompleto: falta ' + required)
 }
 if (!assignments.includes('MOBILE_ASSIGNMENT_COLUMN_LABELS') || !assignments.includes('data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS')) {

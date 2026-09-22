@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, BookOpen, Briefcase, CheckCircle2, Gamepad2, GraduationCap, Layers3, LockKeyhole, Medal, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
 import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
+import { cachedQuery } from '../../src/data-cache.js'
 
 export default function HomePage({ profile, sessionUser }) {
   const [enrollments, setEnrollments] = useState([])
@@ -17,23 +18,34 @@ export default function HomePage({ profile, sessionUser }) {
         const userId = sessionUser?.id
         if (!userId) return
 
-        const [enrollmentResult, certificateResult, trainingProfileResult] = await Promise.all([
-          supabase
-            .from('enrollments')
-            .select('id,status,due_at,created_at,course:courses(id,title,description,passing_score,status,cover_path)')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false }),
-          supabase.rpc('get_my_certificates'),
-          supabase.rpc('get_my_training_profile'),
+        const [raw, certificateRows, trainingData] = await Promise.all([
+          cachedQuery('home:enrollments:' + userId, async () => {
+            const result = await supabase
+              .from('enrollments')
+              .select('id,status,due_at,created_at,course:courses(id,title,description,passing_score,status,cover_path)')
+              .eq('user_id', userId)
+              .order('created_at', { ascending: false })
+            if (result.error) throw result.error
+            return result.data || []
+          }, { ttl: 45000 }),
+          cachedQuery('home:certificates:' + userId, async () => {
+            const result = await supabase.rpc('get_my_certificates')
+            if (result.error) throw result.error
+            return result.data || []
+          }, { ttl: 60000 }),
+          cachedQuery('home:training:' + userId, async () => {
+            const result = await supabase.rpc('get_my_training_profile')
+            if (result.error) throw result.error
+            return result.data || null
+          }, { ttl: 60000 }),
         ])
 
         if (!alive) return
-        const raw = enrollmentResult.data || []
         const visible = raw.filter((item) => item?.course?.id)
         setEnrollments(visible)
         setHiddenCount(raw.length - visible.length)
-        setCertificates(certificateResult.error ? [] : (certificateResult.data || []))
-        setTrainingProfile(trainingProfileResult.error ? null : (trainingProfileResult.data || null))
+        setCertificates(certificateRows)
+        setTrainingProfile(trainingData)
       } finally {
         if (alive) setLoading(false)
       }

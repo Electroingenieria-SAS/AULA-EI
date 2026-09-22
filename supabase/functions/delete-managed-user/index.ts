@@ -9,6 +9,46 @@ const headers = {
   "Content-Type": "application/json",
 };
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+function decodeJwtClaims(token: string): Record<string, unknown> {
+  try {
+    const part = token.split(".")[1] || "";
+    const normalized = part.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(part.length / 4) * 4, "=");
+    return JSON.parse(atob(normalized));
+  } catch {
+    return {};
+  }
+}
+async function pwnedPasswordCount(password: string) {
+  const digest = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(password));
+  const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  const prefix = hash.slice(0, 5);
+  const suffix = hash.slice(5);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3500);
+  try {
+    const response = await fetch("https://api.pwnedpasswords.com/range/" + prefix, {
+      headers: { "Add-Padding": "true", "User-Agent": "Aula-EI-Password-Security" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error("HIBP_UNAVAILABLE");
+    const body = await response.text();
+    const row = body.split("\n").find((line) => line.toUpperCase().startsWith(suffix + ":"));
+    return row ? Number(row.split(":")[1]?.trim() || "1") : 0;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+async function consumeRateLimit(admin: ReturnType<typeof createClient>, scope: string, actorId: string, limit: number, windowSeconds: number) {
+  const { data, error } = await admin.rpc("consume_aula_security_rate_limit", {
+    p_scope: scope,
+    p_actor: actorId,
+    p_limit: limit,
+    p_window_seconds: windowSeconds,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
 function normalizeRole(raw: unknown): AppRole | null {
   const v = String(raw || "").trim().toLowerCase();
   const m: Record<string, AppRole> = {
@@ -43,6 +83,12 @@ serve(async (req) => {
       return reply({ ok:false, error:"La membresía o el rol del administrador no están sincronizados en Aula EI." }, 403);
     }
     if (!["admin","super_admin"].includes(callerRole)) return reply({ ok:false, error:"Solo Admin o Super Admin pueden administrar accesos." }, 403);
+    if (decodeJwtClaims(token).aal !== "aal2") return reply({ ok:false, code:"MFA_REQUIRED", error:"Confirma tu segundo factor antes de administrar accesos." }, 403);
+
+    if (!await consumeRateLimit(admin, "manage_user_access", caller.id, 20, 600)) {
+      await admin.from("audit_logs").insert({ actor_id:caller.id, action:"rate_limit_block", entity_type:"security", entity_id:caller.id, metadata:{ scope:"manage_user_access" } });
+      return reply({ ok:false, code:"RATE_LIMITED", error:"Demasiadas operaciones administrativas. Intenta nuevamente más tarde." }, 429);
+    }
 
     const body = await req.json();
     const targetId = String(body.user_id || "").trim();
@@ -86,7 +132,7 @@ serve(async (req) => {
       action:desiredActive ? "reactivate_managed_user" : "deactivate_managed_user",
       entity_type:"profile",
       entity_id:targetId,
-      metadata:{ target_email:targetProfile.email, target_role:targetRole, previous_active:targetProfile.is_active, new_active:desiredActive },
+      metadata:{ target_email:targetProfile.email, target_role:targetRole, previous_active:targetProfile.is_active, new_active:desiredActive, mfa_level:"aal2" },
     });
     return reply({ ok:true, active:desiredActive, preserved_history:true, message:desiredActive ? "Usuario reactivado. Se conservó todo su historial." : "Usuario desactivado. Se conservaron matrículas, progreso y certificados." });
   } catch (error) {

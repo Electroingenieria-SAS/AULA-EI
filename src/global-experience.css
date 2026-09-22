@@ -11,4 +11,4 @@ body.aula-pointer-down #aula-pointer-ring{width:22px;height:22px;background:rgba
 @keyframes aulaClickBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.18)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(2.25)}}
 @keyframes aulaClickDots{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}24%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}}
 @media(prefers-reduced-motion:reduce){#aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}}
-@media(hover:none),(pointer:coarse){#aula-pointer-dot,#aula-pointer-ring{display:none!important}}
+@media(max-width:900px),(hover:none),(pointer:coarse){#aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}}

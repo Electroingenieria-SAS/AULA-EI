@@ -1,19 +1,25 @@
-# AULA EI
+# Aula EI
 
-Aplicación web institucional orientada al acceso y gestión de contenidos de formación de Electroingeniería S.A.S.
+Aula EI es una única aplicación React/Vite respaldada por Supabase.
 
-## Estructura
+## Arquitectura
 
-- `index.html`: punto de entrada de la aplicación.
-- `assets/`: recursos compilados utilizados por la interfaz.
-- `brand/`: recursos gráficos de la aplicación.
-- `favicon.svg`: icono del sitio.
-- `vercel.json`: configuración de publicación.
+- `src/`: arranque único, autenticación, cliente Supabase, rutas y utilidades de seguridad.
+- `player/src/`: experiencia del colaborador y reproductor de capacitaciones.
+- `studio/src/`: administración, cursos, usuarios, asignaciones y motor de formación/cumplimiento.
+- `certificate/src/`: visualización, firma y exportación de certificados.
+- `supabase/`: migraciones y Edge Functions versionadas.
 
-## Publicación
+## Principios de build
 
-El repositorio contiene los archivos necesarios para la publicación de la aplicación web. El despliegue se realiza mediante la integración configurada con Vercel.
+El build parte únicamente de código fuente. No se parchea JavaScript minificado, no se reutilizan bundles compilados como fuente y no existe un bootstrap que cambie entre versiones antiguas/nuevas.
 
-## Estado
+- Vercel puede compilar con base `/`, pero el despliegue operativo de este proyecto se gestiona por GitHub Actions.
+- GitHub Pages compila el mismo código fuente con `VITE_BASE_PATH=/AULA-EI/`.
+- La navegación interna usa hash routing para mantener compatibilidad con GitHub Pages sin reescrituras.
 
-Aplicación en operación y mantenimiento continuo.
+## Comando
+
+```bash
+npm run build
+```

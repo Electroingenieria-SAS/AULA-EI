@@ -13,7 +13,7 @@
   --shadow:0 20px 55px rgba(15,40,74,.10);
   --aula-photo-background:
     linear-gradient(180deg,rgba(245,247,251,.46),rgba(245,247,251,.62)),
-    url('/brand/fondo.jpg') center center / cover fixed no-repeat;
+    url('../../brand/fondo.jpg') center center / cover fixed no-repeat;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}

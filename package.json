@@ -7,12 +7,13 @@
   },
   "scripts": {
     "check:architecture": "node scripts/verify-architecture.mjs",
-    "build": "npm run check:architecture && npm run check:security && npm run check:performance && npm run check:visual && npm run check:motion && vite build && npm run check:bundle",
+    "build": "npm run check:architecture && npm run check:security && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && vite build && npm run check:bundle",
     "check:security": "node scripts/verify-security.mjs",
     "check:performance": "node scripts/verify-performance.mjs",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
     "check:visual": "node scripts/verify-visual.mjs",
-    "check:motion": "node scripts/verify-motion.mjs"
+    "check:motion": "node scripts/verify-motion.mjs",
+    "check:mobile": "node scripts/verify-mobile.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

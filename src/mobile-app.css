@@ -1245,3 +1245,33 @@
   .learner-mobile-brand small{display:none}
   .learner-mobile-brand strong{max-width:53vw}
 }
+
+
+@media(max-width:900px){
+  .certificate-load-issue{
+    margin:0 0 11px;
+    padding:12px 13px;
+    border:1px solid #efd79a;
+    border-radius:17px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+    gap:10px;
+    background:#fff9e8;
+    color:#6d5923;
+    box-shadow:0 8px 22px rgba(93,72,17,.06);
+  }
+  .certificate-load-issue>div{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .certificate-load-issue strong{font-size:.84rem}
+  .certificate-load-issue span{font-size:.74rem;line-height:1.4}
+  .certificate-load-issue button{min-height:42px!important}
+}
+@media(max-width:540px){
+  .certificate-load-issue{grid-template-columns:1fr}
+  .certificate-load-issue button{width:100%!important;justify-content:center!important}
+}

@@ -1,7 +1,32 @@
 import { useEffect } from 'react'
 
-const INTERACTIVE = 'button,a,[role="button"],input,select,textarea,label,.home-course-card,.catalog-course-card,.games-grid article,.course-library-card,.pending-certificate-card,.user-identity-button,.certificate-person-button,.image-learning-canvas'
-const REVEAL = '.home-section-heading,.catalog-workspace-header,.games-section-heading,.courses-overview,.courses-library,.assignment-intro,.assignment-stats,.panel-card,.users-overview,.users-directory,.certificates-overview,.certificates-workspace,.authoring-section,.publish-actions-card'
+const INTERACTIVE = 'button,a,[role="button"],input,select,textarea,label,.home-course-card,.catalog-course-card,.games-grid article,.course-library-card,.pending-certificate-card,.user-identity-button,.certificate-person-button,.image-learning-canvas,.studio-navigation-button,.compliance-tabs button,.certificate-view-switch button'
+const REVEAL = [
+  '.home-section-heading',
+  '.catalog-workspace-header',
+  '.games-section-heading',
+  '.courses-overview',
+  '.courses-library',
+  '.assignment-intro',
+  '.assignment-stats',
+  '.panel-card',
+  '.users-overview',
+  '.users-directory',
+  '.certificates-overview',
+  '.certificates-workspace',
+  '.authoring-section',
+  '.publish-actions-card',
+  '.course-library-card',
+  '.pending-certificate-card',
+  '.compliance-metrics article',
+  '.compliance-overview-grid',
+  '.compliance-two-column',
+  '.course-metrics-grid article',
+  '.user-metrics-grid article',
+  '.certificate-metrics-grid article',
+  '.data-table-wrap',
+  '.studio-navigation-shell',
+].join(',')
 
 export default function ExperienceLayer() {
   useEffect(() => {

@@ -21,20 +21,78 @@ export default function CertificatesManager({ setMessage }) {
   const [page, setPage] = useState(0)
   const [detailCode, setDetailCode] = useState(null)
   const [pendingSearch, setPendingSearch] = useState('')
+  const [loadIssue, setLoadIssue] = useState('')
+
+  const loadRankingFallback = async () => {
+    const certificateResult = await supabase
+      .from('certificates')
+      .select('certificate_code,course_id,user_id,score,issued_at')
+      .order('score', { ascending: false })
+      .order('issued_at', { ascending: false })
+      .limit(2000)
+    if (certificateResult.error) throw certificateResult.error
+
+    const certificates = certificateResult.data || []
+    if (!certificates.length) return []
+
+    const courseIds = [...new Set(certificates.map((item) => item.course_id).filter(Boolean))]
+    const userIds = [...new Set(certificates.map((item) => item.user_id).filter(Boolean))]
+
+    const [courseResult, userResult] = await Promise.all([
+      courseIds.length
+        ? supabase.from('courses').select('id,title').in('id', courseIds)
+        : Promise.resolve({ data: [], error: null }),
+      userIds.length
+        ? supabase.from('profiles').select('id,full_name,email').in('id', userIds)
+        : Promise.resolve({ data: [], error: null }),
+    ])
+    if (courseResult.error) throw courseResult.error
+    if (userResult.error) throw userResult.error
+
+    const courseMap = new Map((courseResult.data || []).map((item) => [item.id, item]))
+    const userMap = new Map((userResult.data || []).map((item) => [item.id, item]))
+
+    return certificates.map((certificate) => {
+      const course = courseMap.get(certificate.course_id)
+      const user = userMap.get(certificate.user_id)
+      return {
+        ...certificate,
+        course_title: course?.title || 'Capacitación',
+        user_full_name: user?.full_name || user?.email || 'Sin nombre',
+        user_email: user?.email || '',
+      }
+    })
+  }
 
   const load = async () => {
     setLoading(true)
+    setLoadIssue('')
     try {
       const [rankingResult, pendingResult] = await Promise.all([
         supabase.rpc('admin_certificate_ranking'),
         supabase.rpc('admin_completed_without_certificate'),
       ])
-      if (rankingResult.error) throw rankingResult.error
+
+      let rankingRows = rankingResult.error ? null : (rankingResult.data || [])
+      if (!rankingRows?.length) {
+        try {
+          const fallbackRows = await loadRankingFallback()
+          if (fallbackRows.length) rankingRows = fallbackRows
+        } catch (fallbackError) {
+          if (rankingResult.error) throw rankingResult.error
+          throw fallbackError
+        }
+      }
+
+      if (rankingResult.error && !rankingRows) throw rankingResult.error
       if (pendingResult.error) throw pendingResult.error
-      setRanking(rankingResult.data || [])
+
+      setRanking(rankingRows || [])
       setPending(pendingResult.data || [])
     } catch (error) {
-      setMessage(getError(error, 'No fue posible cargar los certificados.'))
+      const detail = getError(error, 'No fue posible cargar el ranking y los certificados.')
+      setLoadIssue(detail)
+      setMessage(detail)
     } finally {
       setLoading(false)
     }
@@ -200,6 +258,11 @@ export default function CertificatesManager({ setMessage }) {
         <Metric label="Pendientes" value={metrics.pending} icon={FileCheck2} tone={metrics.pending ? 'red' : 'green'} />
       </div>
     </section>
+
+    {loadIssue && <div className="certificate-load-issue" role="alert">
+      <div><strong>No pudimos sincronizar el ranking</strong><span>{loadIssue}</span></div>
+      <button className="secondary-button compact" onClick={load}><RefreshCw size={15} /> Reintentar</button>
+    </div>}
 
     <section className="panel-card certificates-workspace">
       <div className="certificate-view-switch">

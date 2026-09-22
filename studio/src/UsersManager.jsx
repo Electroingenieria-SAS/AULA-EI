@@ -391,18 +391,63 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
         <div className="bulk-buttons"><button className="secondary-button compact" onClick={() => bulkActiveState(true)} disabled={busy}><UserCheck size={15} /> Reactivar</button><button className="danger-button compact" onClick={() => bulkActiveState(false)} disabled={busy}><UserMinus size={15} /> Desactivar</button></div>
       </div>}
 
-      <div className="data-table-wrap users-data-wrap">
+      <div className="data-table-wrap users-data-wrap desktop-data-view">
         <table className="data-table users-data-table">
           <thead>{table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined} className={header.column.getCanSort() ? 'sortable' : ''}>
             {flexRender(header.column.columnDef.header, header.getContext())}
             {header.column.getIsSorted() === 'asc' ? <ArrowUp size={13} /> : header.column.getIsSorted() === 'desc' ? <ArrowDown size={13} /> : null}
           </th>)}</tr>)}</thead>
           <tbody>{table.getRowModel().rows.map((row) => <tr key={row.id} className={(row.getIsSelected() ? 'selected-row ' : '') + (row.original.is_active === false ? 'inactive-row' : '')}>
-            {row.getVisibleCells().map((cell) => <td key={cell.id} data-label={MOBILE_USER_COLUMN_LABELS[cell.column.id] || cell.column.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}
+            {row.getVisibleCells().map((cell) => <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}
           </tr>)}</tbody>
         </table>
-        {!table.getRowModel().rows.length && <div className="users-empty-state"><Search size={28} /><strong>No encontramos usuarios</strong><span>Prueba cambiando la búsqueda o limpiando los filtros.</span><button className="secondary-button compact" onClick={clearFilters}>Limpiar filtros</button></div>}
       </div>
+
+      <div className="mobile-user-list mobile-data-view">
+        {table.getRowModel().rows.map((row) => {
+          const person = row.original
+          return <article key={person.id} className={'mobile-user-card ' + (person.is_active === false ? 'is-inactive' : '')}>
+            <div className="mobile-user-card-head">
+              <button className="mobile-user-identity" onClick={() => setDetailId(person.id)}>
+                <span className="avatar-mini">{initials(person.name)}</span>
+                <span><strong>{person.name}</strong><small>{person.email || 'Sin correo'}</small></span>
+              </button>
+              <input aria-label={'Seleccionar ' + person.name} type="checkbox" checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />
+            </div>
+
+            <div className="mobile-user-card-meta">
+              <span className={'user-status-pill ' + (person.is_active === false ? 'inactive' : 'active')}>{person.is_active === false ? 'Inactivo' : 'Activo'}</span>
+              <RoleBadge role={person.role} />
+            </div>
+
+            <div className="mobile-user-training">
+              <span><strong>{person.stats.active}</strong><small>activas</small></span>
+              <span><strong>{person.stats.completed}</strong><small>completadas</small></span>
+              <span><strong>{person.stats.total}</strong><small>matrículas</small></span>
+            </div>
+
+            {canChangeRole && person.id !== profile.id && <label className="mobile-user-role">Rol
+              <select value={person.role} onChange={(event) => changeRole(person, event.target.value)}>
+                {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}
+              </select>
+            </label>}
+
+            <div className="mobile-user-actions">
+              <button className="secondary-button compact" onClick={() => setDetailId(person.id)}><ChevronRight size={16} /> Ver detalle</button>
+              {canManage(person) && <button
+                className={person.is_active === false ? 'primary-button compact' : 'danger-button compact'}
+                disabled={workingId === person.id}
+                onClick={() => toggleActive(person)}
+              >
+                {workingId === person.id && <Loader2 className="spin" size={14} />}
+                {person.is_active === false ? 'Reactivar' : 'Desactivar'}
+              </button>}
+            </div>
+          </article>
+        })}
+      </div>
+
+      {!table.getRowModel().rows.length && <div className="users-empty-state"><Search size={28} /><strong>No encontramos usuarios</strong><span>Prueba cambiando la búsqueda o limpiando los filtros.</span><button className="secondary-button compact" onClick={clearFilters}>Limpiar filtros</button></div>}
 
       <div className="pagination-bar users-pagination">
         <span>Página {table.getState().pagination.pageIndex + 1} de {Math.max(1, table.getPageCount())}</span>

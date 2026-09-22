@@ -18,7 +18,10 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     navigateLearner('/login', { replace: true })
   }
 
-  return <div className="learner-app-shell">
+  return <div
+    className="learner-app-shell"
+    style={{ '--aula-photo-image': `url("${assetUrl('brand/fondo.jpg')}")` }}
+  >
     <aside className="learner-global-sidebar">
       <button className="learner-sidebar-brand learner-sidebar-brand-original" onClick={() => navigateLearner('/')}>
         <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI · Academia Interna" />

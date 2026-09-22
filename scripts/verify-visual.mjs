@@ -77,6 +77,21 @@ if (!player.includes("var(--aula-photo-image)")) {
 if (!player.includes(".learner-app-shell:before") || !player.includes(".learner-app-shell:after")) {
   throw new Error('Faltan las capas de fondo/ambiente del shell autenticado.')
 }
+if (!player.includes("--aula-sidebar-width:278px")) {
+  throw new Error('El shell de escritorio debe definir un único ancho de sidebar.')
+}
+if (!player.includes(".learner-global-sidebar{\n  position:fixed")) {
+  throw new Error('La barra lateral de escritorio debe permanecer fija al viewport.')
+}
+if (player.includes(".learner-global-sidebar{\n  position:sticky")) {
+  throw new Error('La barra lateral no puede volver a position:sticky.')
+}
+if (!player.includes("margin-left:var(--aula-sidebar-width)") || !player.includes("width:calc(100% - var(--aula-sidebar-width))")) {
+  throw new Error('El contenido principal debe respetar exactamente el ancho de la sidebar fija.')
+}
+if (!playerExperience.includes("left:var(--aula-sidebar-width,278px)")) {
+  throw new Error('La barra de progreso superior debe alinearse con la sidebar fija.')
+}
 if (!player.includes(".learner-mobile-global-nav{display:none}")) {
   throw new Error('La navegación móvil debe permanecer oculta por defecto.')
 }

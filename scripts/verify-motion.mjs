@@ -31,11 +31,21 @@ for (const required of [
   '.course-library-card',
   '.pending-certificate-card',
   '.compliance-metrics article',
-  '.data-table-wrap',
   '.studio-navigation-shell',
 ]) {
   if (!experience.includes(required)) {
     throw new Error('Cobertura de reveal incompleta: falta ' + required)
+  }
+}
+
+for (const forbidden of [
+  "'.data-table-wrap'",
+  "'.users-directory'",
+  "'.certificates-workspace'",
+  "'.compliance-two-column'",
+]) {
+  if (experience.includes(forbidden)) {
+    throw new Error('El motion system no puede ocultar directorios/listas operativas: ' + forbidden)
   }
 }
 
@@ -65,4 +75,4 @@ for (const required of [
   }
 }
 
-console.log('Motion system validado: paneles, rutas, Studio, modales, tablas, feedback y accesibilidad coherentes.')
+console.log('Motion system validado: animación en componentes decorativos sin ocultar directorios ni listas operativas.')

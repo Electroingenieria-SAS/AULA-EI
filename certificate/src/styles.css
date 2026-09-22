@@ -1,4 +1,4 @@
-:root{
+.certificate-export-page,.certificate-state-page{
   font-family:"Century Gothic","Segoe UI",Arial,sans-serif;
   color:#172b4d;
   background:#eef3f8;
@@ -10,10 +10,10 @@
 }
 *{box-sizing:border-box}
 html,body,#root{min-width:320px;min-height:100%;margin:0}
-body{background:radial-gradient(circle at top left,rgba(0,48,160,.09),transparent 31%),radial-gradient(circle at bottom right,rgba(248,208,0,.10),transparent 25%),#eef3f8}
-button,input{font:inherit}
-button{cursor:pointer}
-button:disabled{opacity:.55;cursor:not-allowed}
+.certificate-export-page,.certificate-state-page{background:radial-gradient(circle at top left,rgba(0,48,160,.09),transparent 31%),radial-gradient(circle at bottom right,rgba(248,208,0,.10),transparent 25%),#eef3f8}
+.certificate-export-page button,.certificate-export-page input,.certificate-state-page button,.certificate-state-page input{font:inherit}
+.certificate-export-page button,.certificate-state-page button{cursor:pointer}
+.certificate-export-page button:disabled,.certificate-state-page button:disabled{opacity:.55;cursor:not-allowed}
 .spin{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 
 .certificate-export-page{min-height:100vh;padding:94px 24px 36px}

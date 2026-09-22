@@ -1,4 +1,4 @@
-:root{
+.embedded-studio,.studio-inline-state{
   font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;
   color:#0f172a;background:#f4f7fb;font-synthesis:none;text-rendering:optimizeLegibility;
   --blue:#003b8e;--navy:#001e4a;--blue2:#0d55b9;--blue-soft:#edf4ff;--yellow:#ffd200;
@@ -6,18 +6,18 @@
   --shadow:0 22px 55px rgba(15,23,42,.09);
 }
 *{box-sizing:border-box}
-body{margin:0;min-width:320px;min-height:100vh;background:radial-gradient(circle at top left,#e4efff,transparent 32%),radial-gradient(circle at top right,#fff3ae,transparent 26%),#f4f7fb}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-button:disabled{cursor:not-allowed;opacity:.58}
-a{text-decoration:none;color:inherit}
-input,select,textarea{width:100%;border:1px solid #cad7e6;border-radius:12px;background:#fff;color:var(--ink);padding:11px 12px;outline:none;transition:.18s}
-input:focus,select:focus,textarea:focus{border-color:#4d83cc;box-shadow:0 0 0 3px rgba(40,105,193,.10)}
-textarea{resize:vertical;min-height:88px}
-label{display:flex;flex-direction:column;gap:7px;font-size:.86rem;font-weight:700;color:#36516f}
-small{color:var(--muted)}
-h1,h2,h3,h4,p{margin-top:0}
-h1,h2,h3,h4{color:#173b69}
+.embedded-studio{min-width:0;min-height:100%;background:transparent}
+.embedded-studio button,.embedded-studio input,.embedded-studio select,.embedded-studio textarea{font:inherit}
+.embedded-studio button{cursor:pointer}
+.embedded-studio button:disabled{cursor:not-allowed;opacity:.58}
+.embedded-studio a{text-decoration:none;color:inherit}
+.embedded-studio input,.embedded-studio select,.embedded-studio textarea{width:100%;border:1px solid #cad7e6;border-radius:12px;background:#fff;color:var(--ink);padding:11px 12px;outline:none;transition:.18s}
+.embedded-studio input:focus,.embedded-studio select:focus,.embedded-studio textarea:focus{border-color:#4d83cc;box-shadow:0 0 0 3px rgba(40,105,193,.10)}
+.embedded-studio textarea{resize:vertical;min-height:88px}
+.embedded-studio label{display:flex;flex-direction:column;gap:7px;font-size:.86rem;font-weight:700;color:#36516f}
+.embedded-studio small{color:var(--muted)}
+.embedded-studio h1,.embedded-studio h2,.embedded-studio h3,.embedded-studio h4,.embedded-studio p{margin-top:0}
+.embedded-studio h1,.embedded-studio h2,.embedded-studio h3,.embedded-studio h4{color:#173b69}
 .header-actions,.toolbar-buttons,.row-actions,.bulk-buttons,.import-actions{display:flex;align-items:center;gap:9px}
 .role-chip,.plain-chip,.status-badge,.account-state{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;font-size:.75rem;font-weight:700}
 .eyebrow{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#2366b6}
@@ -76,6 +76,49 @@ h1,h2,h3,h4{color:#173b69}
 .integrated-studio .sidebar nav button{width:100%;border:0;background:none;padding:12px 13px;border-radius:16px;display:flex;align-items:center;gap:10px;color:#536176;font-weight:800;text-align:left}
 .integrated-studio .sidebar nav button:hover,.integrated-studio .sidebar nav button.active{background:#edf4ff;color:var(--blue)}
 .integrated-studio .admin-page{max-width:1540px;margin:auto;padding:28px}
+.integrated-studio .admin-hero{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:30px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:32px;
+  color:#fff;
+  background:linear-gradient(135deg,#001e4a 0%,#003b8e 52%,#2563eb 100%);
+  box-shadow:0 28px 60px rgba(0,30,74,.18),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.integrated-studio .admin-hero:after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  width:270px;
+  height:270px;
+  right:-88px;
+  top:-126px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,210,0,.38),rgba(255,210,0,.12) 48%,transparent 70%);
+  animation:studioHeroOrb 8s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+.integrated-studio .admin-hero>*{position:relative;z-index:1}
+.integrated-studio .admin-role{
+  min-width:170px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:26px;
+  padding:22px;
+  text-align:center;
+  color:#fff;
+  background:rgba(255,255,255,.11);
+  backdrop-filter:blur(12px) saturate(1.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 14px 30px rgba(0,22,58,.12);
+}
+.integrated-studio .admin-role strong{display:block;font-size:44px;line-height:1}
+.integrated-studio .admin-role span{display:block;margin-top:7px;font-size:11px;color:rgba(255,255,255,.72)}
+@keyframes studioHeroOrb{to{transform:translate3d(-22px,18px,0) scale(1.08)}}
 .integrated-studio .integrated-admin-hero{margin-bottom:18px}
 .integrated-studio .integrated-admin-hero h1{font-size:46px;letter-spacing:-1.7px;margin:15px 0 9px;color:#fff}
 .integrated-studio .integrated-admin-hero p{max-width:760px;color:#ffffffc7;line-height:1.65}

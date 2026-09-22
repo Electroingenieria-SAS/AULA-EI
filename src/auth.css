@@ -1,16 +1,20 @@
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#13213a;background:#eef4fb}
+.auth-page,.startup-clean,.mfa-page{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#13213a}
 *{box-sizing:border-box}
 html,body,#root{min-height:100%;margin:0}
 button,input{font:inherit}
-.auth-page{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,.72fr);background:radial-gradient(circle at 12% 12%,rgba(36,111,210,.22),transparent 34%),linear-gradient(135deg,#022a68 0%,#064ba5 48%,#eef5ff 48%,#f8fbff 100%);padding:clamp(24px,5vw,72px);gap:clamp(28px,5vw,76px);align-items:center}
+.auth-page{position:relative;isolation:isolate;overflow:hidden;min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,.72fr);background:radial-gradient(circle at 12% 12%,rgba(36,111,210,.22),transparent 34%),linear-gradient(135deg,rgba(2,42,104,.96) 0%,rgba(6,75,165,.92) 48%,rgba(238,245,255,.86) 48%,rgba(248,251,255,.92) 100%),url('../brand/fondo.jpg') center center/cover fixed no-repeat;padding:clamp(24px,5vw,72px);gap:clamp(28px,5vw,76px);align-items:center}
+.auth-page:before,.auth-page:after{content:"";position:absolute;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(2px)}
+.auth-page:before{width:360px;height:360px;left:-120px;top:-130px;background:radial-gradient(circle,rgba(255,210,0,.16),transparent 68%);animation:authAmbient 12s ease-in-out infinite alternate}
+.auth-page:after{width:300px;height:300px;right:8%;bottom:-150px;background:radial-gradient(circle,rgba(0,91,190,.12),transparent 68%);animation:authAmbient 15s ease-in-out infinite alternate-reverse}
+@keyframes authAmbient{to{transform:translate3d(24px,-16px,0) scale(1.08)}}
 .auth-hero-clean{color:#fff;max-width:760px;animation:authRise .55s ease both}
 .auth-hero-clean img{width:min(330px,72vw);max-height:150px;object-fit:contain;object-position:left center;filter:drop-shadow(0 18px 38px rgba(0,0,0,.16))}
 .auth-hero-clean .auth-kicker{display:inline-flex;margin-top:26px;padding:8px 12px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(255,255,255,.08);font-size:.82rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
-.auth-hero-clean h1{font-size:clamp(2.25rem,5vw,4.9rem);line-height:.98;margin:18px 0;max-width:850px;letter-spacing:-.045em}
+.auth-hero-clean h1{font-size:clamp(2.25rem,5vw,4.9rem);line-height:.98;margin:18px 0;max-width:850px;letter-spacing:-.045em;color:#fff;text-shadow:0 10px 34px rgba(0,20,58,.16)}
 .auth-hero-clean p{font-size:clamp(1rem,1.6vw,1.25rem);line-height:1.65;max-width:650px;color:rgba(255,255,255,.86)}
 .auth-feature-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:28px}
 .auth-feature-row span{padding:14px;border-radius:18px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);font-size:.9rem;font-weight:700}
-.auth-panel-clean{width:min(100%,480px);justify-self:end;background:rgba(255,255,255,.96);border:1px solid rgba(14,63,128,.09);border-radius:30px;padding:clamp(26px,4vw,42px);box-shadow:0 30px 80px rgba(7,45,96,.2);animation:authRise .55s .06s ease both}
+.auth-panel-clean{width:min(100%,480px);justify-self:end;background:rgba(255,255,255,.91);backdrop-filter:blur(24px) saturate(1.08);border:1px solid rgba(255,255,255,.74);border-radius:30px;padding:clamp(26px,4vw,42px);box-shadow:0 30px 80px rgba(7,45,96,.20),inset 0 1px 0 rgba(255,255,255,.82);animation:authRise .55s .06s ease both}
 .auth-panel-clean .company-logo{display:block;max-width:190px;max-height:74px;object-fit:contain;margin:0 0 24px}
 .auth-panel-clean .eyebrow{font-size:.78rem;font-weight:900;color:#0c58b0;letter-spacing:.08em;text-transform:uppercase}
 .auth-panel-clean h2{font-size:2rem;letter-spacing:-.03em;margin:8px 0}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { BookOpen, Briefcase, Gamepad2, GraduationCap, Layers3, Medal, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
+import { ArrowRight, BookOpen, Briefcase, CheckCircle2, Gamepad2, GraduationCap, Layers3, LockKeyhole, Medal, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
 import { navigateLearner, openLearnerCourse } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
@@ -76,20 +76,40 @@ export default function HomePage({ profile, sessionUser }) {
           <span>MI RUTA FORMATIVA</span>
           <h2>{trainingProfile.position.name}</h2>
           <p>{trainingProfile.position.department || 'Ruta de formación asociada a tu cargo actual.'}</p>
+          {trainingProfile.supervisor?.name && <small className="home-training-supervisor">Supervisor: {trainingProfile.supervisor.name}</small>}
         </div>
       </div>
       <div className="home-training-route-content">
         <div>
           <strong><Target size={16} /> Competencias esperadas</strong>
           <div className="home-training-chip-list">
-            {(trainingProfile.competencies || []).slice(0,6).map((item) => <span key={item.id}>{item.name}<b>N{item.required_level}</b></span>)}
+            {(trainingProfile.competencies || []).slice(0,8).map((item) => <span key={item.id} className={Number(item.gap || 0) === 0 ? 'is-complete' : ''}>
+              {item.name}<b>{item.achieved_level || 0}/{item.required_level}</b>
+            </span>)}
             {!trainingProfile.competencies?.length && <small>Aún no hay competencias configuradas para este cargo.</small>}
           </div>
         </div>
         <div>
-          <strong><Layers3 size={16} /> Rutas asignadas</strong>
+          <strong><Layers3 size={16} /> Rutas y desbloqueo progresivo</strong>
           <div className="home-training-path-list">
-            {(trainingProfile.paths || []).map((item) => <span key={item.id}><Layers3 size={14} /> {item.name}</span>)}
+            {(trainingProfile.paths || []).map((item) => {
+              const pathCourses = item.courses || []
+              const nextCourse = pathCourses.find((course) => course.unlocked && !course.completed)
+              return <article className="home-training-path-progress" key={item.id}>
+                <div className="home-training-path-title">
+                  <span><Layers3 size={14} /> {item.name}</span>
+                  <b>{Math.round(Number(item.progress_percent || 0))}%</b>
+                </div>
+                <div className="home-training-path-track"><i style={{ width: Math.max(0, Math.min(100, Number(item.progress_percent || 0))) + '%' }} /></div>
+                <div className="home-training-path-steps">
+                  {pathCourses.slice(0,6).map((course) => <span key={course.course_id} title={course.title} className={course.completed ? 'done' : course.unlocked ? 'ready' : 'locked'}>
+                    {course.completed ? <CheckCircle2 size={13} /> : course.unlocked ? <BookOpen size={13} /> : <LockKeyhole size={13} />}
+                    {course.title}
+                  </span>)}
+                </div>
+                {nextCourse && <button onClick={() => openLearnerCourse(nextCourse.course_id)}>Continuar ruta <ArrowRight size={14} /></button>}
+              </article>
+            })}
             {!trainingProfile.paths?.length && <small>Aún no hay rutas vinculadas a este cargo.</small>}
           </div>
         </div>

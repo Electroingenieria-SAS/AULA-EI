@@ -8,6 +8,46 @@ const headers = {
   "Content-Type": "application/json",
 };
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+function decodeJwtClaims(token: string): Record<string, unknown> {
+  try {
+    const part = token.split(".")[1] || "";
+    const normalized = part.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(part.length / 4) * 4, "=");
+    return JSON.parse(atob(normalized));
+  } catch {
+    return {};
+  }
+}
+async function pwnedPasswordCount(password: string) {
+  const digest = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(password));
+  const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  const prefix = hash.slice(0, 5);
+  const suffix = hash.slice(5);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3500);
+  try {
+    const response = await fetch("https://api.pwnedpasswords.com/range/" + prefix, {
+      headers: { "Add-Padding": "true", "User-Agent": "Aula-EI-Password-Security" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error("HIBP_UNAVAILABLE");
+    const body = await response.text();
+    const row = body.split("\n").find((line) => line.toUpperCase().startsWith(suffix + ":"));
+    return row ? Number(row.split(":")[1]?.trim() || "1") : 0;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+async function consumeRateLimit(admin: ReturnType<typeof createClient>, scope: string, actorId: string, limit: number, windowSeconds: number) {
+  const { data, error } = await admin.rpc("consume_aula_security_rate_limit", {
+    p_scope: scope,
+    p_actor: actorId,
+    p_limit: limit,
+    p_window_seconds: windowSeconds,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
 function normalizeRole(value: unknown) {
   const v = String(value || "").trim().toLowerCase();
   return ({
@@ -18,7 +58,7 @@ function normalizeRole(value: unknown) {
   } as Record<string,string>)[v] || null;
 }
 function validate(value: string, email: string) {
-  if (value.length < 10 || value.length > 128) return "La contraseña debe tener entre 10 y 128 caracteres.";
+  if (value.length < 12 || value.length > 128) return "La contraseña debe tener entre 12 y 128 caracteres.";
   if (/\s/.test(value) || !/[a-z]/.test(value) || !/[A-Z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
     return "Usa mayúscula, minúscula, número y símbolo, sin espacios.";
   }
@@ -49,10 +89,26 @@ serve(async (req) => {
       return reply({ ok: false, error: "Cuenta no habilitada o rol no sincronizado en Aula EI." }, 403);
     }
 
+    if (!await consumeRateLimit(admin, "complete_password_change", user.id, 5, 900)) {
+      await admin.from("audit_logs").insert({ actor_id:user.id, action:"rate_limit_block", entity_type:"security", entity_id:user.id, metadata:{ scope:"complete_password_change" } });
+      return reply({ ok:false, code:"RATE_LIMITED", error:"Demasiados intentos de cambio de contraseña. Intenta nuevamente más tarde." }, 429);
+    }
+
     const body = await req.json();
     const password = String(body.password || "");
     const invalid = validate(password, String(profile.email || user.email || ""));
     if (invalid) return reply({ ok: false, error: invalid }, 400);
+
+    let breachCheck = "clean";
+    try {
+      const breached = await pwnedPasswordCount(password);
+      if (breached > 0) return reply({ ok:false, code:"PWNED_PASSWORD", error:"Esa contraseña aparece en filtraciones conocidas. Usa una contraseña diferente." }, 400);
+    } catch {
+      breachCheck = "unavailable";
+      if (["admin","super_admin"].includes(profileRole)) {
+        return reply({ ok:false, code:"PASSWORD_REPUTATION_UNAVAILABLE", error:"No pudimos verificar la reputación de tu contraseña administrativa. Intenta nuevamente." }, 503);
+      }
+    }
 
     const { error: updateError } = await admin.auth.admin.updateUserById(user.id, {
       password,
@@ -71,7 +127,7 @@ serve(async (req) => {
       action: "complete_first_password_change",
       entity_type: "profile",
       entity_id: user.id,
-      metadata: { completed_at: new Date().toISOString() },
+      metadata: { completed_at: new Date().toISOString(), password_reputation: breachCheck },
     });
     return reply({ ok: true, message: "Contraseña actualizada. Inicia sesión nuevamente.", force_relogin: true });
   } catch (error) {

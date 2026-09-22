@@ -9,6 +9,46 @@ const headers = {
   "Content-Type": "application/json",
 };
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+function decodeJwtClaims(token: string): Record<string, unknown> {
+  try {
+    const part = token.split(".")[1] || "";
+    const normalized = part.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(part.length / 4) * 4, "=");
+    return JSON.parse(atob(normalized));
+  } catch {
+    return {};
+  }
+}
+async function pwnedPasswordCount(password: string) {
+  const digest = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(password));
+  const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  const prefix = hash.slice(0, 5);
+  const suffix = hash.slice(5);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3500);
+  try {
+    const response = await fetch("https://api.pwnedpasswords.com/range/" + prefix, {
+      headers: { "Add-Padding": "true", "User-Agent": "Aula-EI-Password-Security" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error("HIBP_UNAVAILABLE");
+    const body = await response.text();
+    const row = body.split("\n").find((line) => line.toUpperCase().startsWith(suffix + ":"));
+    return row ? Number(row.split(":")[1]?.trim() || "1") : 0;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+async function consumeRateLimit(admin: ReturnType<typeof createClient>, scope: string, actorId: string, limit: number, windowSeconds: number) {
+  const { data, error } = await admin.rpc("consume_aula_security_rate_limit", {
+    p_scope: scope,
+    p_actor: actorId,
+    p_limit: limit,
+    p_window_seconds: windowSeconds,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
 const fail = (error: string, code = "VALIDATION_ERROR") => reply({ ok: false, code, error });
 
 function generateTemporaryPassword() {
@@ -28,7 +68,7 @@ function normalizeRole(rawRole: unknown): AppRole | null {
   return map[role] || null;
 }
 function passwordError(password: string, email: string) {
-  if (password.length < 10 || password.length > 128) return "La contraseña temporal debe tener entre 10 y 128 caracteres.";
+  if (password.length < 12 || password.length > 128) return "La contraseña temporal debe tener entre 12 y 128 caracteres.";
   if (/\s/.test(password) || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
     return "La contraseña temporal debe incluir mayúscula, minúscula, número y símbolo, sin espacios.";
   }
@@ -61,6 +101,12 @@ serve(async (req) => {
       return fail("Tu sesión no tiene una membresía confiable de Aula EI. Cierra sesión e ingresa nuevamente.", "AULA_MEMBERSHIP_INVALID");
     }
     if (!["admin", "super_admin"].includes(callerRole)) return fail("Solo Admin o Super Admin pueden crear usuarios.", "FORBIDDEN");
+    if (decodeJwtClaims(token).aal !== "aal2") return fail("Confirma tu segundo factor antes de administrar usuarios.", "MFA_REQUIRED");
+
+    if (!await consumeRateLimit(admin, "create_managed_user", caller.id, 10, 600)) {
+      await admin.from("audit_logs").insert({ actor_id: caller.id, action: "rate_limit_block", entity_type: "security", entity_id: caller.id, metadata: { scope: "create_managed_user" } });
+      return reply({ ok: false, code: "RATE_LIMITED", error: "Demasiadas operaciones administrativas. Intenta nuevamente más tarde." }, 429);
+    }
 
     const body = await req.json();
     const email = String(body.email || "").trim().toLowerCase();
@@ -76,6 +122,17 @@ serve(async (req) => {
     const finalPassword = requestedPassword || generateTemporaryPassword();
     const invalidPassword = passwordError(finalPassword, email);
     if (invalidPassword) return fail(invalidPassword, "INVALID_PASSWORD");
+
+    let breachCheck = "clean";
+    try {
+      const breached = await pwnedPasswordCount(finalPassword);
+      if (breached > 0) return fail("Esa contraseña aparece en filtraciones conocidas. Usa una contraseña diferente.", "PWNED_PASSWORD");
+    } catch {
+      breachCheck = "unavailable";
+      if (["admin", "super_admin"].includes(role)) {
+        return reply({ ok: false, code: "PASSWORD_REPUTATION_UNAVAILABLE", error: "No pudimos verificar la reputación de la contraseña administrativa. Intenta nuevamente." }, 503);
+      }
+    }
 
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
@@ -115,7 +172,7 @@ serve(async (req) => {
       action: "create_managed_user",
       entity_type: "profile",
       entity_id: userId,
-      metadata: { email, full_name: fullName, role, password_change_required: true, created_by_email: profile.email },
+      metadata: { email, full_name: fullName, role, password_change_required: true, password_reputation: breachCheck, mfa_level: "aal2", created_by_email: profile.email },
     });
     return reply({ ok: true, message: "Usuario creado correctamente.", temporary_password: finalPassword, user: { id: userId, email, full_name: fullName, role } });
   } catch (error) {

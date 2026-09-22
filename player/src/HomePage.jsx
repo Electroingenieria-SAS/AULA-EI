@@ -18,34 +18,19 @@ export default function HomePage({ profile, sessionUser }) {
         const userId = sessionUser?.id
         if (!userId) return
 
-        const [raw, certificateRows, trainingData] = await Promise.all([
-          cachedQuery('home:enrollments:' + userId, async () => {
-            const result = await supabase
-              .from('enrollments')
-              .select('id,status,due_at,created_at,course:courses(id,title,description,passing_score,status,cover_path)')
-              .eq('user_id', userId)
-              .order('created_at', { ascending: false })
-            if (result.error) throw result.error
-            return result.data || []
-          }, { ttl: 45000 }),
-          cachedQuery('home:certificates:' + userId, async () => {
-            const result = await supabase.rpc('get_my_certificates')
-            if (result.error) throw result.error
-            return result.data || []
-          }, { ttl: 60000 }),
-          cachedQuery('home:training:' + userId, async () => {
-            const result = await supabase.rpc('get_my_training_profile')
-            if (result.error) throw result.error
-            return result.data || null
-          }, { ttl: 60000 }),
-        ])
+        const snapshot = await cachedQuery('home:snapshot:' + userId, async () => {
+          const result = await supabase.rpc('get_my_home_snapshot')
+          if (result.error) throw result.error
+          return result.data || {}
+        }, { ttl: 45000 })
 
         if (!alive) return
+        const raw = Array.isArray(snapshot.enrollments) ? snapshot.enrollments : []
         const visible = raw.filter((item) => item?.course?.id)
         setEnrollments(visible)
         setHiddenCount(raw.length - visible.length)
-        setCertificates(certificateRows)
-        setTrainingProfile(trainingData)
+        setCertificates(Array.isArray(snapshot.certificates) ? snapshot.certificates : [])
+        setTrainingProfile(snapshot.training_profile || null)
       } finally {
         if (alive) setLoading(false)
       }

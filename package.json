@@ -6,7 +6,8 @@
     "node": "24.x"
   },
   "scripts": {
-    "build": "vite build"
+    "check:architecture": "node scripts/verify-architecture.mjs",
+    "build": "npm run check:architecture && vite build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

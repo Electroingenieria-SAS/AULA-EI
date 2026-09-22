@@ -176,39 +176,69 @@ function LoginPage({ error = '', preserveRoute = false }) {
     }
   }
 
-  return <main className="auth-page">
+  return <main
+    className="auth-page"
+    style={{ '--auth-photo': `url("${assetUrl('brand/fondo.jpg')}")` }}
+  >
+    <div className="auth-backdrop" aria-hidden="true">
+      <span className="auth-orb auth-orb-one" />
+      <span className="auth-orb auth-orb-two" />
+      <span className="auth-orb auth-orb-three" />
+      <span className="auth-grid-glow" />
+    </div>
+
     <section className="auth-hero-clean">
-      <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
-      <span className="auth-kicker">Academia interna · Electroingeniería</span>
-      <h1>Formación, evidencia y cumplimiento en una sola experiencia.</h1>
-      <p>Aula EI centraliza capacitaciones, evaluaciones, certificados, rutas de aprendizaje y seguimiento institucional con acceso protegido.</p>
-      <div className="auth-feature-row">
-        <span>Rutas y competencias</span>
-        <span>Certificación trazable</span>
-        <span>Seguridad con RLS</span>
+      <div className="auth-brand-row">
+        <div className="auth-brand-card">
+          <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
+        </div>
+        <span className="auth-kicker">Academia interna · Electroingeniería</span>
+      </div>
+
+      <div className="auth-copy">
+        <span className="auth-overline">Aprendizaje que deja evidencia</span>
+        <h1>Formación que se siente moderna, clara y segura.</h1>
+        <p>Aula EI reúne capacitaciones, evaluaciones, certificados y rutas de aprendizaje en una experiencia visual pensada para trabajar rápido desde computador o celular.</p>
+      </div>
+
+      <div className="auth-feature-row" aria-label="Características principales">
+        <span><strong>01</strong><small>Rutas y competencias</small></span>
+        <span><strong>02</strong><small>Certificación trazable</small></span>
+        <span><strong>03</strong><small>Seguridad con RLS + MFA</small></span>
       </div>
     </section>
 
     <section className="auth-panel-clean">
-      <img className="company-logo" src={assetUrl('brand/logo-electroingenieria.jpg')} alt="Electroingeniería" />
-      <span className="eyebrow">Acceso a la plataforma</span>
-      <h2>Iniciar sesión</h2>
-      <p>Ingresa con la cuenta habilitada por el administrador de Aula EI.</p>
+      <div className="auth-panel-brand">
+        <img className="company-logo" src={assetUrl('brand/logo-electroingenieria.jpg')} alt="Electroingeniería" />
+        <span className="auth-panel-badge"><ShieldCheck size={15} /> Acceso protegido</span>
+      </div>
+
+      <div className="auth-panel-copy">
+        <span className="eyebrow">Aula EI · Acceso</span>
+        <h2>Bienvenido de nuevo</h2>
+        <p>Ingresa con la cuenta habilitada por el administrador de la plataforma.</p>
+      </div>
+
       <form className="auth-form-clean" onSubmit={submit}>
         <label>
-          Correo electrónico
-          <input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <span>Correo electrónico</span>
+          <input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nombre@ei.com.co" required />
         </label>
         <label>
-          Contraseña
-          <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <span>Contraseña</span>
+          <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••••••" required />
         </label>
-        <button className="auth-primary" disabled={busy}>{busy ? 'Validando…' : 'Ingresar'}</button>
+        <button className="auth-primary" disabled={busy}>
+          <span>{busy ? 'Validando acceso…' : 'Ingresar a Aula EI'}</span>
+          <span className="auth-button-arrow" aria-hidden="true">→</span>
+        </button>
         {message && <div className="auth-message error" role="alert">{message}</div>}
       </form>
+
       <div className="auth-security-note">
         <ShieldCheck size={18} />
-        <span>Las cuentas se crean y administran desde Gestión Aula EI. No existe registro público.</span>
+        <span>Sin registro público. Las cuentas y permisos se administran desde Gestión Aula EI.</span>
       </div>
     </section>
   </main>

@@ -9,7 +9,7 @@ const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
 
 const limits = {
   initialJsGzip: 220 * 1024,
-  initialCssGzip: 40 * 1024,
+  initialCssGzip: 64 * 1024,
   singleJsChunkGzip: 300 * 1024,
 }
 

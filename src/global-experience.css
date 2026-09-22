@@ -1,4 +1,4 @@
-#aula-pointer-dot,#aula-pointer-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;opacity:0;will-change:transform,width,height,opacity;border-color,background}
+#aula-pointer-dot,#aula-pointer-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;opacity:0;will-change:transform,width,height,opacity,border-color,background}
 #aula-pointer-dot{width:5px;height:5px;border-radius:50%;background:#003b8e;box-shadow:0 0 0 1px rgba(255,255,255,.75),0 2px 8px rgba(0,59,142,.25);transition:opacity .18s ease,background .18s ease,box-shadow .18s ease}
 #aula-pointer-ring{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(0,59,142,.38);background:rgba(255,255,255,.06);backdrop-filter:blur(1px);transition:opacity .18s ease,width .2s cubic-bezier(.2,.72,.22,1),height .2s cubic-bezier(.2,.72,.22,1),border-color .2s ease,background .2s ease,box-shadow .2s ease}
 body.aula-pointer-visible #aula-pointer-dot,body.aula-pointer-visible #aula-pointer-ring{opacity:1}

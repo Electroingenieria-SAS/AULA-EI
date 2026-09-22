@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react'
 import CertificateApp from '../certificate/src/CertificateApp.jsx'
+import AdminMfaGate from './AdminMfaGate.jsx'
 import LearnerApp from '../player/src/LearnerApp.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
 import { appUrl, assetUrl } from './paths.js'
@@ -128,8 +129,10 @@ export default function App() {
     if (profileBusy) return <Startup title="Validando tu acceso…" />
     if (!profile) return <AccessError message={authError || 'No fue posible cargar tu perfil de Aula EI.'} />
     if (mustChangePassword) return <PasswordGate profile={profile} />
-    if (route.isCertificate) return <CertificateApp sessionUser={session.user} />
-    return <LearnerApp profile={profile} sessionUser={session.user} />
+    const securedContent = route.isCertificate
+      ? <CertificateApp sessionUser={session.user} />
+      : <LearnerApp profile={profile} sessionUser={session.user} />
+    return <AdminMfaGate profile={profile}>{securedContent}</AdminMfaGate>
   }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, route.isCertificate, authError])
 
   return <>
@@ -220,7 +223,7 @@ function PasswordGate({ profile }) {
     }
 
     if (
-      password.length < 10 ||
+      password.length < 12 ||
       password.length > 128 ||
       /\s/.test(password) ||
       !/[a-z]/.test(password) ||
@@ -228,7 +231,7 @@ function PasswordGate({ profile }) {
       !/[0-9]/.test(password) ||
       !/[^A-Za-z0-9]/.test(password)
     ) {
-      setMessage('Usa entre 10 y 128 caracteres, con mayúscula, minúscula, número y símbolo, sin espacios.')
+      setMessage('Usa entre 12 y 128 caracteres, con mayúscula, minúscula, número y símbolo, sin espacios.')
       return
     }
 

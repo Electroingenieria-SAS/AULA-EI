@@ -3,6 +3,7 @@ import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react'
 import AdminMfaGate from './AdminMfaGate.jsx'
 import AuthVisualShell, { AuthPanelBrand } from './AuthVisualShell.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
+import MobileViewportSync from './MobileViewportSync.jsx'
 import { appUrl, assetUrl } from './paths.js'
 import { clearDataCache } from './data-cache.js'
 import { supabase } from './supabase.js'
@@ -156,6 +157,7 @@ export default function App() {
   }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, route.isCertificate, authError])
 
   return <>
+    <MobileViewportSync />
     <ExperienceLayer />
     {content}
   </>

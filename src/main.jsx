@@ -1,11 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
-import '../studio/src/styles.css'
-import '../player/src/styles.css'
-import '../player/src/experience.css'
-import '../certificate/src/styles.css'
-import '../certificate/src/experience.css'
 import './auth.css'
 import './global-experience.css'
 

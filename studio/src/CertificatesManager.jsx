@@ -220,21 +220,47 @@ export default function CertificatesManager({ setMessage }) {
           <button className="secondary-button compact" onClick={exportIssued} disabled={!filteredIssued.length}><Download size={15} /> Exportar CSV</button>
         </div>
 
-        {loading ? <LoadingState text="Cargando certificados…" /> : !pagedIssued.length ? <EmptyState icon={Search} title="No hay coincidencias" text="Ajusta la búsqueda o los filtros para revisar otros certificados." /> :
-          <div className="data-table-wrap certificates-data-wrap">
+        {loading ? <LoadingState text="Cargando certificados…" /> : !pagedIssued.length ? <EmptyState icon={Search} title="No hay coincidencias" text="Ajusta la búsqueda o los filtros para revisar otros certificados." /> : <>
+          <div className="data-table-wrap certificates-data-wrap desktop-data-view">
             <table className="data-table certificates-data-table">
               <thead><tr><th>#</th><th>Persona</th><th>Capacitación</th><th>Puntaje</th><th>Emisión</th><th>Código</th><th></th></tr></thead>
               <tbody>{pagedIssued.map((item) => <tr key={item.certificate_code}>
-                <td data-label="Ranking"><span className="certificate-rank-pill">#{item.position}</span></td>
-                <td data-label="Persona"><button className="certificate-person-button" onClick={() => setDetailCode(item.certificate_code)}><span className="certificate-avatar">{initials(item.person)}</span><span><strong>{item.person}</strong><small>{item.user_email || 'Sin correo registrado'}</small></span></button></td>
-                <td data-label="Capacitación"><div className="certificate-course-cell"><strong>{item.course}</strong><small>Certificado oficial</small></div></td>
-                <td data-label="Puntaje"><ScorePill score={item.score_number} /></td>
-                <td data-label="Emisión"><span className="certificate-date">{formatDate(item.issued_at)}</span></td>
-                <td data-label="Código"><button className="certificate-code-button" title="Copiar enlace" onClick={() => copyCertificateLink(item.certificate_code)}>{shortCode(item.certificate_code)} <ClipboardCopy size={13} /></button></td>
-                <td data-label="Acciones"><div className="certificate-row-actions"><button className="icon-button" title="Ver detalle" onClick={() => setDetailCode(item.certificate_code)}><ChevronRight size={17} /></button><button className="secondary-button compact" onClick={() => openCertificate(item.certificate_code)}><ExternalLink size={15} /> Abrir</button></div></td>
+                <td><span className="certificate-rank-pill">#{item.position}</span></td>
+                <td><button className="certificate-person-button" onClick={() => setDetailCode(item.certificate_code)}><span className="certificate-avatar">{initials(item.person)}</span><span><strong>{item.person}</strong><small>{item.user_email || 'Sin correo registrado'}</small></span></button></td>
+                <td><div className="certificate-course-cell"><strong>{item.course}</strong><small>Certificado oficial</small></div></td>
+                <td><ScorePill score={item.score_number} /></td>
+                <td><span className="certificate-date">{formatDate(item.issued_at)}</span></td>
+                <td><button className="certificate-code-button" title="Copiar enlace" onClick={() => copyCertificateLink(item.certificate_code)}>{shortCode(item.certificate_code)} <ClipboardCopy size={13} /></button></td>
+                <td><div className="certificate-row-actions"><button className="icon-button" title="Ver detalle" onClick={() => setDetailCode(item.certificate_code)}><ChevronRight size={17} /></button><button className="secondary-button compact" onClick={() => openCertificate(item.certificate_code)}><ExternalLink size={15} /> Abrir</button></div></td>
               </tr>)}</tbody>
             </table>
-          </div>}
+          </div>
+
+          <div className="mobile-certificate-list mobile-data-view">
+            {pagedIssued.map((item) => <article className="mobile-certificate-card" key={item.certificate_code}>
+              <div className="mobile-certificate-card-head">
+                <span className="certificate-rank-pill">#{item.position}</span>
+                <ScorePill score={item.score_number} />
+              </div>
+              <button className="mobile-certificate-person" onClick={() => setDetailCode(item.certificate_code)}>
+                <span className="certificate-avatar">{initials(item.person)}</span>
+                <span><strong>{item.person}</strong><small>{item.user_email || 'Sin correo registrado'}</small></span>
+              </button>
+              <div className="mobile-certificate-course">
+                <BookOpen size={17} />
+                <div><strong>{item.course}</strong><small>Emitido {formatDate(item.issued_at)}</small></div>
+              </div>
+              <button className="mobile-certificate-code" onClick={() => copyCertificateLink(item.certificate_code)}>
+                <ClipboardCopy size={14} /><span>{shortCode(item.certificate_code)}</span>
+              </button>
+              <div className="mobile-certificate-actions">
+                <button className="secondary-button compact" onClick={() => shareCertificate(item)}><Share2 size={15} /> Compartir</button>
+                <button className="secondary-button compact" onClick={() => setDetailCode(item.certificate_code)}><ChevronRight size={15} /> Detalle</button>
+                <button className="primary-button compact" onClick={() => openCertificate(item.certificate_code)}><ExternalLink size={15} /> Abrir</button>
+              </div>
+            </article>)}
+          </div>
+        </>}
 
         <div className="pagination-bar certificate-pagination">
           <span>Página {page + 1} de {pageCount}</span>

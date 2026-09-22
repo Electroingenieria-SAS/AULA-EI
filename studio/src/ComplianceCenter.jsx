@@ -492,7 +492,25 @@ function PositionsPanel({
   people, peopleQuery, setPeopleQuery, assignPosition, busy, paths, positionPaths, setPathForPosition,
 }) {
   const linkedPathIds = new Set(positionPaths.filter((item) => item.position_id === selectedPosition?.id).map((item) => item.path_id))
-  return <div className="compliance-two-column">
+  return <>
+    <section className="mobile-position-overview mobile-data-view">
+      <div className="mobile-position-overview-head">
+        <div><span className="eyebrow">Cargos disponibles</span><strong>{positions.length} cargo(s) configurado(s)</strong></div>
+        <Briefcase size={22} />
+      </div>
+      <div className="mobile-position-card-list">
+        {positions.map((position) => {
+          const assigned = people.filter((person) => person.job_position_id === position.id).length
+          return <button key={position.id} className={selectedPosition?.id === position.id ? 'active' : ''} onClick={() => setSelectedPositionId(position.id)}>
+            <span className="compliance-position-icon"><Briefcase size={16} /></span>
+            <span><strong>{position.name}</strong><small>{position.department || 'Sin dependencia'} · {assigned} persona(s)</small></span>
+            <ChevronRight size={16} />
+          </button>
+        })}
+      </div>
+    </section>
+
+    <div className="compliance-two-column">
     <section className="panel-card compliance-catalog-panel">
       <div className="section-title-row">
         <div><span className="eyebrow">Catálogo</span><h3>Cargos y categorías</h3><p>Esta primera instancia contiene los cargos ya levantados y dos categorías generales provisionales.</p></div>
@@ -560,6 +578,7 @@ function PositionsPanel({
       </section>
     </div>
   </div>
+  </>
 }
 
 function CompetenciesPanel({

@@ -10,6 +10,7 @@ import {
 import LearnerTopbar from './LearnerTopbar.jsx'
 import { appUrl, navigateLearner } from './navigation.js'
 import { safeExternalUrl, sanitizeHtml } from '../../src/security.js'
+import { invalidateCache } from '../../src/data-cache.js'
 import { signedAsset, supabase } from './supabase.js'
 
 const ACHIEVEMENTS = [
@@ -228,6 +229,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
     const next = new Set([...completed, blockId])
     setCompleted(next)
+    invalidateCache('home:')
+    invalidateCache('catalog:')
 
     const afterRequiredDone = requiredBlocks.filter((block) => next.has(block.id)).length
     const afterProgress = requiredBlocks.length ? Math.round((afterRequiredDone / requiredBlocks.length) * 100) : 100
@@ -345,6 +348,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       if (error) throw error
       setExamResult(data)
       setExamQuestions(null)
+      invalidateCache('home:')
+      invalidateCache('catalog:')
       if (data?.passed) {
         setAchievementToast({ key: 'certified', title: '¡Capacitación aprobada!', description: 'Tu certificado ya está disponible.', icon: Trophy })
         window.setTimeout(() => setAchievementToast(null), 5200)

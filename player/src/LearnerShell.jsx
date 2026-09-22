@@ -51,11 +51,15 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
 
     <div className="learner-shell-main">{children}</div>
 
-    <nav className="learner-mobile-global-nav">
-      <MobileLink icon={Home} label="Inicio" onClick={() => navigateLearner('/')} />
+    <nav
+      className="learner-mobile-global-nav"
+      aria-label="Navegación móvil"
+      style={{ '--mobile-nav-items': canManage ? 4 : 3 }}
+    >
+      <MobileLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
       <MobileLink icon={BookOpen} label="Cursos" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
-      <MobileLink icon={Gamepad2} label="Juegos" onClick={() => navigateLearner('/games')} />
-      {canManage && <MobileLink icon={ShieldCheck} label="Gestión" onClick={() => navigateLearner('/studio')} />}
+      <MobileLink icon={Gamepad2} label="Juegos" active={activeRoute === 'games'} onClick={() => navigateLearner('/games')} />
+      {canManage && <MobileLink icon={ShieldCheck} label="Gestión" active={activeRoute === 'studio'} onClick={() => navigateLearner('/studio')} />}
     </nav>
   </div>
 }

@@ -21,6 +21,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_BASE_PATH: /AULA-EI/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,10 +37,6 @@ jobs:
 
       - name: Build Aula EI
         run: npm run build
-
-      - name: Prepare repository subpath for GitHub Pages
-        if: github.event_name != 'pull_request'
-        run: node scripts/prepare-github-pages.mjs
 
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'

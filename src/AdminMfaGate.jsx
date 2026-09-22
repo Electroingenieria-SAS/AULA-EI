@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { KeyRound, Loader2, LogOut, ShieldCheck, Smartphone } from 'lucide-react'
-import { appUrl, assetUrl } from './paths.js'
+import { appUrl } from './paths.js'
+import AuthVisualShell, { AuthPanelBrand } from './AuthVisualShell.jsx'
 import { supabase } from './supabase.js'
 
 const ADMIN_ROLES = new Set(['admin', 'super_admin'])
@@ -111,47 +112,74 @@ export default function AdminMfaGate({ profile, children }) {
 
   if (phase === 'ready') return children
 
-  return <main className="mfa-page">
-    <section className="mfa-card">
-      <img className="mfa-logo" src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
+  const isChecking = phase === 'checking'
+  const shellTitle = phase === 'challenge'
+    ? 'Seguridad reforzada, sin salir de la experiencia.'
+    : phase === 'enroll'
+      ? 'Protegemos tu acceso administrativo desde el primer ingreso.'
+      : 'Validamos tu sesión antes de abrir Gestión Aula EI.'
 
-      {phase === 'checking' && <>
-        <Loader2 className="spin" size={34} />
-        <h1>Verificando seguridad administrativa…</h1>
-        <p>Estamos comprobando el nivel de autenticación de tu sesión.</p>
+  const shellDescription = phase === 'challenge'
+    ? 'Tu segundo factor protege las funciones administrativas y mantiene la trazabilidad de la sesión.'
+    : 'La verificación MFA forma parte del mismo flujo visual de Aula EI, sin pantallas improvisadas ni cambios bruscos.'
+
+  return <AuthVisualShell
+    overline="Seguridad administrativa"
+    title={shellTitle}
+    description={shellDescription}
+    panelClassName="auth-mfa-panel"
+  >
+    <AuthPanelBrand secureLabel="MFA · AAL2" />
+
+    <div className="mfa-panel-copy">
+      {isChecking && <>
+        <div className="mfa-state-icon loading" aria-hidden="true"><Loader2 className="spin" size={25} /></div>
+        <span className="eyebrow">Comprobación de seguridad</span>
+        <h2>Verificando tu sesión</h2>
+        <p>Estamos validando el nivel de autenticación antes de habilitar las herramientas administrativas.</p>
+        <div className="auth-loading-bars compact" aria-hidden="true"><i /><i /><i /></div>
       </>}
 
       {phase === 'enroll' && <>
-        <ShieldCheck size={36} />
-        <span className="mfa-kicker">Obligatorio para administración</span>
-        <h1>Activa la verificación en dos pasos</h1>
-        <p>Escanea este código con Google Authenticator, Microsoft Authenticator, 1Password, Authy u otra aplicación TOTP.</p>
-        {enrollment?.totp?.qr_code && <img className="mfa-qr" src={enrollment.totp.qr_code} alt="Código QR para configurar MFA" />}
-        {enrollment?.totp?.secret && <div className="mfa-secret">
-          <span>Clave manual</span>
-          <code>{enrollment.totp.secret}</code>
-        </div>}
+        <div className="mfa-state-icon"><ShieldCheck size={25} /></div>
+        <span className="eyebrow">Configuración obligatoria</span>
+        <h2>Activa la verificación en dos pasos</h2>
+        <p>Escanea el código con tu aplicación autenticadora y confirma el código de 6 dígitos.</p>
+
+        <div className="mfa-enrollment-layout">
+          {enrollment?.totp?.qr_code && <div className="mfa-qr-frame">
+            <img className="mfa-qr" src={enrollment.totp.qr_code} alt="Código QR para configurar MFA" />
+          </div>}
+          {enrollment?.totp?.secret && <div className="mfa-secret">
+            <span>Clave manual</span>
+            <code>{enrollment.totp.secret}</code>
+          </div>}
+        </div>
+
         <MfaCodeForm code={code} setCode={setCode} busy={busy} message={message} onSubmit={verify} button="Activar MFA" />
       </>}
 
       {phase === 'challenge' && <>
-        <Smartphone size={36} />
-        <span className="mfa-kicker">Segundo factor requerido</span>
-        <h1>Confirma que eres tú</h1>
-        <p>Tu cuenta administrativa está protegida con MFA. Ingresa el código actual de tu aplicación autenticadora.</p>
+        <div className="mfa-state-icon"><Smartphone size={25} /></div>
+        <span className="eyebrow">Segundo factor requerido</span>
+        <h2>Confirma que eres tú</h2>
+        <p>Abre tu aplicación autenticadora e ingresa el código actual para continuar.</p>
         <MfaCodeForm code={code} setCode={setCode} busy={busy} message={message} onSubmit={verify} button="Verificar y continuar" />
       </>}
 
       {phase === 'error' && <>
-        <KeyRound size={36} />
-        <h1>No pudimos preparar MFA</h1>
+        <div className="mfa-state-icon error"><KeyRound size={25} /></div>
+        <span className="eyebrow">No pudimos completar la verificación</span>
+        <h2>Reintentemos la seguridad de tu sesión</h2>
         <p>{message || 'No fue posible validar la seguridad de la sesión.'}</p>
-        <button className="auth-primary" onClick={() => window.location.reload()}>Reintentar</button>
+        <button className="auth-primary" onClick={() => window.location.reload()}>
+          <span>Reintentar verificación</span><span className="auth-button-arrow" aria-hidden="true">→</span>
+        </button>
       </>}
+    </div>
 
-      <button className="mfa-signout" onClick={signOut}><LogOut size={16} /> Cerrar sesión</button>
-    </section>
-  </main>
+    {!isChecking && <button className="mfa-signout" onClick={signOut}><LogOut size={16} /> Cerrar sesión</button>}
+  </AuthVisualShell>
 }
 
 function MfaCodeForm({ code, setCode, busy, message, onSubmit, button }) {

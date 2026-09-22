@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { BookOpen, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
-import { navigateLearner } from './navigation.js'
+import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
 import { supabase } from './supabase.js'
 
@@ -15,13 +15,13 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
 
   const signOut = async () => {
     await supabase.auth.signOut()
-    window.location.replace('/#/login')
+    navigateLearner('/login', { replace: true })
   }
 
   return <div className="learner-app-shell">
     <aside className="learner-global-sidebar">
       <button className="learner-sidebar-brand learner-sidebar-brand-original" onClick={() => navigateLearner('/')}>
-        <img src="/brand/logo-aula-ei.png" alt="Aula EI · Academia Interna" />
+        <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI · Academia Interna" />
         <small>ACADEMIA INTERNA</small>
       </button>
 

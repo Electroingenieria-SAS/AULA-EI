@@ -1504,25 +1504,6 @@ textarea{resize:vertical}
   50%{box-shadow:0 0 0 4px rgba(0,91,183,.055)}
 }
 
-/* ---------- Aparición por desplazamiento ---------- */
-.premium-reveal{
-  opacity:0;
-  transform:translate3d(0,14px,0);
-  transition:
-    opacity .48s var(--ux-ease-out),
-    transform .48s var(--ux-ease-out),
-    filter .48s ease;
-  filter:saturate(.94);
-}
-.premium-reveal.premium-reveal-in{
-  opacity:1;
-  transform:none;
-  filter:none;
-}
-.premium-reveal[data-reveal-order="2"]{transition-delay:45ms}
-.premium-reveal[data-reveal-order="3"]{transition-delay:90ms}
-.premium-reveal[data-reveal-order="4"]{transition-delay:135ms}
-
 /* El cursor permanece nativo; el halo es una capa adicional. */
 body.aula-interactive-hover button:not(:disabled),
 body.aula-interactive-hover a,
@@ -1536,10 +1517,6 @@ body.aula-interactive-hover [role="button"]{
   .studio-sync-feedback{top:10px;right:10px}
   .learner-shell-main:before,.learner-shell-main:after{opacity:.22}
 
-  .premium-reveal{
-    transform:none;
-    transition:opacity .24s ease,filter .24s ease;
-  }
   .home-course-grid>.home-course-card,
   .catalog-course-grid>.catalog-course-card,
   .games-grid>article,

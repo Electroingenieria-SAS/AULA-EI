@@ -35,3 +35,19 @@ button,input{font:inherit}
 .password-grid{display:grid;gap:14px;margin-top:22px;text-align:left}
 @keyframes authRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @media(max-width:900px){.auth-page{grid-template-columns:1fr;background:linear-gradient(180deg,#043b86 0,#0755ad 42%,#eef5ff 42%);padding:28px 18px}.auth-hero-clean{padding:20px 8px 8px}.auth-hero-clean h1{font-size:clamp(2.2rem,11vw,3.8rem)}.auth-feature-row{display:none}.auth-panel-clean{justify-self:stretch;width:100%;margin:auto}.auth-hero-clean img{max-width:250px}}
+
+.mfa-page{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 16% 10%,rgba(21,107,209,.24),transparent 31%),linear-gradient(145deg,#062f6d,#0a5eb5 45%,#edf5ff 45%,#f8fbff)}
+.mfa-card{width:min(94vw,560px);background:rgba(255,255,255,.98);border:1px solid rgba(11,72,148,.1);border-radius:30px;padding:clamp(26px,5vw,44px);text-align:center;box-shadow:0 30px 80px rgba(7,45,96,.22)}
+.mfa-logo{width:min(250px,64vw);max-height:100px;object-fit:contain;margin-bottom:20px}
+.mfa-kicker{display:inline-flex;margin:8px auto 0;padding:7px 11px;border-radius:999px;background:#e9f3ff;color:#0757aa;font-size:.76rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+.mfa-card h1{font-size:clamp(1.65rem,5vw,2.45rem);letter-spacing:-.035em;margin:14px 0 10px}
+.mfa-card p{color:#617086;line-height:1.6;margin:0 auto 20px;max-width:460px}
+.mfa-qr{display:block;width:min(240px,72vw);height:auto;margin:18px auto;padding:12px;background:#fff;border:1px solid #dce6f2;border-radius:20px;box-shadow:0 12px 32px rgba(15,65,124,.12)}
+.mfa-secret{display:grid;gap:7px;margin:14px 0 20px;padding:13px 16px;background:#f5f8fc;border:1px solid #dfe7f1;border-radius:14px;text-align:left}
+.mfa-secret span{font-size:.75rem;font-weight:900;color:#66758c;text-transform:uppercase;letter-spacing:.06em}
+.mfa-secret code{overflow-wrap:anywhere;color:#143d72;font-weight:800}
+.mfa-form{display:grid;gap:14px;margin-top:18px;text-align:left}
+.mfa-form label{display:grid;gap:7px;font-size:.84rem;font-weight:800;color:#34445f}
+.mfa-form input{width:100%;padding:15px 16px;border:1px solid #cbd7e7;border-radius:14px;background:#fff;text-align:center;font-size:1.35rem;font-weight:900;letter-spacing:.28em;outline:none}
+.mfa-form input:focus{border-color:#1d6dd2;box-shadow:0 0 0 4px rgba(29,109,210,.11)}
+.mfa-signout{display:inline-flex;align-items:center;gap:7px;margin-top:18px;border:0;background:transparent;color:#6f7c8f;font-weight:800;cursor:pointer}

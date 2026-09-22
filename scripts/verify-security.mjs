@@ -64,6 +64,11 @@ for (const required of [
   if (!migration.includes(required)) throw new Error('Migración Security v3 incompleta: falta ' + required)
 }
 
+const liveSessionMigration = await readFile(path.join(root,'supabase/migrations/20260922151000_require_live_admin_session.sql'),'utf8')
+for (const required of ['validate_aula_admin_session','auth.sessions','auth.mfa_factors']) {
+  if (!liveSessionMigration.includes(required)) throw new Error('Security v3.1 incompleta: falta ' + required)
+}
+
 for (const edgePath of [
   'supabase/functions/create-managed-user/index.ts',
   'supabase/functions/delete-managed-user/index.ts',
@@ -74,6 +79,14 @@ for (const edgePath of [
 }
 for (const edgePath of [
   'supabase/functions/create-managed-user/index.ts',
+  'supabase/functions/delete-managed-user/index.ts',
+]) {
+  const content = await readFile(path.join(root,edgePath),'utf8')
+  if (!content.includes('validateLiveAdminSession')) throw new Error('Validación de sesión administrativa viva faltante en ' + edgePath)
+}
+
+for (const edgePath of [
+  'supabase/functions/create-managed-user/index.ts',
   'supabase/functions/complete-password-change/index.ts',
 ]) {
   const content = await readFile(path.join(root,edgePath),'utf8')
@@ -81,4 +94,4 @@ for (const edgePath of [
   if (!content.includes('length < 12')) throw new Error('Política de 12 caracteres faltante en ' + edgePath)
 }
 
-console.log('Security v3 validada: MFA AAL2, secretos, registro, contraseñas, rate limits, auditoría y deploy.')
+console.log('Security v3.1 validada: MFA AAL2, sesión administrativa viva, secretos, contraseñas, rate limits, auditoría y deploy.')

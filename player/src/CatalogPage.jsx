@@ -4,7 +4,7 @@ import {
   Clock3, FileCheck2, Filter, GraduationCap, PlayCircle,
   Search, SlidersHorizontal, Sparkles, Trophy, X, Zap,
 } from 'lucide-react'
-import { navigateLearner, openLearnerCourse } from './navigation.js'
+import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 
 const FILTERS = [

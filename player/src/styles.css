@@ -1,7 +1,4 @@
 .learner-app-shell{
-  font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;
-  color:#0f172a;
-  background:#f4f7fb;
   --blue:#003b8e;
   --blue2:#0d55b9;
   --navy:#001e4a;
@@ -11,14 +8,49 @@
   --line:#dce6f1;
   --panel:#ffffff;
   --shadow:0 20px 55px rgba(15,40,74,.10);
-  --aula-photo-background:
-    linear-gradient(180deg,rgba(245,247,251,.46),rgba(245,247,251,.62)),
-    url('../../brand/fondo.jpg') center center / cover fixed no-repeat;
+  position:relative;
+  isolation:isolate;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:252px minmax(0,1fr);
+  overflow-x:hidden;
+  font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;
+  color:#0f172a;
+  background:#edf3fa;
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-html,body,#root{margin:0;min-width:320px;min-height:100%}
-.learner-app-shell{background:var(--aula-photo-background)}
+.learner-app-shell:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(244,248,252,.72),rgba(244,248,252,.82)),
+    var(--aula-photo-image) center center/cover no-repeat fixed;
+  filter:saturate(.92) contrast(1.02);
+}
+.learner-app-shell:after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 9% 8%,rgba(0,91,190,.12),transparent 21%),
+    radial-gradient(circle at 93% 7%,rgba(255,210,0,.12),transparent 17%),
+    radial-gradient(circle at 76% 82%,rgba(0,59,142,.08),transparent 20%);
+  animation:aulaShellAmbient 16s ease-in-out infinite alternate;
+}
+@keyframes aulaShellAmbient{to{transform:translate3d(0,-10px,0) scale(1.018)}}
+.learner-global-sidebar,
+.learner-shell-main,
+.learner-mobile-global-nav,
+.learner-notification-center,
+.notification-center{
+  position:relative;
+  z-index:1;
+}
+.learner-shell-main{min-width:0;background:transparent}
 .learner-app-shell button,.learner-app-shell input{font:inherit}
 .learner-app-shell button{cursor:pointer}
 .learner-app-shell button:disabled{cursor:not-allowed;opacity:.52}

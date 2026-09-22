@@ -116,7 +116,7 @@ html{scroll-behavior:smooth}
 .experience-route-progress{
   position:fixed;
   z-index:240;
-  top:0;left:278px;right:0;
+  top:0;left:var(--aula-sidebar-width,278px);right:0;
   height:3px;
   pointer-events:none;
   transform-origin:left center;

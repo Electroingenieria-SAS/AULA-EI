@@ -42,37 +42,16 @@ export default function CatalogPage({ profile = null, sessionUser = null }) {
       if (!sessionUser?.id) return
 
       const userId = sessionUser.id
-      const [enrollments, phases, progressRows, certificates] = await Promise.all([
-        cachedQuery('catalog:enrollments:' + userId, async () => {
-          const result = await supabase
-            .from('enrollments')
-            .select('id,status,due_at,created_at,updated_at,course:courses(id,title,description,passing_score,status,cover_path)')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false })
-          if (result.error) throw result.error
-          return result.data || []
-        }, { ttl: 45000, force: silent }),
-        cachedQuery('catalog:phases:' + userId, async () => {
-          const result = await supabase
-            .from('course_phases')
-            .select('id,course_id,blocks:content_blocks(id,required,status)')
-          if (result.error) throw result.error
-          return result.data || []
-        }, { ttl: 60000, force: silent }),
-        cachedQuery('catalog:progress:' + userId, async () => {
-          const result = await supabase
-            .from('block_progress')
-            .select('block_id,status,progress_percent,completed_at')
-            .eq('user_id', userId)
-          if (result.error) throw result.error
-          return result.data || []
-        }, { ttl: 30000, force: silent }),
-        cachedQuery('catalog:certificates:' + userId, async () => {
-          const result = await supabase.rpc('get_my_certificates')
-          if (result.error) throw result.error
-          return result.data || []
-        }, { ttl: 60000, force: silent }),
-      ])
+      const snapshot = await cachedQuery('catalog:snapshot:' + userId, async () => {
+        const result = await supabase.rpc('get_my_catalog_snapshot')
+        if (result.error) throw result.error
+        return result.data || {}
+      }, { ttl: 30000, force: silent })
+
+      const enrollments = Array.isArray(snapshot.enrollments) ? snapshot.enrollments : []
+      const phases = Array.isArray(snapshot.phases) ? snapshot.phases : []
+      const progressRows = Array.isArray(snapshot.progress) ? snapshot.progress : []
+      const certificates = Array.isArray(snapshot.certificates) ? snapshot.certificates : []
       const visible = enrollments.filter((item) => item?.course?.id)
       setHiddenCount(enrollments.length - visible.length)
 

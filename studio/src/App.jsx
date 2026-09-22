@@ -134,40 +134,43 @@ export default function App({ initialProfile = null }) {
 
   return <section className="embedded-studio integrated-studio studio-single-content">
     <div className="page admin-page studio-single-page">
-      <section className="admin-hero integrated-admin-hero">
-        <div>
-          <span className="eyebrow-light">Gestión de formación</span>
+      <section className="studio-hero">
+        <div className="studio-hero-copy">
+          <span className="studio-hero-eyebrow">Gestión de formación</span>
           <h1>Gestión Aula EI</h1>
-          <p>Los datos de cada herramienta se cargan solo cuando los necesitas, reduciendo tráfico y tiempo de apertura.</p>
+          <p>Administra contenidos, usuarios, cumplimiento y certificados desde una sola experiencia, con carga inteligente y trazabilidad completa.</p>
         </div>
-        <div className="admin-role">
+
+        <div className="studio-hero-metric" aria-label={courses.length + ' capacitaciones registradas'}>
+          <span className="studio-hero-metric-icon"><BookOpen size={22} /></span>
           <strong>{courses.length}</strong>
-          <span>Capacitaciones registradas</span>
+          <small>Capacitaciones registradas</small>
         </div>
       </section>
 
-      <div className="studio-control-row">
-        <nav className="tab-bar integrated-tab-bar">
+      <section className="studio-navigation-shell">
+        <nav className="studio-navigation-list" aria-label="Herramientas de Gestión Aula EI">
           {tabs.map(([id, label, Icon]) => <button
             key={id}
-            className={tab === id ? 'active' : ''}
+            className={'studio-navigation-button' + (tab === id ? ' is-active' : '')}
             aria-pressed={tab === id}
             onClick={() => setTab(id)}
           >
-            <Icon size={17} /> {label}
+            <span className="studio-navigation-icon"><Icon size={17} /></span>
+            <span>{label}</span>
           </button>)}
         </nav>
 
         <button
-          className="secondary-button compact studio-refresh"
+          className="studio-refresh-button"
           title="Actualizar la información de esta sección"
           onClick={refreshCurrent}
           disabled={busy}
         >
           <RefreshCw size={16} className={busy ? 'spin' : ''} />
-          {busy ? 'Actualizando…' : 'Actualizar'}
+          <span>{busy ? 'Actualizando…' : 'Actualizar'}</span>
         </button>
-      </div>
+      </section>
 
       {message && <div className="message-banner">
         <Sparkles size={17} />

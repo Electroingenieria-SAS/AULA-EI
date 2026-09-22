@@ -1,7 +1,4 @@
 .learner-app-shell{
-  font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;
-  color:#0f172a;
-  background:#f4f7fb;
   --blue:#003b8e;
   --blue2:#0d55b9;
   --navy:#001e4a;
@@ -11,14 +8,49 @@
   --line:#dce6f1;
   --panel:#ffffff;
   --shadow:0 20px 55px rgba(15,40,74,.10);
-  --aula-photo-background:
-    linear-gradient(180deg,rgba(245,247,251,.46),rgba(245,247,251,.62)),
-    url('../../brand/fondo.jpg') center center / cover fixed no-repeat;
+  position:relative;
+  isolation:isolate;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:252px minmax(0,1fr);
+  overflow-x:hidden;
+  font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;
+  color:#0f172a;
+  background:#edf3fa;
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-html,body,#root{margin:0;min-width:320px;min-height:100%}
-.learner-app-shell{background:var(--aula-photo-background)}
+.learner-app-shell:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(244,248,252,.72),rgba(244,248,252,.82)),
+    var(--aula-photo-image) center center/cover no-repeat fixed;
+  filter:saturate(.92) contrast(1.02);
+}
+.learner-app-shell:after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 9% 8%,rgba(0,91,190,.12),transparent 21%),
+    radial-gradient(circle at 93% 7%,rgba(255,210,0,.12),transparent 17%),
+    radial-gradient(circle at 76% 82%,rgba(0,59,142,.08),transparent 20%);
+  animation:aulaShellAmbient 16s ease-in-out infinite alternate;
+}
+@keyframes aulaShellAmbient{to{transform:translate3d(0,-10px,0) scale(1.018)}}
+.learner-global-sidebar,
+.learner-shell-main,
+.learner-mobile-global-nav,
+.learner-notification-center,
+.notification-center{
+  position:relative;
+  z-index:1;
+}
+.learner-shell-main{min-width:0;background:transparent}
 .learner-app-shell button,.learner-app-shell input{font:inherit}
 .learner-app-shell button{cursor:pointer}
 .learner-app-shell button:disabled{cursor:not-allowed;opacity:.52}
@@ -1978,206 +2010,6 @@ html,body,#root{margin:0;min-width:320px;min-height:100%}
 
 
 /* =========================================================
-   Persistent learner navigation shell
-   ========================================================= */
-.learner-app-shell{
-  min-height:100vh;
-  display:grid;
-  grid-template-columns:252px minmax(0,1fr);
-  background:var(--aula-photo-background);
-}
-.learner-shell-main{
-  min-width:0;
-  min-height:100vh;
-}
-.learner-global-sidebar{
-  position:sticky;
-  top:0;
-  z-index:110;
-  height:100vh;
-  padding:18px 14px 14px;
-  display:flex;
-  flex-direction:column;
-  border-right:1px solid rgba(207,221,235,.85);
-  background:
-    radial-gradient(circle at 10% 0%,rgba(26,104,200,.14),transparent 25%),
-    linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
-  box-shadow:12px 0 38px rgba(22,54,88,.055);
-}
-.learner-sidebar-brand{
-  border:0;
-  background:transparent;
-  padding:6px 7px 15px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  text-align:left;
-  color:#123b70;
-}
-.learner-sidebar-brand img{
-  width:46px;
-  height:46px;
-  object-fit:contain;
-  filter:drop-shadow(0 7px 14px rgba(20,66,116,.10));
-}
-.learner-sidebar-brand>span{
-  display:flex;
-  flex-direction:column;
-  gap:1px;
-}
-.learner-sidebar-brand strong{font-size:.86rem}
-.learner-sidebar-brand small{
-  color:#7c8da0;
-  font-size:.58rem;
-}
-.learner-sidebar-user{
-  position:relative;
-  overflow:hidden;
-  margin:1px 2px 15px;
-  padding:11px;
-  display:grid;
-  grid-template-columns:auto minmax(0,1fr);
-  gap:9px;
-  align-items:center;
-  border:1px solid #d7e5f3;
-  border-radius:15px;
-  background:linear-gradient(135deg,#edf6ff,#fafdff 72%);
-}
-.learner-sidebar-user:after{
-  content:"";
-  position:absolute;
-  width:70px;
-  height:70px;
-  right:-28px;
-  top:-34px;
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(255,210,0,.25),transparent 68%);
-}
-.learner-sidebar-avatar{
-  width:38px;
-  height:38px;
-  display:grid;
-  place-items:center;
-  border-radius:12px;
-  background:linear-gradient(135deg,#064a9a,#0f6ccb);
-  color:#fff;
-  font-size:.68rem;
-  font-weight:900;
-  box-shadow:0 8px 18px rgba(8,80,160,.18);
-}
-.learner-sidebar-user>div:last-child{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.learner-sidebar-user strong{
-  overflow:hidden;
-  color:#254b70;
-  font-size:.68rem;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.learner-sidebar-user span{
-  color:#70859a;
-  font-size:.55rem;
-}
-.learner-sidebar-nav{
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-}
-.learner-sidebar-nav button{
-  position:relative;
-  min-height:43px;
-  width:100%;
-  border:1px solid transparent;
-  border-radius:12px;
-  background:transparent;
-  color:#5d748b;
-  padding:8px 10px;
-  display:flex;
-  align-items:center;
-  gap:9px;
-  text-align:left;
-  font-size:.67rem;
-  font-weight:900;
-  transition:transform .16s ease,background .16s ease,color .16s ease,border-color .16s ease,box-shadow .16s ease;
-}
-.learner-sidebar-nav button:hover{
-  transform:translateX(3px);
-  border-color:#d6e4f1;
-  background:#f3f8fe;
-  color:#245b91;
-}
-.learner-sidebar-nav button.active{
-  border-color:#0758af;
-  background:linear-gradient(135deg,#064a9a,#0d66c6);
-  color:#fff;
-  box-shadow:0 10px 22px rgba(7,81,164,.18);
-}
-.learner-sidebar-nav button.active:after{
-  content:"";
-  position:absolute;
-  right:-15px;
-  width:4px;
-  height:22px;
-  border-radius:999px 0 0 999px;
-  background:#ffd200;
-  box-shadow:0 0 14px rgba(255,210,0,.45);
-}
-.learner-sidebar-bottom{
-  margin-top:auto;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-.learner-sidebar-signout{
-  width:100%;
-  min-height:40px;
-  border:1px solid #dbe5ef;
-  border-radius:11px;
-  background:#fff;
-  color:#63788e;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 10px;
-  font-size:.63rem;
-  font-weight:900;
-}
-.learner-sidebar-signout:hover{
-  border-color:#e4bcbc;
-  background:#fff6f6;
-  color:#a34747;
-}
-.learner-sidebar-security{
-  padding:8px 9px;
-  display:grid;
-  grid-template-columns:auto 1fr;
-  gap:6px;
-  border-radius:10px;
-  background:#f2f6fa;
-  color:#8090a0;
-}
-.learner-sidebar-security svg{
-  color:#5e82a5;
-}
-.learner-sidebar-security span{
-  font-size:.5rem;
-  line-height:1.4;
-}
-.learner-mobile-global-nav{display:none}
-
-.learner-shell-main .learner-topbar{
-  grid-template-columns:minmax(0,1fr) auto;
-  padding-left:22px;
-}
-.learner-shell-main .learner-topbar>.learner-brand{
-  display:none;
-}
-
-/* =========================================================
    Catalog impact restoration
    ========================================================= */
 .catalog-intro.catalog-intro-impact{
@@ -2598,10 +2430,8 @@ html,body,#root{margin:0;min-width:320px;min-height:100%}
 
 /* =========================================================
    FINAL VISUAL LANGUAGE — Aula EI original, evolucionada
-   La estructura y paleta histórica mandan; las mejoras nuevas
-   se limitan a movimiento, feedback, filtros y carga estable.
    ========================================================= */
-:root{
+.learner-app-shell{
   --aula-blue:#003b8e;
   --aula-navy:#001e4a;
   --aula-yellow:#ffd200;
@@ -3853,23 +3683,6 @@ html,#root{
   margin:0 auto;
   padding:28px;
 }
-.studio-single-content .integrated-admin-hero{
-  margin-bottom:18px;
-}
-.studio-single-content .studio-control-row{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:14px;
-  margin-bottom:18px;
-}
-.studio-single-content .integrated-tab-bar{
-  flex:1;
-  margin-bottom:0;
-}
-.studio-single-content .studio-refresh{
-  flex:none;
-}
 .global-module-loading,
 .studio-inline-state{
   min-height:520px;
@@ -3908,13 +3721,6 @@ html,#root{
 @media(max-width:760px){
   .studio-single-content .studio-single-page{
     padding:14px 12px 92px;
-  }
-  .studio-single-content .studio-control-row{
-    align-items:stretch;
-    flex-direction:column;
-  }
-  .studio-single-content .studio-refresh{
-    align-self:flex-end;
   }
 }
 

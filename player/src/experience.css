@@ -5,7 +5,7 @@
    Mantiene intacta la arquitectura y la identidad institucional.
    ========================================================= */
 
-:root{
+.learner-app-shell{
   --ux-fast:140ms;
   --ux-normal:220ms;
   --ux-slow:380ms;
@@ -735,55 +735,6 @@ textarea{resize:vertical}
   to{opacity:1}
 }
 
-/* ---------- Gestión: navegación y hero ---------- */
-.integrated-admin-hero{
-  position:relative;
-  overflow:hidden;
-}
-.studio-control-row{
-  position:sticky;
-  top:8px;
-  z-index:35;
-  padding:8px;
-  margin-inline:-8px;
-  border-radius:18px;
-  background:rgba(248,251,254,.80);
-  backdrop-filter:blur(16px);
-}
-.integrated-tab-bar{
-  gap:6px;
-}
-.integrated-tab-bar button{
-  position:relative;
-  overflow:hidden;
-  border-radius:12px;
-  transition:transform var(--ux-fast),background var(--ux-normal),box-shadow var(--ux-normal),color var(--ux-normal);
-}
-.integrated-tab-bar button:hover{transform:translateY(-1px)}
-.integrated-tab-bar button.active{
-  box-shadow:0 8px 18px rgba(0,59,142,.09);
-}
-.integrated-tab-bar button:after{
-  content:"";
-  position:absolute;
-  left:18%;right:18%;bottom:2px;
-  height:2px;border-radius:999px;
-  background:var(--premium-yellow);
-  transform:scaleX(0);
-  transition:transform var(--ux-normal) var(--ux-ease);
-}
-.integrated-tab-bar button.active:after{transform:scaleX(1)}
-.studio-tab-stage{animation:premiumTabIn .30s var(--ux-ease-out) both}
-@keyframes premiumTabIn{
-  from{opacity:0;transform:translateY(6px)}
-  to{opacity:1;transform:none}
-}
-.studio-sync-feedback{
-  border:1px solid #d3e1f0;
-  box-shadow:0 12px 30px rgba(15,44,78,.13);
-  animation:premiumToastIn .24s var(--ux-ease-out) both;
-}
-
 /* ---------- Capacitaciones / autoría ---------- */
 .course-library-card,
 .authoring-card,
@@ -1428,8 +1379,7 @@ textarea{resize:vertical}
 .catalog-open-button:active:not(:disabled),
 .home-yellow-button:active:not(:disabled),
 .hero-primary-button:active:not(:disabled),
-.stage-nav-button:active:not(:disabled),
-.integrated-tab-bar button:active:not(:disabled){
+.stage-nav-button:active:not(:disabled){
   filter:brightness(.97);
 }
 
@@ -1581,9 +1531,6 @@ body.aula-interactive-hover [role="button"]{
 }
 
 /* ---------- Responsive ---------- */
-@media(max-width:1180px){
-  .studio-control-row{position:relative;top:auto}
-}
 @media(max-width:900px){
   .experience-route-progress{left:0}
   .studio-sync-feedback{top:10px;right:10px}
@@ -1605,7 +1552,6 @@ body.aula-interactive-hover [role="button"]{
 }
 @media(max-width:520px){
   .learner-sidebar-nav button,
-  .integrated-tab-bar button,
   .catalog-filter-row button{transition-duration:160ms}
 }
 

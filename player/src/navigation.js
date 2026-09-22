@@ -13,7 +13,18 @@ export function navigateLearner(target = '/', options = {}) {
   }
 
   if (window.location.hash === '#' + normalized) return
-  window.location.hash = normalized
+
+  const commitNavigation = () => {
+    window.location.hash = normalized
+  }
+
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  if (!reduceMotion && typeof document.startViewTransition === 'function') {
+    document.startViewTransition(commitNavigation)
+    return
+  }
+
+  commitNavigation()
 }
 
 export function openLearnerCourse(courseId) {

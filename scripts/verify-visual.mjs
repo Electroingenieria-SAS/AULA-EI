@@ -5,13 +5,27 @@ const root = process.cwd()
 const read = (file) => readFile(path.join(root,file),'utf8')
 
 const app = await read('src/App.jsx')
+const authShell = await read('src/AuthVisualShell.jsx')
+const mfa = await read('src/AdminMfaGate.jsx')
 const auth = await read('src/auth.css')
+const learnerApp = await read('player/src/LearnerApp.jsx')
 const learnerShell = await read('player/src/LearnerShell.jsx')
 const player = await read('player/src/styles.css')
 const playerExperience = await read('player/src/experience.css')
 const studioApp = await read('studio/src/App.jsx')
 const studio = await read('studio/src/styles.css')
 const certificate = await read('certificate/src/styles.css')
+const index = await read('index.html')
+const globalExperience = await read('src/global-experience.css')
+
+for (const required of [
+  "AuthVisualShell",
+  "AuthPanelBrand",
+  "loadLearnerApp",
+  "void loadLearnerApp()",
+]) {
+  if (!app.includes(required)) throw new Error('Flujo de autenticación estable incompleto: falta ' + required)
+}
 
 for (const required of [
   "--auth-photo",
@@ -20,27 +34,60 @@ for (const required of [
   "auth-orb-one",
   "auth-feature-row",
 ]) {
-  if (!app.includes(required)) throw new Error('Login reconstruido incompleto: falta ' + required)
+  if (!authShell.includes(required)) throw new Error('Shell visual compartido incompleto: falta ' + required)
+}
+
+if (mfa.includes('mfa-page') || mfa.includes('mfa-card')) {
+  throw new Error('MFA volvió a usar una pantalla visual separada del Login.')
+}
+for (const required of [
+  "AuthVisualShell",
+  "AuthPanelBrand",
+  "auth-mfa-panel",
+  "mfa-panel-copy",
+]) {
+  if (!mfa.includes(required)) throw new Error('MFA compartido incompleto: falta ' + required)
 }
 
 for (const required of [
   "var(--auth-photo)",
   ".auth-backdrop",
-  ".auth-copy h1",
   ".auth-panel-clean",
+  ".auth-loading-panel",
+  ".auth-mfa-panel",
+  ".mfa-form input",
   "@keyframes authOrbOne",
 ]) {
-  if (!auth.includes(required)) throw new Error('Sistema visual del Login incompleto: falta ' + required)
+  if (!auth.includes(required)) throw new Error('Sistema visual de autenticación incompleto: falta ' + required)
+}
+if (auth.includes('.mfa-page{') || auth.includes('.mfa-card{')) {
+  throw new Error('Quedó CSS legacy de la pantalla MFA separada.')
 }
 
 if (!learnerShell.includes("--aula-photo-image") || !learnerShell.includes("assetUrl('brand/fondo.jpg')")) {
   throw new Error('El shell autenticado debe recibir el fondo institucional desde React.')
 }
+if (!learnerShell.includes("--mobile-nav-items") || !learnerShell.includes("active={activeRoute === 'studio'}")) {
+  throw new Error('La navegación móvil no tiene estado/cantidad explícitos.')
+}
+
 if (!player.includes("var(--aula-photo-image)")) {
   throw new Error('El Player no está usando la imagen institucional inyectada por React.')
 }
 if (!player.includes(".learner-app-shell:before") || !player.includes(".learner-app-shell:after")) {
   throw new Error('Faltan las capas de fondo/ambiente del shell autenticado.')
+}
+if (!player.includes(".learner-mobile-global-nav{display:none}")) {
+  throw new Error('La navegación móvil debe permanecer oculta por defecto.')
+}
+if (!player.includes("grid-template-columns:repeat(var(--mobile-nav-items,4),minmax(0,1fr))")) {
+  throw new Error('La navegación móvil canónica no está definida.')
+}
+if (!player.includes("border:0!important") || !player.includes("-webkit-appearance:none")) {
+  throw new Error('Los botones móviles pueden volver a mostrarse con estilos nativos del navegador.')
+}
+if (!player.includes(".learner-route-loading{") || !player.includes(".learner-route-loading-grid{")) {
+  throw new Error('Falta el estado de carga estable de rutas.')
 }
 if (player.includes("--aula-photo-background")) {
   throw new Error('Quedó un sistema de fondo legacy duplicado en Player.')
@@ -53,6 +100,16 @@ if (playerExperience.includes("integrated-tab-bar") || playerExperience.includes
 }
 if (player.includes(":root{") || playerExperience.includes(":root{")) {
   throw new Error('Player/Premium no pueden volver a filtrar variables al documento completo.')
+}
+if (!playerExperience.includes("content-visibility:visible")) {
+  throw new Error('En móvil las tarjetas deben evitar pop-in por content-visibility.')
+}
+
+if (!learnerApp.includes("import HomePage from './HomePage.jsx'")) {
+  throw new Error('Inicio debe cargarse de forma inmediata para evitar una vista vacía tras autenticación.')
+}
+for (const required of ["requestIdleCallback","loadCatalogPage","loadGamesPage","loadStudioApp"]) {
+  if (!learnerApp.includes(required)) throw new Error('Precarga secundaria incompleta: falta ' + required)
 }
 
 for (const required of [
@@ -86,4 +143,12 @@ if (certificate.startsWith(':root{') || certificate.includes('\nbody{background:
   throw new Error('Certificados volvió a contaminar root/body global.')
 }
 
-console.log('Visual system reconstruido: fondo real por React, Login nuevo, shell fotográfico y navegación premium de Gestión.')
+if (!index.includes('viewport-fit=cover')) throw new Error('Falta soporte de safe area móvil.')
+if (!index.includes('%BASE_URL%brand/fondo.jpg') || !index.includes('rel="preload" as="image"')) {
+  throw new Error('El fondo institucional debe precargarse desde el HTML.')
+}
+if (!globalExperience.includes('@media(max-width:900px),(hover:none),(pointer:coarse)')) {
+  throw new Error('El cursor de escritorio debe desactivarse en móvil.')
+}
+
+console.log('Visual stability validada: Login/MFA compartidos, fondo precargado, mobile nav canónica, safe areas y cargas sin saltos.')

@@ -110,8 +110,8 @@ html{scroll-behavior:smooth}
   animation:premiumPageIn .42s var(--ux-ease-out) both;
 }
 @keyframes premiumPageIn{
-  from{opacity:0;transform:translate3d(0,9px,0)}
-  to{opacity:1;transform:none}
+  from{opacity:.18}
+  to{opacity:1}
 }
 .experience-route-progress{
   position:fixed;
@@ -1535,6 +1535,24 @@ body.aula-interactive-hover [role="button"]{
   .experience-route-progress{left:0}
   .studio-sync-feedback{top:10px;right:10px}
   .learner-shell-main:before,.learner-shell-main:after{opacity:.22}
+
+  .premium-reveal{
+    transform:none;
+    transition:opacity .24s ease,filter .24s ease;
+  }
+  .home-course-grid>.home-course-card,
+  .catalog-course-grid>.catalog-course-card,
+  .games-grid>article,
+  .course-library-grid>.course-library-card,
+  .pending-certificate-grid>.pending-certificate-card{
+    animation:premiumMobileFade .24s ease both;
+    animation-delay:0s!important;
+    content-visibility:visible;
+  }
+}
+@keyframes premiumMobileFade{
+  from{opacity:.2}
+  to{opacity:1}
 }
 @media(max-width:760px){
   .experience-loading-skeleton,

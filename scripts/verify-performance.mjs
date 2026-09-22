@@ -24,10 +24,12 @@ for (const required of visualOrder) {
 
 const app = await read('src/App.jsx')
 for (const required of [
-  "lazy(() => import('../certificate/src/CertificateApp.jsx'))",
-  "lazy(() => import('../player/src/LearnerApp.jsx'))",
+  "const loadCertificateApp = () => import('../certificate/src/CertificateApp.jsx')",
+  "const loadLearnerApp = () => import('../player/src/LearnerApp.jsx')",
+  "const CertificateApp = lazy(loadCertificateApp)",
+  "const LearnerApp = lazy(loadLearnerApp)",
 ]) {
-  if (!app.includes(required)) throw new Error('Code splitting principal incompleto: ' + required)
+  if (!app.includes(required)) throw new Error('Code splitting/prefetch principal incompleto: ' + required)
 }
 
 const learner = await read('player/src/LearnerApp.jsx')
@@ -35,11 +37,17 @@ if (learner.includes("import './styles.css'") || learner.includes("import './exp
   throw new Error('Player no debe reinyectar CSS dinámicamente; altera la cascada visual.')
 }
 for (const required of [
-  "lazy(() => import('../../studio/src/App.jsx'))",
-  "lazy(() => import('./CoursePlayer.jsx'))",
-  "lazy(() => import('./CatalogPage.jsx'))",
+  "const loadStudioApp = () => import('../../studio/src/App.jsx')",
+  "const loadCoursePlayer = () => import('./CoursePlayer.jsx')",
+  "const loadCatalogPage = () => import('./CatalogPage.jsx')",
+  "const loadGamesPage = () => import('./GamesPage.jsx')",
+  "const StudioApp = lazy(loadStudioApp)",
+  "const CoursePlayer = lazy(loadCoursePlayer)",
+  "const CatalogPage = lazy(loadCatalogPage)",
+  "const GamesPage = lazy(loadGamesPage)",
+  "import HomePage from './HomePage.jsx'",
 ]) {
-  if (!learner.includes(required)) throw new Error('Ruta pesada cargada de forma eager: ' + required)
+  if (!learner.includes(required)) throw new Error('Arquitectura de carga de rutas incompleta: ' + required)
 }
 
 const studio = await read('studio/src/App.jsx')
@@ -80,4 +88,4 @@ const workflow = await read('.github/workflows/deploy-pages.yml')
 if (!workflow.includes('npm ci --no-audit --no-fund')) throw new Error('GitHub Actions debe usar npm ci.')
 if (!workflow.includes('npm audit --omit=dev --audit-level=high')) throw new Error('Falta auditoría de dependencias de producción.')
 
-console.log('Performance v4.1 validada: JS lazy, cascada visual estable, snapshots, caché, Storage batch, CSP, lockfile y npm ci.')
+console.log('Performance v4.2 validada: prefetch controlado, Inicio estable, rutas pesadas lazy, snapshots, caché, Storage batch, CSP y npm ci.')

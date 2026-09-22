@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import {
   Award, BadgeCheck, BookOpen, CalendarDays, CheckCircle2, ChevronRight,
   ClipboardCopy, Download, ExternalLink, FileCheck2, GraduationCap, Loader2,
-  RefreshCw, Search, Users, X,
+  RefreshCw, Search, Share2, Users, X,
 } from 'lucide-react'
 import { getError, supabase } from './shared.js'
 import { appUrl } from '../../src/paths.js'
@@ -119,6 +119,24 @@ export default function CertificatesManager({ setMessage }) {
     }
   }
 
+  const shareCertificate = async (item) => {
+    if (!item?.certificate_code) return
+    const url = certificateUrl(item.certificate_code)
+    if (typeof navigator.share !== 'function') {
+      await copyCertificateLink(item.certificate_code)
+      return
+    }
+    try {
+      await navigator.share({
+        title: 'Certificado Aula EI',
+        text: item.person + ' · ' + item.course,
+        url,
+      })
+    } catch (error) {
+      if (error?.name !== 'AbortError') setMessage('No fue posible compartir el certificado.')
+    }
+  }
+
   const generate = async (item) => {
     const key = item.course_id + '-' + item.user_id
     const reservedTab = window.open('about:blank', '_blank')
@@ -207,13 +225,13 @@ export default function CertificatesManager({ setMessage }) {
             <table className="data-table certificates-data-table">
               <thead><tr><th>#</th><th>Persona</th><th>Capacitación</th><th>Puntaje</th><th>Emisión</th><th>Código</th><th></th></tr></thead>
               <tbody>{pagedIssued.map((item) => <tr key={item.certificate_code}>
-                <td><span className="certificate-rank-pill">#{item.position}</span></td>
-                <td><button className="certificate-person-button" onClick={() => setDetailCode(item.certificate_code)}><span className="certificate-avatar">{initials(item.person)}</span><span><strong>{item.person}</strong><small>{item.user_email || 'Sin correo registrado'}</small></span></button></td>
-                <td><div className="certificate-course-cell"><strong>{item.course}</strong><small>Certificado oficial</small></div></td>
-                <td><ScorePill score={item.score_number} /></td>
-                <td><span className="certificate-date">{formatDate(item.issued_at)}</span></td>
-                <td><button className="certificate-code-button" title="Copiar enlace" onClick={() => copyCertificateLink(item.certificate_code)}>{shortCode(item.certificate_code)} <ClipboardCopy size={13} /></button></td>
-                <td><div className="certificate-row-actions"><button className="icon-button" title="Ver detalle" onClick={() => setDetailCode(item.certificate_code)}><ChevronRight size={17} /></button><button className="secondary-button compact" onClick={() => openCertificate(item.certificate_code)}><ExternalLink size={15} /> Abrir</button></div></td>
+                <td data-label="Ranking"><span className="certificate-rank-pill">#{item.position}</span></td>
+                <td data-label="Persona"><button className="certificate-person-button" onClick={() => setDetailCode(item.certificate_code)}><span className="certificate-avatar">{initials(item.person)}</span><span><strong>{item.person}</strong><small>{item.user_email || 'Sin correo registrado'}</small></span></button></td>
+                <td data-label="Capacitación"><div className="certificate-course-cell"><strong>{item.course}</strong><small>Certificado oficial</small></div></td>
+                <td data-label="Puntaje"><ScorePill score={item.score_number} /></td>
+                <td data-label="Emisión"><span className="certificate-date">{formatDate(item.issued_at)}</span></td>
+                <td data-label="Código"><button className="certificate-code-button" title="Copiar enlace" onClick={() => copyCertificateLink(item.certificate_code)}>{shortCode(item.certificate_code)} <ClipboardCopy size={13} /></button></td>
+                <td data-label="Acciones"><div className="certificate-row-actions"><button className="icon-button" title="Ver detalle" onClick={() => setDetailCode(item.certificate_code)}><ChevronRight size={17} /></button><button className="secondary-button compact" onClick={() => openCertificate(item.certificate_code)}><ExternalLink size={15} /> Abrir</button></div></td>
               </tr>)}</tbody>
             </table>
           </div>}
@@ -246,6 +264,7 @@ export default function CertificatesManager({ setMessage }) {
       onClose={() => setDetailCode(null)}
       onOpen={() => openCertificate(selectedCertificate.certificate_code)}
       onCopy={() => copyCertificateLink(selectedCertificate.certificate_code)}
+      onShare={() => shareCertificate(selectedCertificate)}
     />}
   </div>
 }
@@ -270,7 +289,7 @@ function EmptyState({ icon: Icon, title, text }) {
   return <div className="certificate-empty"><Icon size={28} /><strong>{title}</strong><span>{text}</span></div>
 }
 
-function CertificateDetail({ item, onClose, onOpen, onCopy }) {
+function CertificateDetail({ item, onClose, onOpen, onCopy, onShare }) {
   return <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="certificate-detail-drawer">
       <header><div><span className="eyebrow">Detalle del certificado</span><h2>{item.person}</h2></div><button className="icon-button" onClick={onClose}><X size={18} /></button></header>
@@ -301,8 +320,9 @@ function CertificateDetail({ item, onClose, onOpen, onCopy }) {
       </section>
 
       <div className="certificate-detail-actions">
+        <button className="secondary-button mobile-native-share" onClick={onShare}><Share2 size={16} /> Compartir</button>
         <button className="secondary-button" onClick={onCopy}><ClipboardCopy size={16} /> Copiar enlace</button>
-        <button className="primary-button" onClick={onOpen}><ExternalLink size={16} /> Abrir en nueva pestaña</button>
+        <button className="primary-button" onClick={onOpen}><ExternalLink size={16} /> Abrir</button>
       </div>
     </aside>
   </div>

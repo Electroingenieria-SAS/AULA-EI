@@ -14,6 +14,7 @@ const users = await read('studio/src/UsersManager.jsx')
 const assignments = await read('studio/src/AssignmentsCenter.jsx')
 const certificates = await read('studio/src/CertificatesManager.jsx')
 const index = await read('index.html')
+const experience = await read('src/ExperienceLayer.jsx')
 
 for (const required of [
   "import MobileViewportSync from './MobileViewportSync.jsx'",
@@ -42,6 +43,9 @@ for (const required of [
   '.learner-mobile-global-nav',
   'body.aula-mobile-keyboard-open .learner-mobile-global-nav',
   '.training-notification-panel',
+  'top:calc(100% + 8px)!important',
+  'transform-origin:top right',
+  '@keyframes mobileNotificationFromBell',
   '.learner-outline.mobile-open',
   '.practice-gate-modal',
   '.learner-stage-nav',
@@ -73,8 +77,31 @@ for (const required of ['Share2','navigator.share','mobile-native-share','data-l
   if (!certificates.includes(required)) throw new Error('Certificados móvil incompleto: falta ' + required)
 }
 
+for (const forbidden of [
+  "'.data-table-wrap'",
+  "'.users-directory'",
+  "'.certificates-workspace'",
+  "'.compliance-two-column'",
+]) {
+  if (experience.includes(forbidden)) {
+    throw new Error('Los directorios/listas operativas no pueden depender de scroll reveal: ' + forbidden)
+  }
+}
+
+for (const required of [
+  '.users-data-wrap,',
+  '.certificates-data-wrap,',
+  '.compliance-two-column{',
+  'opacity:1!important',
+  'visibility:visible!important',
+]) {
+  if (!mobile.includes(required)) {
+    throw new Error('Las listas móviles deben ser deterministas y visibles: falta ' + required)
+  }
+}
+
 if (!index.includes('viewport-fit=cover')) {
   throw new Error('iOS safe-area requiere viewport-fit=cover.')
 }
 
-console.log('Mobile First v2 validado: viewport/teclado, navegación, bottom sheets, tablas-card, curso táctil, share y safe areas.')
+console.log('Mobile First v2.1 validado: datos siempre visibles, cargos/rankings/usuarios estables y notificaciones ancladas a la campana.')

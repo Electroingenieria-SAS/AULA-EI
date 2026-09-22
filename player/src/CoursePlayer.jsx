@@ -8,7 +8,8 @@ import {
   Shuffle, BrainCircuit, Trophy, Video, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import LearnerTopbar from './LearnerTopbar.jsx'
-import { navigateLearner } from './navigation.js'
+import { appUrl, navigateLearner } from './navigation.js'
+import { safeExternalUrl, sanitizeHtml } from '../../src/security.js'
 import { signedAsset, supabase } from './supabase.js'
 
 const ACHIEVEMENTS = [
@@ -64,7 +65,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         user = sessionResult.session?.user
       }
       if (!user) {
-        window.location.replace('/#/login')
+        navigateLearner('/login', { replace: true })
         return
       }
       if (!courseId) throw new Error('No se recibió la capacitación que quieres abrir.')
@@ -195,18 +196,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
       if (!error && typeof data?.correct === 'boolean') {
         setPracticeVerdict(data.correct)
-        return
-      }
-
-      const fallback = await supabase
-        .from('question_options')
-        .select('is_correct')
-        .eq('id', optionId)
-        .eq('question_id', practiceQuestion.id)
-        .maybeSingle()
-
-      if (!fallback.error && typeof fallback.data?.is_correct === 'boolean') {
-        setPracticeVerdict(Boolean(fallback.data.is_correct))
         return
       }
 
@@ -712,7 +701,7 @@ function ContentExperience({ block, completed, previousTitle, nextTitle, canPrev
         <div className="file-learning-card link-card">
           <span><Link2 size={28} /></span>
           <div><strong>Recurso externo</strong><small>Se abrirá en una pestaña nueva para que no pierdas tu posición en Aula EI.</small></div>
-          <a href={String(content.url || '#')} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Abrir recurso</a>
+          <a href={safeExternalUrl(String(content.url || '')) || '#'} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Abrir recurso</a>
         </div>
       )}
 
@@ -747,7 +736,7 @@ function ReadingContent({ value }) {
   const text = value.trim()
   if (!text) return <div className="reading-experience empty">Este contenido aún no tiene texto.</div>
   const looksHtml = /<\/?[a-z][\s\S]*>/i.test(text)
-  if (looksHtml) return <div className="reading-experience" dangerouslySetInnerHTML={{ __html: text }} />
+  if (looksHtml) return <div className="reading-experience" dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }} />
   return <div className="reading-experience">{text.split(/\n{2,}/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
 }
 
@@ -937,7 +926,7 @@ function ExamResult({ result, course, retry }) {
   const openCertificate = () => {
     if (!code) return
     const anchor = document.createElement('a')
-    anchor.href = new URL('/#/certificate/' + encodeURIComponent(code), window.location.origin).href
+    anchor.href = new URL(appUrl('/certificate/' + encodeURIComponent(code)), window.location.origin).href
     anchor.target = '_blank'
     anchor.rel = 'noopener noreferrer'
     anchor.click()
@@ -1082,9 +1071,9 @@ function normalizeExternalUrl(url, type) {
   if (!raw) return ''
   const driveId = googleDriveId(raw)
   if (driveId) return type === 'image' ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w2400` : `https://drive.google.com/file/d/${driveId}/preview`
-  if (/youtube\.com|youtu\.be/i.test(raw)) return youtubeEmbed(raw)
-  if (/onedrive\.live\.com|1drv\.ms/i.test(raw)) return oneDriveEmbed(raw)
-  return raw
+  if (/youtube\.com|youtu\.be/i.test(raw)) return safeExternalUrl(youtubeEmbed(raw))
+  if (/onedrive\.live\.com|1drv\.ms/i.test(raw)) return safeExternalUrl(oneDriveEmbed(raw))
+  return safeExternalUrl(raw)
 }
 
 function isEmbedProvider(url) {

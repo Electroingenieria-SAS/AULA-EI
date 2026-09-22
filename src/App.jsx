@@ -3,6 +3,7 @@ import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react'
 import AdminMfaGate from './AdminMfaGate.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
 import { appUrl, assetUrl } from './paths.js'
+import { clearDataCache } from './data-cache.js'
 import { supabase } from './supabase.js'
 
 const CertificateApp = lazy(() => import('../certificate/src/CertificateApp.jsx'))
@@ -56,8 +57,9 @@ export default function App() {
         setSessionReady(true)
       })
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
+      if (event === 'SIGNED_OUT' || !nextSession) clearDataCache()
       if (!nextSession) setProfile(null)
       setAuthError('')
       setSessionReady(true)

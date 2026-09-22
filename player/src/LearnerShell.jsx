@@ -30,7 +30,6 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         <div><strong>{displayName}</strong><span>{role}</span></div>
       </div>
 
-      <NotificationCenter profile={profile} />
 
       <nav className="learner-sidebar-nav" aria-label="Navegación principal">
         <SidebarLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
@@ -44,6 +43,8 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         <div className="learner-sidebar-security"><Sparkles size={16} /><span>Contenido protegido con Supabase Auth y RLS.</span></div>
       </div>
     </aside>
+
+    <NotificationCenter profile={profile} />
 
     <div className="learner-shell-main">{children}</div>
 

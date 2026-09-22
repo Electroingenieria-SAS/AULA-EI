@@ -289,7 +289,7 @@ function CourseCard({ item, index }) {
     event.stopPropagation()
     const code = item.certificate?.certificate_code
     if (!code) return
-    window.open('/#/certificate/' + encodeURIComponent(code), '_blank', 'noopener,noreferrer')
+    window.open(appUrl('/certificate/' + encodeURIComponent(code)), '_blank', 'noopener,noreferrer')
   }
 
   return <article

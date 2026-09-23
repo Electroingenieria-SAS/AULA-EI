@@ -35,3 +35,17 @@ button,input{font:inherit}
 .password-grid{display:grid;gap:14px;margin-top:22px;text-align:left}
 @keyframes authRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @media(max-width:900px){.auth-page{grid-template-columns:1fr;background:linear-gradient(180deg,#043b86 0,#0755ad 42%,#eef5ff 42%);padding:28px 18px}.auth-hero-clean{padding:20px 8px 8px}.auth-hero-clean h1{font-size:clamp(2.2rem,11vw,3.8rem)}.auth-feature-row{display:none}.auth-panel-clean{justify-self:stretch;width:100%;margin:auto}.auth-hero-clean img{max-width:250px}}
+
+.legacy-mfa-page{background:radial-gradient(circle at 14% 8%,rgba(24,111,215,.18),transparent 34%),linear-gradient(180deg,#edf5ff,#f9fbff)}
+.legacy-mfa-card{width:min(94vw,560px)!important}
+.legacy-mfa-logo{width:min(230px,64vw)!important;max-height:96px!important;margin-bottom:8px}
+.legacy-mfa-card>svg{color:#0c58b0;margin-top:10px}
+.legacy-mfa-card h1{color:#163b68}
+.legacy-mfa-card p{max-width:430px;margin-left:auto;margin-right:auto}
+.legacy-mfa-qr{display:block;width:min(240px,74vw)!important;height:auto!important;max-height:none!important;margin:18px auto!important;padding:12px;border:1px solid #dce7f3;border-radius:18px;background:#fff;box-shadow:0 12px 28px rgba(24,66,115,.08)}
+.legacy-mfa-secret{margin:12px auto;padding:12px 14px;max-width:420px;border:1px solid #d8e4f2;border-radius:14px;background:#f7fbff;display:grid;gap:6px;text-align:left}
+.legacy-mfa-secret span{font-size:.74rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:#4f6683}
+.legacy-mfa-secret code{overflow-wrap:anywhere;color:#163b68;font-size:.84rem}
+.legacy-mfa-form{max-width:420px;margin:18px auto 0}
+.legacy-mfa-form input{text-align:center;font-size:1.35rem;letter-spacing:.3em;font-weight:900}
+@media(max-width:600px){.legacy-mfa-card{padding:26px 18px!important}.legacy-mfa-form input{font-size:1.15rem}}

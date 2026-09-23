@@ -19,6 +19,17 @@ function normalizeRpcRow(value) {
   return Array.isArray(value) ? value[0] || null : value || null
 }
 
+function isInvalidRefreshToken(error) {
+  const value = String(error?.message || error || '').toLowerCase()
+  return value.includes('invalid refresh token') || value.includes('refresh token not found')
+}
+
+async function recoverInvalidStoredSession(error) {
+  if (!isInvalidRefreshToken(error)) return false
+  await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
+  return true
+}
+
 function withTimeout(promise, ms, message) {
   let timeoutId
   const timer = new Promise((_, reject) => {
@@ -44,13 +55,27 @@ export default function App() {
     supabase.auth.getSession()
       .then(({ data, error }) => {
         if (!alive) return
-        if (error) setAuthError(error.message)
-        setSession(data?.session || null)
+        if (error) {
+          if (isInvalidRefreshToken(error)) {
+            recoverInvalidStoredSession(error)
+            setAuthError('La sesión anterior venció. Ingresa nuevamente para continuar.')
+            setSession(null)
+          } else {
+            setAuthError(error.message)
+            setSession(data?.session || null)
+          }
+        } else {
+          setSession(data?.session || null)
+        }
         setSessionReady(true)
       })
-      .catch((error) => {
+      .catch(async (error) => {
         if (!alive) return
-        setAuthError(error instanceof Error ? error.message : 'No fue posible validar la sesión.')
+        const recovered = await recoverInvalidStoredSession(error)
+        setSession(null)
+        setAuthError(recovered
+          ? 'La sesión anterior venció. Ingresa nuevamente para continuar.'
+          : (error instanceof Error ? error.message : 'No fue posible validar la sesión.'))
         setSessionReady(true)
       })
 
@@ -220,7 +245,7 @@ function PasswordGate({ profile }) {
     }
 
     if (
-      password.length < 10 ||
+      password.length < 12 ||
       password.length > 128 ||
       /\s/.test(password) ||
       !/[a-z]/.test(password) ||
@@ -228,7 +253,7 @@ function PasswordGate({ profile }) {
       !/[0-9]/.test(password) ||
       !/[^A-Za-z0-9]/.test(password)
     ) {
-      setMessage('Usa entre 10 y 128 caracteres, con mayúscula, minúscula, número y símbolo, sin espacios.')
+      setMessage('Usa entre 12 y 128 caracteres, con mayúscula, minúscula, número y símbolo, sin espacios.')
       return
     }
 

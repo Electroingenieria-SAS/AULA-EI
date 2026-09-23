@@ -5,6 +5,7 @@ import CoursePlayer from './CoursePlayer.jsx'
 import GamesPage from './GamesPage.jsx'
 import HomePage from './HomePage.jsx'
 import LearnerShell from './LearnerShell.jsx'
+import AdminMfaGate from '../../src/AdminMfaGate.jsx'
 
 function readRoute() {
   const hash = window.location.hash || '#/'
@@ -33,7 +34,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'course') return <CoursePlayer suppliedSessionUser={sessionUser} />
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage />
-    if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
+    if (route.type === 'studio') return <AdminMfaGate profile={profile}><StudioApp embedded initialProfile={profile} /></AdminMfaGate>
     return <HomePage profile={profile} sessionUser={sessionUser} />
   }, [route.key, route.type, profile, sessionUser])
 

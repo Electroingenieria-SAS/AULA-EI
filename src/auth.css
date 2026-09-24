@@ -444,3 +444,50 @@ button,input{font:inherit}
   .auth-feature-row>span,.auth-primary,.auth-button-arrow,.auth-form-clean input,.mfa-form input{transition:none!important}
   .auth-loading-orbit span,.auth-loading-bars i{animation:none!important}
 }
+
+
+/* ========================================================================== */
+/* Password recovery                                                          */
+/* ========================================================================== */
+.auth-link-button{
+  width:max-content;
+  max-width:100%;
+  padding:3px 2px;
+  border:0;
+  background:transparent;
+  color:#0b60b9;
+  font-size:.8rem;
+  font-weight:900;
+  cursor:pointer;
+  text-align:left;
+  transition:color .18s ease,transform .18s ease;
+}
+.auth-link-button:hover:not(:disabled){color:#003b8e;transform:translateY(-1px)}
+.auth-link-button:disabled{opacity:.55;cursor:wait}
+.auth-link-button.centered{justify-self:center;text-align:center}
+.auth-message.success{background:#edf9f1;color:#1d6b3b;border:1px solid #bfe5cc}
+.auth-code-input{
+  text-align:center;
+  font-size:1.35rem!important;
+  font-weight:900;
+  letter-spacing:.34em;
+  font-variant-numeric:tabular-nums;
+}
+.auth-password-help{
+  display:block;
+  margin-top:-4px;
+  color:#6f7f94;
+  font-size:.74rem;
+  line-height:1.5;
+}
+.auth-recovery-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+@media(max-width:520px){
+  .auth-recovery-actions{align-items:flex-start;flex-direction:column}
+  .auth-link-button{min-height:34px;display:inline-flex;align-items:center}
+}

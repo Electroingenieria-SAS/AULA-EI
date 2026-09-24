@@ -96,6 +96,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const password = String(body.password || "");
+    const reason = body.reason === "recovery" ? "recovery" : "required_change";
     const invalid = validate(password, String(profile.email || user.email || ""));
     if (invalid) return reply({ ok: false, error: invalid }, 400);
 
@@ -124,10 +125,14 @@ serve(async (req) => {
 
     await admin.from("audit_logs").insert({
       actor_id: user.id,
-      action: "complete_first_password_change",
+      action: reason === "recovery" ? "complete_password_recovery" : "complete_first_password_change",
       entity_type: "profile",
       entity_id: user.id,
-      metadata: { completed_at: new Date().toISOString(), password_reputation: breachCheck },
+      metadata: {
+        completed_at: new Date().toISOString(),
+        password_reputation: breachCheck,
+        change_reason: reason,
+      },
     });
     return reply({ ok: true, message: "Contraseña actualizada. Inicia sesión nuevamente.", force_relogin: true });
   } catch (error) {

@@ -97,9 +97,22 @@ for (const edgePath of [
   if (!content.includes('length < 12')) throw new Error('Política de 12 caracteres faltante en ' + edgePath)
 }
 
+const recoveryTemplate = await readFile(path.join(root,'supabase/templates/recovery-otp.html'),'utf8')
+for (const required of ['{{ .Token }}','código','Aula EI']) {
+  if (!recoveryTemplate.includes(required)) throw new Error('Plantilla OTP de recuperación incompleta: falta ' + required)
+}
+for (const required of ['resetPasswordForEmail','verifyOtp',"type: 'recovery'","reason: 'recovery'"]) {
+  if (!app.includes(required)) throw new Error('Flujo de recuperación por OTP incompleto: falta ' + required)
+}
+
+const completePasswordEdge = await readFile(path.join(root,'supabase/functions/complete-password-change/index.ts'),'utf8')
+for (const required of ['complete_password_recovery','change_reason','reason === "recovery"']) {
+  if (!completePasswordEdge.includes(required)) throw new Error('Auditoría de recuperación incompleta: falta ' + required)
+}
+
 const resetPasswordEdge = await readFile(path.join(root,'supabase/functions/reset-managed-user-password/index.ts'),'utf8')
 for (const required of ['updateUserById','aula_ei_must_change_password: true','reset_managed_user_password','ROLE_RANK']) {
   if (!resetPasswordEdge.includes(required)) throw new Error('Restablecimiento administrativo inseguro o incompleto: falta ' + required)
 }
 
-console.log('Security v3.2 validada: MFA AAL2, sesión administrativa viva, secretos, contraseñas, restablecimiento seguro, rate limits, auditoría y deploy.')
+console.log('Security v3.3 validada: MFA AAL2, recuperación OTP, sesión administrativa viva, secretos, contraseñas, restablecimiento seguro, rate limits, auditoría y deploy.')

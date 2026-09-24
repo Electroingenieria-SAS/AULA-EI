@@ -97,6 +97,12 @@ function generateTemporaryPassword() {
   return random.slice(0, 20) + "Aa1$";
 }
 
+function validateGeneratedPassword(value: string) {
+  if (value.length < 12 || value.length > 128) return false;
+  if (/\s/.test(value)) return false;
+  return /[a-z]/.test(value) && /[A-Z]/.test(value) && /[0-9]/.test(value) && /[^A-Za-z0-9]/.test(value);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers });
   if (req.method !== "POST") return reply({ ok: false, code: "METHOD_NOT_ALLOWED", error: "Método no permitido." }, 405);
@@ -189,6 +195,10 @@ serve(async (req) => {
     }
 
     const temporaryPassword = generateTemporaryPassword();
+    if (!validateGeneratedPassword(temporaryPassword)) {
+      return reply({ ok: false, code: "PASSWORD_GENERATION_FAILED", error: "No fue posible generar una contraseña temporal que cumpla la política de seguridad." }, 500);
+    }
+
     let breachCheck = "clean";
     try {
       const breached = await pwnedPasswordCount(temporaryPassword);

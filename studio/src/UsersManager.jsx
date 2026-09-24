@@ -24,6 +24,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const [detailId, setDetailId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [generatedPassword, setGeneratedPassword] = useState('')
+  const [resetResult, setResetResult] = useState(null)
   const [busy, setBusy] = useState(false)
   const [workingId, setWorkingId] = useState(null)
   const [search, setSearch] = useState('')
@@ -151,6 +152,12 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
         const person = row.original
         return <div className="user-row-actions">
           <button className="icon-button" title="Ver detalle" onClick={() => setDetailId(person.id)}><ChevronRight size={17} /></button>
+          {canManage(person) && person.is_active !== false && <button
+            className="icon-button"
+            title="Restablecer contraseña"
+            disabled={workingId === person.id}
+            onClick={() => resetManagedPassword(person)}
+          ><KeyRound size={16} /></button>}
           {canManage(person) && <button
             className={person.is_active === false ? 'secondary-button compact' : 'danger-button compact'}
             disabled={workingId === person.id}
@@ -247,6 +254,31 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       await refresh()
     } catch (error) {
       setMessage(getError(error, 'No fue posible actualizar el usuario.'))
+    } finally {
+      setWorkingId(null)
+    }
+  }
+
+  async function resetManagedPassword(person) {
+    if (!canManage(person)) return setMessage('Solo puedes restablecer contraseñas de usuarios con un nivel inferior al tuyo.')
+    if (person.is_active === false) return setMessage('Reactiva primero la cuenta antes de restablecer su contraseña.')
+    if (!window.confirm('¿Restablecer la contraseña de ' + person.name + '? Se generará una contraseña temporal y deberá cambiarla en el siguiente ingreso.')) return
+
+    setWorkingId(person.id)
+    try {
+      const { data, error } = await supabase.functions.invoke('reset-managed-user-password', {
+        body: { user_id: person.id },
+      })
+      if (error) throw new Error(String(data?.error || error.message || 'No fue posible restablecer la contraseña.'))
+      if (data?.ok === false) throw new Error(String(data.error || 'No fue posible restablecer la contraseña.'))
+
+      const temporaryPassword = String(data?.temporary_password || '')
+      if (!temporaryPassword) throw new Error('El servidor no devolvió la contraseña temporal.')
+
+      setResetResult({ person, password: temporaryPassword })
+      setMessage('Contraseña temporal generada para ' + person.name + '.')
+    } catch (error) {
+      setMessage(getError(error, 'No fue posible restablecer la contraseña.'))
     } finally {
       setWorkingId(null)
     }
@@ -424,6 +456,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
             <div className="mobile-user-actions">
               <button className="secondary-button compact" onClick={() => setDetailId(person.id)}><ChevronRight size={16} /> Ver detalle</button>
+              {canManage(person) && person.is_active !== false && <button className="secondary-button compact" disabled={workingId === person.id} onClick={() => resetManagedPassword(person)}><KeyRound size={15} /> Contraseña</button>}
               {canManage(person) && <button
                 className={person.is_active === false ? 'primary-button compact' : 'danger-button compact'}
                 disabled={workingId === person.id}
@@ -464,7 +497,14 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       working={workingId === detailPerson.id}
       onClose={() => setDetailId(null)}
       onToggle={() => toggleActive(detailPerson)}
+      onReset={() => resetManagedPassword(detailPerson)}
       onRole={(role) => changeRole(detailPerson, role)}
+    />}
+
+    {resetResult && <ResetPasswordModal
+      person={resetResult.person}
+      password={resetResult.password}
+      onClose={() => setResetResult(null)}
     />}
   </div>
 }
@@ -502,7 +542,44 @@ function CreateUserModal({ form, setForm, allowedRoles, busy, generatedPassword,
   </div>
 }
 
-function UserDetailDrawer({ person, profile, canManage, canChangeRole, working, onClose, onToggle, onRole }) {
+function ResetPasswordModal({ person, password, onClose }) {
+  const [copied, setCopied] = useState(false)
+
+  const copyPassword = async () => {
+    try {
+      await navigator.clipboard?.writeText(password)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+    <section className="user-create-modal">
+      <header>
+        <div>
+          <span className="eyebrow">Acceso restablecido</span>
+          <h2>Contraseña temporal de {person.name}</h2>
+          <p>Esta contraseña se muestra para que puedas entregársela por un canal seguro. Aula EI obligará al usuario a crear una contraseña personal al iniciar sesión.</p>
+        </div>
+        <button className="icon-button" onClick={onClose}><X size={18} /></button>
+      </header>
+      <div className="created-user-success">
+        <span className="success-icon"><KeyRound size={24} /></span>
+        <h3>Restablecimiento completado</h3>
+        <p>No guardes esta contraseña en notas públicas, correos compartidos ni capturas. La operación quedó registrada en auditoría sin almacenar el valor de la contraseña.</p>
+        <div className="temporary-password-card">
+          <strong>{password}</strong>
+          <button className="secondary-button compact" onClick={copyPassword}>{copied ? <Check size={15} /> : <Copy size={15} />} {copied ? 'Copiada' : 'Copiar'}</button>
+        </div>
+        <button className="primary-button" onClick={onClose}>Cerrar</button>
+      </div>
+    </section>
+  </div>
+}
+
+function UserDetailDrawer({ person, profile, canManage, canChangeRole, working, onClose, onToggle, onReset, onRole }) {
   return <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="user-detail-drawer">
       <header><div><span className="eyebrow">Detalle del usuario</span><h2>{person.name}</h2></div><button className="icon-button" onClick={onClose}><X size={18} /></button></header>
@@ -531,6 +608,7 @@ function UserDetailDrawer({ person, profile, canManage, canChangeRole, working, 
       {(canChangeRole || canManage) && <section className="detail-section detail-actions-section">
         <h3>Administración</h3>
         {canChangeRole && person.id !== profile.id && <label>Rol<select value={person.role} onChange={(event) => onRole(event.target.value)}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>}
+        {canManage && person.is_active !== false && <button className="secondary-button" disabled={working} onClick={onReset}><KeyRound size={16} /> Restablecer contraseña</button>}
         {canManage && <button className={person.is_active === false ? 'primary-button' : 'danger-button'} disabled={working} onClick={onToggle}>{working && <Loader2 className="spin" size={16} />}{person.is_active === false ? 'Reactivar usuario' : 'Desactivar usuario'}</button>}
       </section>}
     </aside>

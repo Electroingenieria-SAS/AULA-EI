@@ -73,6 +73,7 @@ for (const edgePath of [
   'supabase/functions/create-managed-user/index.ts',
   'supabase/functions/delete-managed-user/index.ts',
   'supabase/functions/complete-password-change/index.ts',
+  'supabase/functions/reset-managed-user-password/index.ts',
 ]) {
   const content = await readFile(path.join(root,edgePath),'utf8')
   if (!content.includes('consumeRateLimit')) throw new Error('Rate limit faltante en ' + edgePath)
@@ -80,6 +81,7 @@ for (const edgePath of [
 for (const edgePath of [
   'supabase/functions/create-managed-user/index.ts',
   'supabase/functions/delete-managed-user/index.ts',
+  'supabase/functions/reset-managed-user-password/index.ts',
 ]) {
   const content = await readFile(path.join(root,edgePath),'utf8')
   if (!content.includes('validateLiveAdminSession')) throw new Error('Validación de sesión administrativa viva faltante en ' + edgePath)
@@ -88,10 +90,16 @@ for (const edgePath of [
 for (const edgePath of [
   'supabase/functions/create-managed-user/index.ts',
   'supabase/functions/complete-password-change/index.ts',
+  'supabase/functions/reset-managed-user-password/index.ts',
 ]) {
   const content = await readFile(path.join(root,edgePath),'utf8')
   if (!content.includes('pwnedPasswordCount')) throw new Error('Comprobación HIBP faltante en ' + edgePath)
   if (!content.includes('length < 12')) throw new Error('Política de 12 caracteres faltante en ' + edgePath)
 }
 
-console.log('Security v3.1 validada: MFA AAL2, sesión administrativa viva, secretos, contraseñas, rate limits, auditoría y deploy.')
+const resetPasswordEdge = await readFile(path.join(root,'supabase/functions/reset-managed-user-password/index.ts'),'utf8')
+for (const required of ['updateUserById','aula_ei_must_change_password: true','reset_managed_user_password','ROLE_RANK']) {
+  if (!resetPasswordEdge.includes(required)) throw new Error('Restablecimiento administrativo inseguro o incompleto: falta ' + required)
+}
+
+console.log('Security v3.2 validada: MFA AAL2, sesión administrativa viva, secretos, contraseñas, restablecimiento seguro, rate limits, auditoría y deploy.')

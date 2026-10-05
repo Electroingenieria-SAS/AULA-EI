@@ -1506,3 +1506,159 @@
     bottom:calc(var(--mobile-nav-height) + 8px + env(safe-area-inset-bottom,0px))!important;
   }
 }
+
+
+/* ==========================================================================
+   Aula EI · iOS Experience v5
+   Safari/iPhone/iPad/PWA: viewport, safe areas, keyboard, fixed UI and WebKit.
+   ========================================================================== */
+@media(max-width:900px){
+  body.aula-ios-runtime{
+    min-height:var(--mobile-vh,100dvh);
+    overscroll-behavior-y:none;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  body.aula-ios-runtime,
+  body.aula-ios-runtime .learner-shell-main,
+  body.aula-ios-runtime .auth-page{
+    min-height:var(--mobile-vh,100dvh)!important;
+  }
+
+  body.aula-ios-runtime :where(
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea
+  ){
+    font-size:16px!important;
+    line-height:1.35;
+  }
+
+  body.aula-ios-runtime :where(
+    button,
+    a,
+    [role="button"],
+    .learner-mobile-global-nav,
+    .learner-mobile-appbar,
+    .lightbox-toolbar,
+    .lightbox-course-nav
+  ){
+    -webkit-touch-callout:none;
+  }
+
+  body.aula-ios-runtime :where(
+    .learner-mobile-global-nav,
+    .learner-mobile-appbar,
+    .learner-stage-nav,
+    .studio-navigation-shell,
+    .training-notification-panel,
+    .lightbox-toolbar
+  ){
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+  }
+
+  body.aula-ios-runtime .learner-mobile-appbar{
+    top:var(--mobile-offset-top,0px)!important;
+    background:rgba(248,252,255,.985)!important;
+    transform:translateZ(0);
+  }
+
+  body.aula-ios-runtime .learner-mobile-global-nav{
+    bottom:max(8px,env(safe-area-inset-bottom,0px))!important;
+    background:rgba(255,255,255,.985)!important;
+    transform:translateZ(0);
+  }
+
+  body.aula-ios-runtime.aula-mobile-standalone .learner-mobile-global-nav{
+    bottom:max(6px,env(safe-area-inset-bottom,0px))!important;
+  }
+
+  body.aula-ios-runtime.aula-mobile-keyboard-open .learner-mobile-global-nav,
+  body.aula-ios-runtime.aula-mobile-keyboard-open .learner-stage-nav,
+  body.aula-ios-runtime.aula-mobile-keyboard-open .bulk-action-bar,
+  body.aula-ios-runtime.aula-mobile-keyboard-open .user-bulk-bar{
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+
+  body.aula-ios-runtime.aula-mobile-keyboard-open .learner-shell-main{
+    padding-bottom:max(18px,env(safe-area-inset-bottom,0px))!important;
+  }
+
+  body.aula-ios-runtime :where(
+    .modal-backdrop,
+    .drawer-backdrop,
+    .practice-gate-backdrop,
+    .image-lightbox
+  ){
+    height:var(--mobile-vh,100dvh)!important;
+    min-height:var(--mobile-vh,100dvh)!important;
+    max-height:var(--mobile-vh,100dvh)!important;
+  }
+
+  body.aula-ios-runtime :where(
+    .modal,
+    .drawer,
+    .practice-gate-modal,
+    .training-notification-panel,
+    .lightbox-canvas.touch-zoom-canvas
+  ){
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+
+  body.aula-ios-runtime .image-lightbox{
+    height:var(--mobile-vh,100dvh)!important;
+  }
+
+  body.aula-ios-runtime .lightbox-canvas.touch-zoom-canvas{
+    height:var(--mobile-vh,100dvh)!important;
+    touch-action:pan-x pan-y pinch-zoom!important;
+  }
+
+  body.aula-ios-runtime .lightbox-canvas.touch-zoom-canvas:not(.is-zoomed) img{
+    max-height:var(--mobile-vh,100dvh)!important;
+  }
+
+  body.aula-ios-runtime .lightbox-toolbar{
+    top:max(
+      calc(var(--mobile-offset-top,0px) + 8px),
+      env(safe-area-inset-top,0px)
+    )!important;
+  }
+
+  body.aula-ios-runtime .lightbox-course-nav{
+    bottom:max(12px,env(safe-area-inset-bottom,0px))!important;
+  }
+
+  body.aula-ios-runtime :where(
+    .modal,
+    .drawer,
+    .practice-gate-modal,
+    .course-create-modal,
+    .user-detail-drawer,
+    .certificate-detail-drawer
+  ){
+    padding-bottom:max(16px,env(safe-area-inset-bottom,0px))!important;
+  }
+
+  body.aula-ios-runtime.aula-mobile-landscape{
+    --mobile-appbar-height:52px;
+    --mobile-nav-height:58px;
+  }
+
+  body.aula-ios-runtime.aula-mobile-landscape .learner-mobile-global-nav{
+    left:max(12px,env(safe-area-inset-left,0px))!important;
+    right:max(12px,env(safe-area-inset-right,0px))!important;
+  }
+
+  body.aula-ios-runtime.aula-mobile-standalone{
+    background:#eef4fa;
+  }
+
+  body.aula-ios-runtime.aula-mobile-standalone .learner-shell-main{
+    padding-bottom:calc(var(--mobile-nav-height) + 18px + env(safe-area-inset-bottom,0px))!important;
+  }
+}

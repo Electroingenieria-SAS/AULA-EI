@@ -1,0 +1,30 @@
+{
+  "id": "./",
+  "name": "Aula EI · Electroingeniería",
+  "short_name": "Aula EI",
+  "description": "Academia interna de ELECTROINGENIERÍA S.A.S.",
+  "lang": "es-CO",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#071f3f",
+  "theme_color": "#003b8e",
+  "categories": ["education", "business", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

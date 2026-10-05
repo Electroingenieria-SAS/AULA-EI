@@ -16,3 +16,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
+
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const workerUrl = new URL('sw.js', window.location.origin + import.meta.env.BASE_URL).href
+    navigator.serviceWorker.register(workerUrl, { scope: import.meta.env.BASE_URL })
+      .catch((error) => console.warn('Aula EI PWA: no fue posible registrar el service worker.', error))
+  }, { once: true })
+}

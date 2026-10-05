@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'aula-ei-pwa-v1'
+const CACHE_VERSION = 'aula-ei-pwa-v2'
 const STATIC_CACHE = CACHE_VERSION + '-static'
 const RUNTIME_CACHE = CACHE_VERSION + '-runtime'
 
@@ -33,16 +33,37 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-function isCacheableStatic(request, url) {
-  if (url.origin !== self.location.origin) return false
+function isSameOriginGet(request, url) {
   if (request.method !== 'GET') return false
+  if (url.origin !== self.location.origin) return false
   if (url.pathname.includes('/auth/') || url.pathname.includes('/rest/') || url.pathname.includes('/functions/')) return false
-  return ['script', 'style', 'image', 'font', 'manifest'].includes(request.destination)
+  return true
+}
+
+function isFreshCode(request) {
+  return ['script', 'style', 'manifest'].includes(request.destination)
+}
+
+function isCacheableMedia(request) {
+  return ['image', 'font'].includes(request.destination)
+}
+
+async function networkFirst(request, fallback = null) {
+  try {
+    const response = await fetch(request, { cache: 'no-store' })
+    if (response && response.ok && response.type === 'basic') {
+      const cache = await caches.open(RUNTIME_CACHE)
+      await cache.put(request, response.clone())
+    }
+    return response
+  } catch {
+    return (await caches.match(request)) || (fallback ? await caches.match(fallback) : null) || Response.error()
+  }
 }
 
 async function networkFirstNavigation(request) {
   try {
-    const response = await fetch(request)
+    const response = await fetch(request, { cache: 'no-store' })
     if (response && response.ok) {
       const cache = await caches.open(RUNTIME_CACHE)
       await cache.put(inScope('./'), response.clone())
@@ -78,13 +99,19 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
 
   const url = new URL(request.url)
+  if (!isSameOriginGet(request, url)) return
 
-  if (request.mode === 'navigate' && url.origin === self.location.origin) {
+  if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request))
     return
   }
 
-  if (isCacheableStatic(request, url)) {
+  if (isFreshCode(request)) {
+    event.respondWith(networkFirst(request))
+    return
+  }
+
+  if (isCacheableMedia(request)) {
     event.respondWith(staleWhileRevalidate(request))
   }
 })

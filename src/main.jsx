@@ -20,8 +20,21 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const workerUrl = new URL('sw.js', window.location.origin + import.meta.env.BASE_URL).href
-    navigator.serviceWorker.register(workerUrl, { scope: import.meta.env.BASE_URL })
-      .catch((error) => console.warn('Aula EI PWA: no fue posible registrar el service worker.', error))
+    const workerUrl = new URL('sw.js?v=2', window.location.origin + import.meta.env.BASE_URL).href
+    let refreshing = false
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing || sessionStorage.getItem('aula-ei-pwa-refresh-v2') === '1') return
+      refreshing = true
+      sessionStorage.setItem('aula-ei-pwa-refresh-v2', '1')
+      window.location.reload()
+    })
+
+    navigator.serviceWorker.register(workerUrl, {
+      scope: import.meta.env.BASE_URL,
+      updateViaCache: 'none',
+    })
+      .then((registration) => registration.update())
+      .catch((error) => console.warn('Aula EI PWA: no fue posible actualizar el service worker.', error))
   }, { once: true })
 }

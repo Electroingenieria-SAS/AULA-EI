@@ -37,6 +37,7 @@ const playerStyles = await read('player/src/styles.css')
 const globalMotion = await read('src/global-experience.css')
 const mobileApp = await read('src/mobile-app.css')
 const viewportRuntime = await read('src/MobileViewportSync.jsx')
+const interactionLayer = await read('src/ExperienceLayer.jsx')
 if (learner.includes("import './styles.css'") || learner.includes("import './experience.css'")) {
   throw new Error('Player no debe reinyectar CSS dinámicamente; altera la cascada visual.')
 }
@@ -110,6 +111,13 @@ for (const required of [
 ]) {
   if (!mobileApp.includes(required)) throw new Error('Optimización móvil incompleta: ' + required)
 }
+if (interactionLayer.includes("document.body.classList.add('aula-pointer-visible')") || interactionLayer.includes("document.body.classList.toggle('aula-interactive-hover'")) {
+  throw new Error('El cursor no debe invalidar estilos globales del body en cada interacción.')
+}
+if (!interactionLayer.includes("pendingRoots") || !interactionLayer.includes("requestAnimationFrame(flushScans)")) {
+  throw new Error('El escaneo de reveals debe permanecer agrupado por frame.')
+}
+
 for (const required of ['requestAnimationFrame(runSync)', 'const last = {', 'aula-mobile-narrow', 'aula-mobile-tablet']) {
   if (!viewportRuntime.includes(required)) throw new Error('Viewport runtime no está amortiguando recalculos: ' + required)
 }

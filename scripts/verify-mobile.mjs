@@ -145,4 +145,19 @@ if (!index.includes('viewport-fit=cover')) {
   throw new Error('iOS safe-area requiere viewport-fit=cover.')
 }
 
-console.log('Mobile App Experience v3 validada: shell táctil dedicado, cards operativas, notificaciones resilientes y zoom móvil.')
+for (const required of [
+  'Aula EI · Mobile Fluidity v4',
+  '@media(max-width:340px)',
+  '@media(max-width:380px)',
+  '@media(max-width:540px)',
+  '@media(min-width:541px) and (max-width:900px)',
+  '@media(max-width:900px) and (orientation:landscape)',
+  'content-visibility:auto',
+]) {
+  if (!mobileApp.includes(required)) throw new Error('Cobertura de tamaños móviles incompleta: falta ' + required)
+}
+for (const required of ['requestAnimationFrame(runSync)', 'aula-mobile-narrow', 'aula-mobile-tablet', 'aula-mobile-landscape']) {
+  if (!runtime.includes(required)) throw new Error('Runtime adaptable incompleto: falta ' + required)
+}
+
+console.log('Mobile App Experience v4 validada: 320-900px, landscape, tablet, compositor táctil y zoom móvil.')

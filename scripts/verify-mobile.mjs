@@ -98,6 +98,15 @@ if (!course.includes('mobile-outline-button') || !course.includes('learner-stage
 for (const required of ['touchDistance','onTouchStart','onTouchMove','touch-zoom-canvas','onDoubleClick']) {
   if (!course.includes(required)) throw new Error('El visor táctil de capacitaciones está incompleto: falta ' + required)
 }
+if (course.includes("document.body.style.overflow = 'hidden'")) {
+  throw new Error('El visor de imágenes no debe bloquear el scroll global del body.')
+}
+for (const required of ['.lightbox-canvas.is-zoomed', 'overscroll-behavior:contain', '-webkit-overflow-scrolling:touch']) {
+  if (!playerStyles.includes(required)) throw new Error('El lightbox debe conservar scroll interno al ampliar: falta ' + required)
+}
+if (!mobileApp.includes('touch-action:pan-x pan-y pinch-zoom')) {
+  throw new Error('El lightbox móvil debe permitir pan y pinch-zoom sin congelar el scroll.')
+}
 if (!assignments.includes('MOBILE_ASSIGNMENT_COLUMN_LABELS') || !assignments.includes('data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS')) {
   throw new Error('Asignaciones no puede degradar su tabla a tarjetas móviles.')
 }

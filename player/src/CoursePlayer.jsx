@@ -753,9 +753,6 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
   }
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
     const onKey = (event) => {
       if (event.key === 'Escape') close()
       if (event.key === 'ArrowLeft' && canPrevious) previous()
@@ -766,7 +763,6 @@ function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle,
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = previousOverflow
     }
   }, [canPrevious, canNext, previous, next, close])
 

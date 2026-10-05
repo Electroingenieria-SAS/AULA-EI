@@ -6,25 +6,62 @@ export default function MobileViewportSync() {
     const body = document.body
     const compactQuery = window.matchMedia('(max-width: 900px)')
     const coarseQuery = window.matchMedia('(pointer: coarse)')
+    const last = {
+      height: null,
+      width: null,
+      offsetTop: null,
+      keyboard: null,
+      mobile: null,
+      keyboardOpen: null,
+      narrow: null,
+      tablet: null,
+      landscape: null,
+    }
+    let frame = 0
 
-    const sync = () => {
+    const setVar = (key, value, cacheKey) => {
+      if (last[cacheKey] === value) return
+      last[cacheKey] = value
+      root.style.setProperty(key, value + 'px')
+    }
+
+    const setClass = (name, value, cacheKey) => {
+      if (last[cacheKey] === value) return
+      last[cacheKey] = value
+      body.classList.toggle(name, value)
+    }
+
+    const runSync = () => {
+      frame = 0
       const viewport = window.visualViewport
       const height = Math.round(viewport?.height || window.innerHeight || 0)
       const width = Math.round(viewport?.width || window.innerWidth || 0)
       const offsetTop = Math.round(viewport?.offsetTop || 0)
       const keyboard = Math.max(0, Math.round((window.innerHeight || height) - height - offsetTop))
       const mobile = compactQuery.matches || coarseQuery.matches
+      const keyboardOpen = mobile && keyboard > 110
+      const narrow = mobile && width <= 380
+      const tablet = mobile && width >= 600
+      const landscape = mobile && width > height
 
-      root.style.setProperty('--mobile-vh', height + 'px')
-      root.style.setProperty('--mobile-vw', width + 'px')
-      root.style.setProperty('--mobile-offset-top', offsetTop + 'px')
-      root.style.setProperty('--mobile-keyboard-height', keyboard + 'px')
+      setVar('--mobile-vh', height, 'height')
+      setVar('--mobile-vw', width, 'width')
+      setVar('--mobile-offset-top', offsetTop, 'offsetTop')
+      setVar('--mobile-keyboard-height', keyboard, 'keyboard')
 
-      body.classList.toggle('aula-mobile-runtime', mobile)
-      body.classList.toggle('aula-mobile-keyboard-open', mobile && keyboard > 110)
+      setClass('aula-mobile-runtime', mobile, 'mobile')
+      setClass('aula-mobile-keyboard-open', keyboardOpen, 'keyboardOpen')
+      setClass('aula-mobile-narrow', narrow, 'narrow')
+      setClass('aula-mobile-tablet', tablet, 'tablet')
+      setClass('aula-mobile-landscape', landscape, 'landscape')
     }
 
-    sync()
+    const sync = () => {
+      if (frame) return
+      frame = requestAnimationFrame(runSync)
+    }
+
+    runSync()
     window.addEventListener('resize', sync, { passive: true })
     window.addEventListener('orientationchange', sync, { passive: true })
     window.visualViewport?.addEventListener('resize', sync, { passive: true })
@@ -39,7 +76,14 @@ export default function MobileViewportSync() {
       window.visualViewport?.removeEventListener('scroll', sync)
       compactQuery.removeEventListener?.('change', sync)
       coarseQuery.removeEventListener?.('change', sync)
-      body.classList.remove('aula-mobile-runtime', 'aula-mobile-keyboard-open')
+      if (frame) cancelAnimationFrame(frame)
+      body.classList.remove(
+        'aula-mobile-runtime',
+        'aula-mobile-keyboard-open',
+        'aula-mobile-narrow',
+        'aula-mobile-tablet',
+        'aula-mobile-landscape',
+      )
       root.style.removeProperty('--mobile-vh')
       root.style.removeProperty('--mobile-vw')
       root.style.removeProperty('--mobile-offset-top')

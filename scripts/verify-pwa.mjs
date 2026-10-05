@@ -8,7 +8,7 @@ for (const file of [
   'public/manifest.webmanifest',
   'public/sw.js',
   'public/icons/pwa-192.png',
-  'public/icons/pwa-512.svg',
+  'public/icons/pwa-512.png',
 ]) {
   await access(path.join(root, file))
 }

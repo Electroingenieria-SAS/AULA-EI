@@ -47,47 +47,65 @@ export default function ExperienceLayer() {
     let dotX = -80
     let dotY = -80
     let frame = 0
+    let interactive = false
 
     const draw = () => {
       if (!dot || !ring) return
-      ringX += (targetX - ringX) * .18
-      ringY += (targetY - ringY) * .18
-      dotX += (targetX - dotX) * .46
-      dotY += (targetY - dotY) * .46
+      ringX += (targetX - ringX) * .2
+      ringY += (targetY - ringY) * .2
+      dotX += (targetX - dotX) * .5
+      dotY += (targetY - dotY) * .5
       ring.style.transform = 'translate3d(' + ringX + 'px,' + ringY + 'px,0) translate(-50%,-50%)'
       dot.style.transform = 'translate3d(' + dotX + 'px,' + dotY + 'px,0) translate(-50%,-50%)'
       const remaining = Math.abs(targetX-ringX)+Math.abs(targetY-ringY)+Math.abs(targetX-dotX)+Math.abs(targetY-dotY)
-      frame = remaining > .35 ? requestAnimationFrame(draw) : 0
+      frame = remaining > .45 ? requestAnimationFrame(draw) : 0
+    }
+
+    const showPointer = () => {
+      dot?.classList.add('is-visible')
+      ring?.classList.add('is-visible')
+    }
+
+    const hidePointer = () => {
+      dot?.classList.remove('is-visible')
+      ring?.classList.remove('is-visible')
+    }
+
+    const setInteractive = (next) => {
+      if (!dot || !ring || next === interactive) return
+      interactive = next
+      dot.classList.toggle('is-interactive', next)
+      ring.classList.toggle('is-interactive', next)
     }
 
     const onMove = (event) => {
       if (!dot || !ring || event.pointerType === 'touch') return
       targetX = event.clientX
       targetY = event.clientY
-      document.body.classList.add('aula-pointer-visible')
+      showPointer()
       if (!frame) frame = requestAnimationFrame(draw)
     }
 
     const onOver = (event) => {
       if (!dot || !ring) return
-      document.body.classList.toggle('aula-interactive-hover', Boolean(event.target.closest?.(INTERACTIVE)))
+      setInteractive(Boolean(event.target.closest?.(INTERACTIVE)))
     }
 
     const onDown = (event) => {
       if (!event.target.closest?.(INTERACTIVE)) return
-      document.body.classList.add('aula-pointer-down')
+      ring?.classList.add('is-down')
       const burst = document.createElement('i')
       burst.className = 'aula-click-burst'
       burst.setAttribute('aria-hidden', 'true')
       burst.style.left = event.clientX + 'px'
       burst.style.top = event.clientY + 'px'
       document.body.appendChild(burst)
-      setTimeout(() => burst.remove(), 620)
+      window.setTimeout(() => burst.remove(), 620)
     }
 
-    const onUp = () => document.body.classList.remove('aula-pointer-down')
+    const onUp = () => ring?.classList.remove('is-down')
     const onOut = (event) => {
-      if (!event.relatedTarget) document.body.classList.remove('aula-pointer-visible')
+      if (!event.relatedTarget) hidePointer()
     }
 
     window.addEventListener('pointermove', onMove, { passive: true })
@@ -103,7 +121,7 @@ export default function ExperienceLayer() {
         entry.target.classList.add('premium-reveal-in')
         observer.unobserve(entry.target)
       })
-    }, { threshold: .08, rootMargin: '0px 0px -6% 0px' })
+    }, { threshold: .06, rootMargin: '0px 0px -4% 0px' })
 
     let revealOrder = 0
     const scan = (root = document) => {
@@ -121,10 +139,18 @@ export default function ExperienceLayer() {
     }
 
     scan()
+    const pendingRoots = new Set()
+    let scanFrame = 0
+    const flushScans = () => {
+      scanFrame = 0
+      pendingRoots.forEach((node) => scan(node))
+      pendingRoots.clear()
+    }
     const mutations = new MutationObserver((records) => {
       records.forEach((record) => record.addedNodes.forEach((node) => {
-        if (node.nodeType === 1) scan(node)
+        if (node.nodeType === 1) pendingRoots.add(node)
       }))
+      if (pendingRoots.size && !scanFrame) scanFrame = requestAnimationFrame(flushScans)
     })
     mutations.observe(document.body, { childList: true, subtree: true })
 
@@ -136,11 +162,11 @@ export default function ExperienceLayer() {
       window.removeEventListener('pointercancel', onUp)
       window.removeEventListener('pointerout', onOut)
       if (frame) cancelAnimationFrame(frame)
+      if (scanFrame) cancelAnimationFrame(scanFrame)
       observer.disconnect()
       mutations.disconnect()
       dot?.remove()
       ring?.remove()
-      document.body.classList.remove('aula-pointer-visible','aula-interactive-hover','aula-pointer-down')
     }
   }, [])
 

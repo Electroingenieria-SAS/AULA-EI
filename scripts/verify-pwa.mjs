@@ -8,7 +8,7 @@ for (const file of [
   'public/manifest.webmanifest',
   'public/sw.js',
   'public/icons/pwa-192.png',
-  'public/icons/pwa-512.png',
+  'public/icons/pwa-512.svg',
 ]) {
   await access(path.join(root, file))
 }
@@ -42,7 +42,7 @@ if (manifest.prefer_related_applications !== false) throw new Error('prefer_rela
 
 const sizes = new Set((manifest.icons || []).map((icon) => icon.sizes))
 if (!sizes.has('192x192') || !sizes.has('512x512')) {
-  throw new Error('La PWA necesita iconos raster 192x192 y 512x512.')
+  throw new Error('La PWA necesita iconos 192x192 y 512x512.')
 }
 if (!(manifest.icons || []).some((icon) => String(icon.purpose || '').includes('maskable'))) {
   throw new Error('La PWA necesita un icono maskable para Android.')

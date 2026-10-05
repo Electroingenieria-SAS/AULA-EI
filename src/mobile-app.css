@@ -1275,3 +1275,187 @@
   .certificate-load-issue{grid-template-columns:1fr}
   .certificate-load-issue button{width:100%!important;justify-content:center!important}
 }
+
+
+/* ==========================================================================
+   Aula EI · Mobile Fluidity v4
+   Cobertura 320px–900px: móviles pequeños, estándar, phablet, tablet y landscape.
+   ========================================================================== */
+@media(max-width:900px){
+  :root{
+    --mobile-page-x:clamp(10px,3.5vw,20px);
+  }
+
+  .learner-app-shell:before{
+    background:
+      linear-gradient(180deg,rgba(244,248,252,.88),rgba(244,248,252,.92)),
+      var(--aula-photo-image) center center/cover no-repeat!important;
+    filter:none!important;
+    transform:translateZ(0);
+    contain:paint;
+  }
+  .learner-app-shell:after{
+    transform:translateZ(0);
+    will-change:transform;
+    contain:paint;
+  }
+
+  :where(
+    .learner-mobile-appbar,
+    .learner-mobile-global-nav,
+    .learner-topbar,
+    .stage-context-bar,
+    .learner-stage-nav,
+    .training-notification-panel,
+    .studio-navigation-shell,
+    .course-authoring-header,
+    .bulk-action-bar,
+    .user-bulk-bar,
+    .certificate-pagination,
+    .compliance-tabs
+  ){
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+  }
+
+  .learner-mobile-appbar{background:rgba(248,252,255,.985)!important}
+  .learner-mobile-global-nav{background:rgba(255,255,255,.985)!important}
+  .learner-topbar,.stage-context-bar,.learner-stage-nav{background:rgba(255,255,255,.985)!important}
+
+  :where(
+    .mobile-user-card,
+    .mobile-certificate-card,
+    .mobile-position-card,
+    .course-library-card,
+    .catalog-course-card,
+    .home-course-card,
+    .pending-certificate-card
+  ){
+    content-visibility:auto;
+    contain-intrinsic-size:1px 220px;
+  }
+
+  :where(
+    .learner-mobile-appbar,
+    .learner-mobile-global-nav,
+    .learner-stage-nav,
+    .studio-navigation-shell
+  ){
+    transform:translateZ(0);
+    will-change:transform;
+  }
+
+  body.aula-mobile-runtime{
+    overflow-x:hidden;
+  }
+
+  body.aula-mobile-runtime :where(button,a,[role="button"]){
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+}
+
+@media(max-width:540px){
+  :root{
+    --mobile-page-x:clamp(9px,3vw,14px);
+  }
+  .learner-mobile-appbar{gap:6px}
+  .learner-mobile-global-nav{border-radius:20px!important}
+}
+
+@media(max-width:380px){
+  :root{
+    --mobile-appbar-height:60px;
+    --mobile-nav-height:68px;
+    --mobile-page-x:9px;
+  }
+  .learner-mobile-brand{grid-template-columns:38px minmax(0,1fr);gap:6px}
+  .learner-mobile-brand img{width:38px;height:38px}
+  .learner-mobile-brand small{font-size:.64rem}
+  .learner-mobile-brand strong{font-size:.9rem;max-width:50vw}
+  .learner-mobile-global-nav{
+    left:max(5px,env(safe-area-inset-left,0px))!important;
+    right:max(5px,env(safe-area-inset-right,0px))!important;
+    bottom:max(5px,env(safe-area-inset-bottom,0px))!important;
+    padding:4px!important;
+    gap:2px!important;
+  }
+  .learner-mobile-global-nav button{
+    min-height:54px!important;
+    border-radius:14px!important;
+    font-size:.64rem!important;
+  }
+  .learner-mobile-global-nav button svg{width:19px!important;height:19px!important}
+}
+
+@media(max-width:340px){
+  :root{
+    --mobile-appbar-height:56px;
+    --mobile-nav-height:64px;
+    --mobile-page-x:8px;
+  }
+  .learner-mobile-appbar{
+    padding:
+      calc(6px + env(safe-area-inset-top,0px))
+      max(8px,env(safe-area-inset-right,0px))
+      6px
+      max(8px,env(safe-area-inset-left,0px))!important;
+  }
+  .learner-mobile-brand{grid-template-columns:34px minmax(0,1fr);padding-left:0}
+  .learner-mobile-brand img{width:34px;height:34px}
+  .learner-mobile-brand small{display:none}
+  .learner-mobile-brand strong{font-size:.86rem;max-width:49vw}
+  .learner-mobile-global-nav button{font-size:.59rem!important;padding-inline:1px!important}
+  .learner-mobile-global-nav button svg{width:18px!important;height:18px!important}
+  .stage-nav-button{padding-inline:7px!important}
+  .stage-nav-button strong{max-width:27vw!important}
+}
+
+@media(min-width:541px) and (max-width:900px){
+  :root{
+    --mobile-page-x:clamp(18px,4vw,30px);
+    --mobile-appbar-height:68px;
+    --mobile-nav-height:76px;
+  }
+  .learner-shell-main>*,.embedded-studio{
+    max-width:900px;
+    margin-inline:auto;
+  }
+  .learner-mobile-global-nav{
+    left:50%!important;
+    right:auto!important;
+    width:min(620px,calc(100vw - 32px))!important;
+    transform:translate3d(-50%,0,0)!important;
+  }
+  .learner-mobile-brand strong{max-width:68vw}
+}
+
+@media(max-width:900px) and (orientation:landscape){
+  :root{
+    --mobile-appbar-height:54px;
+    --mobile-nav-height:60px;
+  }
+  .learner-mobile-appbar{
+    min-height:calc(var(--mobile-appbar-height) + env(safe-area-inset-top,0px));
+    padding-block:4px!important;
+  }
+  .learner-mobile-brand{min-height:42px!important}
+  .learner-mobile-brand img{width:36px;height:36px}
+  .learner-mobile-global-nav button{
+    min-height:48px!important;
+    flex-direction:row!important;
+    gap:6px!important;
+  }
+  .learner-shell-main{
+    padding-bottom:calc(var(--mobile-nav-height) + 16px + env(safe-area-inset-bottom,0px))!important;
+  }
+}
+
+@media(max-width:900px) and (max-height:620px){
+  .learner-mobile-global-nav{
+    box-shadow:0 10px 28px rgba(11,41,77,.16)!important;
+  }
+  .learner-stage-nav{
+    bottom:calc(var(--mobile-nav-height) + 8px + env(safe-area-inset-bottom,0px))!important;
+  }
+}

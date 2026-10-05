@@ -17,28 +17,28 @@
 /* ---------- Cursor / click feedback ---------- */
 #aula-pointer-dot,#aula-pointer-ring{
   position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;opacity:0;
-  will-change:transform,width,height,opacity,border-color,background
+  will-change:transform,opacity;
+  transition:opacity .16s ease,scale .18s var(--motion-ease),border-color .18s ease,background-color .18s ease
 }
 #aula-pointer-dot{
   width:5px;height:5px;border-radius:50%;background:#003b8e;
-  box-shadow:0 0 0 1px rgba(255,255,255,.75),0 2px 8px rgba(0,59,142,.25);
-  transition:opacity .18s ease,background .18s ease,box-shadow .18s ease
+  box-shadow:0 0 0 1px rgba(255,255,255,.75),0 2px 8px rgba(0,59,142,.22)
 }
 #aula-pointer-ring{
   width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(0,59,142,.38);
-  background:rgba(255,255,255,.06);backdrop-filter:blur(1px);
-  transition:opacity .18s ease,width .2s var(--motion-ease),height .2s var(--motion-ease),border-color .2s ease,background .2s ease,box-shadow .2s ease
+  background:rgba(255,255,255,.14);
+  scale:1
 }
-body.aula-pointer-visible #aula-pointer-dot,body.aula-pointer-visible #aula-pointer-ring{opacity:1}
-body.aula-interactive-hover #aula-pointer-ring{
-  width:42px;height:42px;border-color:rgba(255,210,0,.72);
-  background:rgba(255,210,0,.08);box-shadow:0 0 0 6px rgba(0,59,142,.045)
+#aula-pointer-dot.is-visible,#aula-pointer-ring.is-visible{opacity:1}
+#aula-pointer-ring.is-interactive{
+  scale:1.5;border-color:rgba(255,210,0,.72);
+  background:rgba(255,210,0,.10)
 }
-body.aula-interactive-hover #aula-pointer-dot{
-  background:#ffd200;box-shadow:0 0 0 1px rgba(0,59,142,.55),0 3px 10px rgba(255,210,0,.25)
+#aula-pointer-dot.is-interactive{
+  background:#ffd200;box-shadow:0 0 0 1px rgba(0,59,142,.55),0 3px 10px rgba(255,210,0,.22)
 }
-body.aula-pointer-down #aula-pointer-ring{
-  width:22px;height:22px;background:rgba(0,59,142,.11);border-color:rgba(0,59,142,.62)
+#aula-pointer-ring.is-down{
+  scale:.78;background:rgba(0,59,142,.11);border-color:rgba(0,59,142,.62)
 }
 .aula-click-burst{
   position:fixed;left:0;top:0;width:18px;height:18px;pointer-events:none;z-index:2147482999;
@@ -69,13 +69,13 @@ body.aula-pointer-down #aula-pointer-ring{
 .premium-reveal{
   opacity:0;
   transform:translate3d(0,12px,0) scale(.992);
-  filter:saturate(.95);
+  will-change:transform,opacity;
   transition:
     opacity var(--motion-enter) var(--motion-ease-out),
-    transform var(--motion-enter) var(--motion-ease-out),
-    filter var(--motion-enter) ease;
+    transform var(--motion-enter) var(--motion-ease-out);
 }
-.premium-reveal.premium-reveal-in{opacity:1;transform:none;filter:none}
+.premium-reveal.premium-reveal-in{opacity:1;transform:none}
+.premium-reveal-in{will-change:auto}
 .premium-reveal[data-reveal-order="2"]{transition-delay:45ms}
 .premium-reveal[data-reveal-order="3"]{transition-delay:90ms}
 .premium-reveal[data-reveal-order="4"]{transition-delay:135ms}
@@ -105,8 +105,8 @@ body.aula-pointer-down #aula-pointer-ring{
     transform var(--motion-base) var(--motion-ease),
     box-shadow var(--motion-slow) var(--motion-ease),
     border-color var(--motion-base) ease,
-    background-color var(--motion-base) ease,
-    filter var(--motion-base) ease;
+    background-color var(--motion-base) ease
+    ;
 }
 @media(hover:hover) and (pointer:fine){
   :where(
@@ -130,7 +130,7 @@ body.aula-pointer-down #aula-pointer-ring{
   }
 }
 :where(.home-course-card,.catalog-course-card,.course-library-card,.pending-certificate-card) img{
-  transition:transform var(--motion-slow) var(--motion-ease-out),filter var(--motion-base) ease;
+  transition:transform var(--motion-slow) var(--motion-ease-out);
 }
 
 /* ---------- Métricas ---------- */
@@ -174,12 +174,11 @@ body.aula-pointer-down #aula-pointer-ring{
 
 /* ---------- Chips, iconos y flujos ---------- */
 :where(.status-badge,.course-status-badge,.user-status-pill,.role-chip,.plain-chip,.account-state){
-  transition:transform var(--motion-fast) var(--motion-ease),filter var(--motion-base) ease,box-shadow var(--motion-base) ease;
+  transition:transform var(--motion-fast) var(--motion-ease),box-shadow var(--motion-base) ease;
 }
 @media(hover:hover) and (pointer:fine){
   :where(.status-badge,.course-status-badge,.user-status-pill,.role-chip,.plain-chip,.account-state):hover{
     transform:translateY(-1px);
-    filter:saturate(1.06);
     box-shadow:0 7px 16px rgba(18,54,96,.07);
   }
 }
@@ -216,7 +215,6 @@ body.aula-pointer-down #aula-pointer-ring{
   transition:
     transform var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-base) var(--motion-ease),
-    filter var(--motion-base) ease,
     background-color var(--motion-base) ease,
     border-color var(--motion-base) ease,
     color var(--motion-base) ease;
@@ -351,7 +349,7 @@ body.aula-pointer-down #aula-pointer-ring{
 ::view-transition-new(aula-studio-stage){
   animation:motionViewNew .26s var(--motion-ease-out) both;
 }
-@keyframes motionViewOld{to{opacity:0;filter:blur(1.5px)}}
+@keyframes motionViewOld{to{opacity:0;transform:translate3d(0,-2px,0)}}
 @keyframes motionViewNew{
   from{opacity:0;transform:translateY(4px)}
   to{opacity:1;transform:none}
@@ -361,7 +359,7 @@ body.aula-pointer-down #aula-pointer-ring{
 @media(max-width:900px){
   .premium-reveal{
     transform:none;
-    transition:opacity .24s ease,filter .24s ease;
+    transition:opacity .24s ease;
   }
   .studio-tab-stage{animation-duration:.22s}
   :where(
@@ -381,4 +379,75 @@ body.aula-pointer-down #aula-pointer-ring{
 }
 @media(max-width:900px),(hover:none),(pointer:coarse){
   #aula-pointer-dot,#aula-pointer-ring,.aula-click-burst{display:none!important}
+}
+
+
+/* ==========================================================================
+   Aula EI · Compositor Performance v5
+   Mantiene animaciones, pero evita blur/filtros en superficies grandes o sticky.
+   ========================================================================== */
+:where(
+  .learner-global-sidebar,
+  .learner-topbar,
+  .stage-context-bar,
+  .exam-submit-bar,
+  .lightbox-course-nav,
+  .catalog-intro,
+  .catalog-summary article,
+  .catalog-workspace,
+  .catalog-personal-greeting>span,
+  .catalog-hero-secondary,
+  .catalog-card-icon,
+  .catalog-card-progress-pill,
+  .catalog-resume-play,
+  .catalog-original-pill,
+  .catalog-original-glass,
+  .catalog-original-hero-metric,
+  .catalog-original-metrics article,
+  .training-notification-panel,
+  .bulk-action-bar,
+  .user-bulk-bar,
+  .studio-sync-feedback,
+  .selection-toolbar,
+  .certificates-data-table thead th,
+  .certificate-pagination,
+  .studio-hero-eyebrow,
+  .studio-hero-metric,
+  .studio-navigation-shell,
+  .modal-backdrop,
+  .drawer-backdrop,
+  .course-authoring-header,
+  .compliance-hero-score,
+  .compliance-tabs,
+  .auth-kicker,
+  .auth-feature-row>span,
+  .auth-panel-clean
+){
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+:where(
+  .learner-topbar,
+  .stage-context-bar,
+  .exam-submit-bar,
+  .bulk-action-bar,
+  .user-bulk-bar,
+  .studio-navigation-shell,
+  .course-authoring-header,
+  .compliance-tabs,
+  .training-notification-panel,
+  .auth-panel-clean
+){
+  transform:translateZ(0);
+}
+:where(
+  .home-course-card,
+  .catalog-course-card,
+  .course-library-card,
+  .pending-certificate-card,
+  .mobile-user-card,
+  .mobile-certificate-card,
+  .mobile-position-card
+){
+  contain:layout paint style;
 }

@@ -115,7 +115,9 @@ for (const forbidden of [
   'aula-pointer-dot',
   'aula-pointer-ring',
   'aula-click-burst',
-  "addEventListener('pointermove'",
+  'pointermove',
+  'pointerover',
+  'is-interactive',
 ]) {
   if (interactionLayer.includes(forbidden) || globalMotion.includes(forbidden)) {
     throw new Error('El cursor personalizado debe permanecer eliminado: ' + forbidden)

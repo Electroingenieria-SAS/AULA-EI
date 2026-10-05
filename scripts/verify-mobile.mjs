@@ -98,6 +98,21 @@ if (!course.includes('mobile-outline-button') || !course.includes('learner-stage
 for (const required of ['touchDistance','onTouchStart','onTouchMove','touch-zoom-canvas','onDoubleClick']) {
   if (!course.includes(required)) throw new Error('El visor táctil de capacitaciones está incompleto: falta ' + required)
 }
+for (const required of [
+  "window.matchMedia('(max-width: 900px), (pointer: coarse)').matches",
+  'mobile-image-fullscreen-button',
+  'image-mobile-hint',
+]) {
+  if (!course.includes(required)) throw new Error('El visor móvil debe abrir directamente a pantalla completa: falta ' + required)
+}
+for (const required of [
+  'height:100dvh!important',
+  '.lightbox-canvas.touch-zoom-canvas:not(.is-zoomed) img',
+  '.lightbox-canvas.touch-zoom-canvas.is-zoomed',
+  'pointer-events:none!important',
+]) {
+  if (!mobileApp.includes(required)) throw new Error('El visor móvil tipo galería está incompleto: falta ' + required)
+}
 if (course.includes("document.body.style.overflow = 'hidden'")) {
   throw new Error('El visor de imágenes no debe bloquear el scroll global del body.')
 }

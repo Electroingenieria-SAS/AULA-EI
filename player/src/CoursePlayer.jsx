@@ -618,6 +618,14 @@ function ContentExperience({ block, completed, previousTitle, nextTitle, canPrev
   }
 
   const TypeIcon = typeIcon(block.type)
+  const openImage = () => {
+    const mobileViewer = window.matchMedia('(max-width: 900px), (pointer: coarse)').matches
+    if (mobileViewer || imageExpanded) {
+      setLightboxOpen(true)
+      return
+    }
+    setImageExpanded(true)
+  }
 
   return <article className="content-experience">
     <header className="content-experience-header">
@@ -651,18 +659,21 @@ function ContentExperience({ block, completed, previousTitle, nextTitle, canPrev
         <div className={'image-learning-experience ' + (imageExpanded ? 'expanded' : '')}>
           <button
             className="image-learning-canvas"
-            onClick={() => imageExpanded ? setLightboxOpen(true) : setImageExpanded(true)}
-            aria-label={imageExpanded ? 'Abrir imagen a pantalla completa' : 'Ampliar imagen dentro de la capacitación'}
+            onClick={openImage}
+            aria-label="Abrir imagen a pantalla completa"
           >
             <img src={displayUrl} alt={block.title} />
-            <span>{imageExpanded ? <><Maximize2 size={17} /> Pantalla completa</> : <><Maximize2 size={17} /> Ampliar imagen</>}</span>
+            <span className="image-desktop-cta">{imageExpanded ? <><Maximize2 size={17} /> Pantalla completa</> : <><Maximize2 size={17} /> Ampliar imagen</>}</span>
+            <span className="image-mobile-cta"><Maximize2 size={17} /> Ver a pantalla completa</span>
           </button>
 
           <div className="image-learning-actions">
-            <span><Images size={16} /> {imageExpanded ? 'Vista ampliada activa. La ruta y tus logros se acomodaron debajo para darle más espacio a la imagen.' : 'Amplía primero la imagen sin salir de la capacitación.'}</span>
+            <span className="image-desktop-hint"><Images size={16} /> {imageExpanded ? 'Vista ampliada activa. La ruta y tus logros se acomodaron debajo para darle más espacio a la imagen.' : 'Amplía primero la imagen sin salir de la capacitación.'}</span>
+            <span className="image-mobile-hint"><Images size={16} /> Toca la imagen para verla a pantalla completa. Pellizca para hacer zoom y arrastra cuando esté ampliada.</span>
             <div className="image-view-actions">
-              {imageExpanded && <button type="button" onClick={() => setImageExpanded(false)}><Minimize2 size={15} /> Tamaño normal</button>}
-              {imageExpanded && <button type="button" className="primary" onClick={() => setLightboxOpen(true)}><Maximize2 size={15} /> Pantalla completa</button>}
+              <button type="button" className="primary mobile-image-fullscreen-button" onClick={() => setLightboxOpen(true)}><Maximize2 size={15} /> Pantalla completa</button>
+              {imageExpanded && <button type="button" className="desktop-image-action" onClick={() => setImageExpanded(false)}><Minimize2 size={15} /> Tamaño normal</button>}
+              {imageExpanded && <button type="button" className="primary desktop-image-action" onClick={() => setLightboxOpen(true)}><Maximize2 size={15} /> Pantalla completa</button>}
               {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Abrir original</a>}
             </div>
           </div>

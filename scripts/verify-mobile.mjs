@@ -180,8 +180,35 @@ for (const required of [
 ]) {
   if (!mobileApp.includes(required)) throw new Error('Cobertura de tamaños móviles incompleta: falta ' + required)
 }
-for (const required of ['requestAnimationFrame(runSync)', 'aula-mobile-narrow', 'aula-mobile-tablet', 'aula-mobile-landscape']) {
+for (const required of [
+  'requestAnimationFrame(runSync)',
+  'aula-mobile-narrow',
+  'aula-mobile-tablet',
+  'aula-mobile-landscape',
+  'aula-ios-runtime',
+  'aula-ios-safari',
+  'aula-mobile-standalone',
+  'navigator.maxTouchPoints > 1',
+  "window.addEventListener('focusin'",
+  "window.setTimeout(sync, 420)",
+]) {
   if (!runtime.includes(required)) throw new Error('Runtime adaptable incompleto: falta ' + required)
+}
+
+for (const required of [
+  'Aula EI · iOS Experience v5',
+  'body.aula-ios-runtime',
+  'font-size:16px!important',
+  '-webkit-touch-callout:none',
+  'height:var(--mobile-vh,100dvh)!important',
+  'aula-mobile-standalone',
+  'aula-mobile-keyboard-open',
+]) {
+  if (!mobileApp.includes(required)) throw new Error('Capa iOS incompleta: falta ' + required)
+}
+
+if (!index.includes('apple-mobile-web-app-status-bar-style') || !index.includes('black-translucent')) {
+  throw new Error('La PWA iOS debe usar status bar edge-to-edge.')
 }
 
 console.log('Mobile App Experience v4 validada: 320-900px, landscape, tablet, compositor táctil y zoom móvil.')

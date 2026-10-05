@@ -111,8 +111,17 @@ for (const required of [
 ]) {
   if (!mobileApp.includes(required)) throw new Error('Optimización móvil incompleta: ' + required)
 }
-if (interactionLayer.includes("document.body.classList.add('aula-pointer-visible')") || interactionLayer.includes("document.body.classList.toggle('aula-interactive-hover'")) {
-  throw new Error('El cursor no debe invalidar estilos globales del body en cada interacción.')
+for (const forbidden of [
+  'aula-pointer-dot',
+  'aula-pointer-ring',
+  'aula-click-burst',
+  'pointermove',
+  'pointerover',
+  'is-interactive',
+]) {
+  if (interactionLayer.includes(forbidden) || globalMotion.includes(forbidden)) {
+    throw new Error('El cursor personalizado debe permanecer eliminado: ' + forbidden)
+  }
 }
 if (!interactionLayer.includes("pendingRoots") || !interactionLayer.includes("requestAnimationFrame(flushScans)")) {
   throw new Error('El escaneo de reveals debe permanecer agrupado por frame.')

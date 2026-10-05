@@ -162,8 +162,10 @@ if (!index.includes('viewport-fit=cover')) throw new Error('Falta soporte de saf
 if (!index.includes('%BASE_URL%brand/fondo.jpg') || !index.includes('rel="preload" as="image"')) {
   throw new Error('El fondo institucional debe precargarse desde el HTML.')
 }
-if (!globalExperience.includes('@media(max-width:900px),(hover:none),(pointer:coarse)')) {
-  throw new Error('El cursor de escritorio debe desactivarse en móvil.')
+for (const forbidden of ['aula-pointer-dot','aula-pointer-ring','aula-click-burst']) {
+  if (globalExperience.includes(forbidden)) {
+    throw new Error('El cursor personalizado debe permanecer eliminado: ' + forbidden)
+  }
 }
 
 console.log('Visual stability validada: Login/MFA compartidos, fondo precargado, mobile nav canónica, safe areas y cargas sin saltos.')

@@ -21,9 +21,9 @@
       "purpose": "any"
     },
     {
-      "src": "icons/pwa-512.png",
+      "src": "icons/pwa-512.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]

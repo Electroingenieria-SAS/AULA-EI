@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Activity, Briefcase, Layers3, Settings2, ShieldCheck, Target } from 'lucide-react'
 import { getError, slugify, supabase } from './shared.js'
 import {
   AutomationRunPanel, ComplianceAnalytics, CompetencyCourseMapper, SupervisorAssignments,
@@ -16,6 +17,20 @@ const SECTION_LABELS = {
   automation: 'Automatizaciones',
   compliance: 'Cumplimiento',
   analytics: 'Analítica',
+}
+
+function sectionIcon(key) {
+  const icons = {
+    overview: Activity,
+    positions: Briefcase,
+    competencies: Target,
+    paths: Layers3,
+    automation: Settings2,
+    compliance: ShieldCheck,
+    analytics: Activity,
+  }
+  const Icon = icons[key] || Activity
+  return <Icon size={16} />
 }
 
 export default function ComplianceCenter({ courses = [], profiles = [], setMessage }) {

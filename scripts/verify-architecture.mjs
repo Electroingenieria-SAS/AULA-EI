@@ -138,6 +138,11 @@ if (authListenerLocations.some((file) => file !== 'src/App.jsx')) {
   throw new Error('El listener Auth debe existir únicamente en src/App.jsx. Encontrado: ' + authListenerLocations.join(', '))
 }
 
+const complianceCenter = await readFile(path.join(root,'studio/src/ComplianceCenter.jsx'),'utf8')
+if (complianceCenter.includes('sectionIcon(') && !complianceCenter.includes('function sectionIcon(')) {
+  throw new Error('ComplianceCenter usa sectionIcon sin definir su renderer local.')
+}
+
 const player = await readFile(path.join(root,'player/src/CoursePlayer.jsx'),'utf8')
 const playerViews = await readFile(path.join(root,'player/src/course-player/CoursePlayerViews.jsx'),'utf8')
 if (!playerViews.includes('sanitizeHtml(text)')) {

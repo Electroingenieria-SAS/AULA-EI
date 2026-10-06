@@ -6,6 +6,7 @@ import { safeExternalUrl } from '../../../src/security.js'
 import { signedAsset } from '../supabase.js'
 import { ReadingContent } from './CoursePlayerViews.jsx'
 import ImageGallery from './ImageGallery.jsx'
+import '../styles/immersive.css'
 
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
   return <>

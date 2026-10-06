@@ -210,6 +210,28 @@ for (const required of [
 }
 
 for (const required of [
+  'Aula EI · Mobile Professional v6',
+  '.mobile-assignment-card{',
+  '.mobile-assignment-card.is-selected{',
+  '.course-authoring-header{',
+  '.authoring-step-nav{',
+  '.course-create-modal .modal-actions',
+  '@media(max-width:900px) and (prefers-reduced-motion:reduce)',
+  'will-change:auto!important',
+]) {
+  if (!mobileApp.includes(required)) throw new Error('Mobile Professional v6 incompleta: falta ' + required)
+}
+
+for (const required of [
+  'assignment-mobile-list mobile-data-view',
+  'MobileAssignmentCard',
+  'mobile-assignment-check',
+  'aria-pressed={row.getIsSelected()}',
+]) {
+  if (!assignments.includes(required)) throw new Error('Asignaciones móvil nativo incompleto: falta ' + required)
+}
+
+for (const required of [
   'Aula EI · iOS Experience v5',
   'body.aula-ios-runtime',
   'font-size:16px!important',
@@ -225,4 +247,4 @@ if (!index.includes('apple-mobile-web-app-status-bar-style') || !index.includes(
   throw new Error('La PWA iOS debe usar status bar edge-to-edge.')
 }
 
-console.log('Mobile App Experience v4 validada: 320-900px, landscape, tablet, compositor táctil y zoom móvil.')
+console.log('Mobile Professional v6 validada: 320-900px, Studio nativo, authoring táctil, iOS/Android, landscape y zoom móvil.')

@@ -11,6 +11,7 @@ import {
   CourseOverviewStep,
   PhaseEditor,
   PublishStep,
+  SectionHeader,
 } from './CourseBuilderPanels.jsx'
 import { statusLabel } from './course-utils.js'
 

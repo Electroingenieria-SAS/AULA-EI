@@ -4,7 +4,8 @@ import {
 } from 'lucide-react'
 import { safeExternalUrl } from '../../../src/security.js'
 import { signedAsset } from '../supabase.js'
-import { ImageLightbox, ReadingContent } from './CoursePlayerViews.jsx'
+import { ReadingContent } from './CoursePlayerViews.jsx'
+import ImageGallery from './ImageGallery.jsx'
 
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
   return <>
@@ -138,7 +139,7 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
             </div>
           </div>
 
-          {lightboxOpen && <ImageLightbox
+          {lightboxOpen && <ImageGallery
             src={displayUrl}
             alt={block.title}
             originalUrl={originalUrl}

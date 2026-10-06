@@ -12,6 +12,7 @@ const mobileApp = await read('src/mobile-app.css')
 const shell = await read('player/src/LearnerShell.jsx')
 const gallery = await read('player/src/course-player/ImageGallery.jsx')
 const galleryStyles = await read('player/src/styles/gallery.css')
+const immersiveStyles = await read('player/src/styles/immersive.css')
 const course = [
   await read('player/src/CoursePlayer.jsx'),
   await read('player/src/course-player/CourseContentViews.jsx'),
@@ -35,6 +36,7 @@ const playerStyles = [
   await read('player/src/styles/modules.css'),
   await read('player/src/styles/notifications.css'),
   galleryStyles,
+  immersiveStyles,
 ].join('\n')
 
 for (const required of [
@@ -131,16 +133,29 @@ for (const required of [
   'pointerCenter',
   'zoomAt(2.5',
   'Math.abs(dx) >= 62',
-  'aula-image-viewer-open',
+  'aula-media-viewer-open',
+  'mediaType = \'image\'',
+  'toggleBrowserFullscreen',
+  'document.documentElement',
+  'requestFullscreen',
+  'immersive-video-frame',
+  'immersive-presentation-frame',
 ]) {
-  if (!gallery.includes(required)) throw new Error('Course Image Gallery v7 incompleta: falta ' + required)
+  if (!gallery.includes(required)) throw new Error('Course Immersive Viewer v8 incompleto: falta ' + required)
 }
 for (const required of [
-  "window.matchMedia('(max-width: 900px), (pointer: coarse)').matches",
-  'mobile-image-fullscreen-button',
-  'image-mobile-hint',
+  'immersive-media-preview',
+  'immersive-image-preview-canvas',
+  'openImmersive({ fullscreen: true })',
+  'mediaViewerOpen && visualMedia',
+  'mediaType={block.type}',
+  'previous={previous}',
+  'next={next}',
 ]) {
-  if (!course.includes(required)) throw new Error('El visor móvil debe abrir directamente a pantalla completa: falta ' + required)
+  if (!course.includes(required)) throw new Error('Arquitectura inmersiva del CoursePlayer incompleta: falta ' + required)
+}
+for (const forbidden of ['visualFocus', 'imageExpanded=', 'setImageExpanded=']) {
+  if (course.includes(forbidden)) throw new Error('CoursePlayer conserva estado visual heredado innecesario: ' + forbidden)
 }
 for (const required of [
   'Course Image Gallery v7',
@@ -152,15 +167,26 @@ for (const required of [
   '.gallery-course-nav .gallery-nav-button',
   '.gallery-nav-previous',
   '.gallery-nav-next',
-  'body.aula-image-viewer-open',
+  'body.aula-media-viewer-open',
 ]) {
-  if (!galleryStyles.includes(required)) throw new Error('Visual de Course Image Gallery v7 incompleto: falta ' + required)
+  if (!galleryStyles.includes(required)) throw new Error('Base visual de galería incompleta: falta ' + required)
+}
+for (const required of [
+  'Course Immersive Desktop v8',
+  '.immersive-media-preview',
+  '.immersive-video-frame',
+  '.immersive-presentation-frame',
+  'body.aula-media-viewer-open .practice-gate-backdrop',
+  'z-index:5200!important',
+  ':fullscreen .gallery-viewer-v7',
+]) {
+  if (!immersiveStyles.includes(required)) throw new Error('Visual inmersivo de escritorio incompleto: falta ' + required)
 }
 if (!galleryStyles.includes('transform:\n    translate3d(var(--gallery-x,0px),var(--gallery-y,0px),0)\n    scale(var(--gallery-scale,1))!important')) {
   throw new Error('La galería debe imponer translate + scale sobre las reglas móviles heredadas.')
 }
-if (!course.includes("previous={() => {") || !course.includes("setLightboxOpen(false)")) {
-  throw new Error('La navegación flotante debe cerrar el visor antes de cambiar el contenido.')
+if (!course.includes('createPortal(modal, document.body)')) {
+  throw new Error('La pregunta rápida debe poder superponerse al visor inmersivo mediante portal.')
 }
 if (!assignments.includes('MOBILE_ASSIGNMENT_COLUMN_LABELS') || !assignments.includes('data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS')) {
   throw new Error('Asignaciones no puede degradar su tabla a tarjetas móviles.')
@@ -273,4 +299,4 @@ if (!index.includes('apple-mobile-web-app-status-bar-style') || !index.includes(
   throw new Error('La PWA iOS debe usar status bar edge-to-edge.')
 }
 
-console.log('Mobile Professional v7 validada: CoursePlayer con galería inmersiva, pinch/pan/doble toque/swipe, Studio móvil e iOS/Android.')
+console.log('Mobile/Desktop Professional v8 validada: medios inmersivos, fullscreen real, galería táctil y pregunta de transición integrada.')

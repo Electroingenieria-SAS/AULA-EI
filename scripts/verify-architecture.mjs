@@ -45,6 +45,39 @@ if (packageJson.dependencies?.['javascript-obfuscator']) {
 const files = []
 for (const sourceRoot of sourceRoots) files.push(...await walk(sourceRoot))
 
+const fileBudgets = {
+  'src/App.jsx': 9000,
+  'studio/src/App.jsx': 9000,
+  'studio/src/CoursesManager.jsx': 58000,
+  'player/src/CoursePlayer.jsx': 45000,
+  'studio/src/ComplianceCenter.jsx': 22000,
+  'studio/src/UsersManager.jsx': 30000,
+}
+
+for (const [file, maxBytes] of Object.entries(fileBudgets)) {
+  const info = await stat(path.join(root, file))
+  if (info.size > maxBytes) {
+    throw new Error(`Arquitectura inválida: ${file} supera el presupuesto de ${maxBytes} bytes (${info.size}). Debe separarse por responsabilidad.`)
+  }
+}
+
+for (const requiredFile of [
+  'src/auth/AuthScreens.jsx',
+  'src/async-utils.js',
+  'studio/src/studio-modules.js',
+  'studio/src/useStudioData.js',
+  'studio/src/StudioLoading.jsx',
+  'studio/src/course-editor/ExamBuilder.jsx',
+  'studio/src/users/UserPanels.jsx',
+  'studio/src/users/user-utils.js',
+  'studio/src/compliance/CompliancePanels.jsx',
+  'player/src/course-player/CoursePlayerViews.jsx',
+]) {
+  if (!await exists(requiredFile)) {
+    throw new Error('Arquitectura modular incompleta: falta ' + requiredFile)
+  }
+}
+
 let createClientLocations = []
 let getSessionLocations = []
 let authListenerLocations = []
@@ -69,11 +102,12 @@ if (authListenerLocations.some((file) => file !== 'src/App.jsx')) {
 }
 
 const player = await readFile(path.join(root,'player/src/CoursePlayer.jsx'),'utf8')
-if (!player.includes('sanitizeHtml(text)')) {
-  throw new Error('CoursePlayer debe sanitizar el HTML administrado antes de renderizarlo.')
+const playerViews = await readFile(path.join(root,'player/src/course-player/CoursePlayerViews.jsx'),'utf8')
+if (!playerViews.includes('sanitizeHtml(text)')) {
+  throw new Error('Las vistas de CoursePlayer deben sanitizar el HTML administrado antes de renderizarlo.')
 }
 if (player.includes(".from('question_options')")) {
   throw new Error('CoursePlayer no puede consultar question_options directamente desde el navegador.')
 }
 
-console.log('Arquitectura Aula EI validada: build fuente único, sesión única y cliente Supabase único.')
+console.log('Arquitectura Aula EI v6 validada: shells acotados, responsabilidades separadas, sesión única y cliente Supabase único.')

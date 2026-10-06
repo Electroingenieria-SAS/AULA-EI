@@ -217,14 +217,14 @@ function MetricCard({ icon: Icon, label, value, active, onClick }) {
 
 function CreateCourseModal({ form, setForm, templateId, setTemplateId, busy, onSubmit, onClose }) {
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-    <section className="course-create-modal">
+    <section className="course-create-modal" role="dialog" aria-modal="true" aria-labelledby="create-course-title" aria-describedby="create-course-description">
       <header>
         <div>
           <span className="eyebrow">Nueva capacitación</span>
-          <h2>Comienza con una estructura clara.</h2>
-          <p>Define lo esencial. Aula EI creará el borrador y después te guiará para completar contenidos, evaluación y publicación.</p>
+          <h2 id="create-course-title">Comienza con una estructura clara.</h2>
+          <p id="create-course-description">Define lo esencial. Aula EI creará el borrador y después te guiará para completar contenidos, evaluación y publicación.</p>
         </div>
-        <button className="icon-button" onClick={onClose} disabled={busy}><X size={18} /></button>
+        <button className="icon-button" type="button" aria-label="Cerrar creación de capacitación" onClick={onClose} disabled={busy}><X size={18} /></button>
       </header>
 
       <form onSubmit={onSubmit}>

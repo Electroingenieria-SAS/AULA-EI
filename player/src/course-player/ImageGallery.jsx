@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  ArrowLeft, ArrowRight, ExternalLink, Images, RotateCcw, X, ZoomIn, ZoomOut,
+  ArrowLeft, ArrowRight, ExternalLink, Images, Maximize2, Minimize2, RotateCcw, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import '../styles/gallery.css'
 
-export default function ImageGallery({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
+export default function ImageGallery({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false }) {
+  const viewerRef = useRef(null)
   const stageRef = useRef(null)
   const imageRef = useRef(null)
   const pointersRef = useRef(new Map())
@@ -24,7 +25,8 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
     lastTapPoint: null,
   })
   const [view, setView] = useState(viewRef.current)
-  const [showHint, setShowHint] = useState(true)
+  const [showHint, setShowHint] = useState(mediaType === 'image')
+  const [browserFullscreen, setBrowserFullscreen] = useState(Boolean(document.fullscreenElement || document.webkitFullscreenElement))
 
   const clampScale = (value) => Math.min(6, Math.max(1, Number(value) || 1))
 
@@ -124,12 +126,37 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
     }
   }
 
+  const toggleBrowserFullscreen = async () => {
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+    try {
+      if (fullscreenElement) {
+        if (document.exitFullscreen) await document.exitFullscreen()
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen()
+      } else {
+        const root = document.documentElement
+        if (root.requestFullscreen) await root.requestFullscreen({ navigationUI: 'hide' })
+        else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen()
+      }
+    } catch {}
+  }
+
+  const closeViewer = async () => {
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+    if (fullscreenElement) {
+      try {
+        if (document.exitFullscreen) await document.exitFullscreen()
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen()
+      } catch {}
+    }
+    close()
+  }
+
   useEffect(() => {
-    document.body.classList.add('aula-image-viewer-open')
-    const timer = window.setTimeout(() => setShowHint(false), 3200)
+    document.body.classList.add('aula-media-viewer-open')
+    const timer = window.setTimeout(() => setShowHint(false), mediaType === 'image' ? 3200 : 0)
 
     const onKey = (event) => {
-      if (event.key === 'Escape') close()
+      if (event.key === 'Escape' && !(document.fullscreenElement || document.webkitFullscreenElement)) close()
       if (event.key === 'ArrowLeft' && canPrevious) previous()
       if (event.key === 'ArrowRight' && canNext) next()
       if ((event.key === '+' || event.key === '=') && !event.ctrlKey) zoomAt(viewRef.current.scale + .5)
@@ -138,7 +165,10 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
     }
 
     const reclamp = () => applyView(viewRef.current)
+    const syncFullscreen = () => setBrowserFullscreen(Boolean(document.fullscreenElement || document.webkitFullscreenElement))
     window.addEventListener('keydown', onKey)
+    document.addEventListener('fullscreenchange', syncFullscreen)
+    document.addEventListener('webkitfullscreenchange', syncFullscreen)
     window.addEventListener('resize', reclamp, { passive: true })
     window.visualViewport?.addEventListener('resize', reclamp, { passive: true })
 
@@ -147,7 +177,9 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('resize', reclamp)
       window.visualViewport?.removeEventListener('resize', reclamp)
-      document.body.classList.remove('aula-image-viewer-open')
+      document.removeEventListener('fullscreenchange', syncFullscreen)
+      document.removeEventListener('webkitfullscreenchange', syncFullscreen)
+      document.body.classList.remove('aula-media-viewer-open')
     }
   }, [src, canPrevious, canNext, previous, next, close])
 
@@ -155,10 +187,11 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
     pointersRef.current.clear()
     viewRef.current = { scale: 1, x: 0, y: 0 }
     setView({ scale: 1, x: 0, y: 0 })
-    setShowHint(true)
-  }, [src])
+    setShowHint(mediaType === 'image')
+  }, [src, mediaType])
 
   const onPointerDown = (event) => {
+    if (mediaType !== 'image') return
     if (event.pointerType === 'mouse' && event.button !== 0) return
     setShowHint(false)
     event.currentTarget.setPointerCapture?.(event.pointerId)
@@ -177,6 +210,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
   }
 
   const onPointerMove = (event) => {
+    if (mediaType !== 'image') return
     if (!pointersRef.current.has(event.pointerId)) return
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
 
@@ -228,6 +262,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
   }
 
   const registerTap = (event) => {
+    if (mediaType !== 'image' || event.pointerType === 'mouse') return false
     const gesture = gestureRef.current
     if (gesture.moved || Date.now() - gesture.startedAt > 320) return false
 
@@ -273,6 +308,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
   }
 
   const onPointerUp = (event) => {
+    if (mediaType !== 'image') return
     const wasSinglePointer = pointersRef.current.size === 1
     if (wasSinglePointer) finishSinglePointerGesture(event)
 
@@ -294,6 +330,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
   }
 
   const onPointerCancel = (event) => {
+    if (mediaType !== 'image') return
     pointersRef.current.delete(event.pointerId)
     if (!pointersRef.current.size) {
       applyView(viewRef.current)
@@ -304,20 +341,22 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
   }
 
   const viewer = <div
-    className="image-lightbox gallery-viewer-v7"
+    ref={viewerRef}
+    className={'image-lightbox gallery-viewer-v7 immersive-media-viewer media-' + mediaType}
     role="dialog"
     aria-modal="true"
-    aria-label={'Imagen a pantalla completa: ' + alt}
+    aria-label={'Contenido inmersivo: ' + alt}
   >
     <div className="lightbox-toolbar gallery-toolbar">
       <div className="gallery-toolbar-title"><Images size={17} /><strong>{alt}</strong></div>
       <div className="gallery-toolbar-actions">
-        <button type="button" onClick={() => zoomAt(viewRef.current.scale - .5)} title="Alejar" aria-label="Alejar imagen"><ZoomOut size={18} /></button>
-        <span className="gallery-zoom-badge">{Math.round(view.scale * 100)}%</span>
-        <button type="button" onClick={() => zoomAt(viewRef.current.scale + .5)} title="Acercar" aria-label="Acercar imagen"><ZoomIn size={18} /></button>
-        <button type="button" onClick={resetView} title="Restablecer zoom" aria-label="Restablecer imagen"><RotateCcw size={17} /></button>
+        {mediaType === 'image' && <button type="button" onClick={() => zoomAt(viewRef.current.scale - .5)} title="Alejar" aria-label="Alejar imagen"><ZoomOut size={18} /></button>}
+        {mediaType === 'image' && <span className="gallery-zoom-badge">{Math.round(view.scale * 100)}%</span>}
+        {mediaType === 'image' && <button type="button" onClick={() => zoomAt(viewRef.current.scale + .5)} title="Acercar" aria-label="Acercar imagen"><ZoomIn size={18} /></button>}
+        {mediaType === 'image' && <button type="button" onClick={resetView} title="Restablecer zoom" aria-label="Restablecer imagen"><RotateCcw size={17} /></button>}
+        <button type="button" onClick={toggleBrowserFullscreen} title={browserFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'} aria-label={browserFullscreen ? 'Salir de pantalla completa' : 'Abrir pantalla completa'}>{browserFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
         {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer" title="Abrir original" aria-label="Abrir imagen original"><ExternalLink size={17} /></a>}
-        <button type="button" className="gallery-close-button" onClick={close} title="Cerrar" aria-label="Cerrar imagen"><X size={20} /></button>
+        <button type="button" className="gallery-close-button" onClick={closeViewer} title="Cerrar" aria-label="Cerrar visor"><X size={20} /></button>
       </div>
     </div>
 
@@ -328,9 +367,15 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
+      onDoubleClick={(event) => {
+        if (window.matchMedia('(min-width: 901px) and (pointer: fine)').matches) {
+          event.preventDefault()
+          void toggleBrowserFullscreen()
+        }
+      }}
       onContextMenu={(event) => event.preventDefault()}
     >
-      <img
+      {mediaType === 'image' && <img
         ref={imageRef}
         src={src}
         alt={alt}
@@ -342,9 +387,19 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
           '--gallery-y': view.y + 'px',
           '--gallery-scale': String(view.scale),
         }}
-      />
+      />}
 
-      {showHint && <div className="gallery-gesture-hint" role="status">
+      {mediaType === 'video' && <div className="immersive-video-frame">
+        {isExternalEmbed
+          ? <iframe src={src} title={alt} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
+          : <video src={src} controls autoPlay playsInline />}
+      </div>}
+
+      {mediaType === 'presentation' && <div className="immersive-presentation-frame">
+        <iframe src={src} title={alt} allowFullScreen />
+      </div>}
+
+      {showHint && mediaType === 'image' && <div className="gallery-gesture-hint" role="status">
         <strong>Pellizca para ampliar</strong>
         <span>Arrastra para recorrer · doble toque para zoom · desliza a los lados para avanzar.</span>
       </div>}
@@ -362,8 +417,8 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
         <span><small>Anterior</small><strong>{previousTitle}</strong></span>
       </button>
       <div className="gallery-navigation-status">
-        <span>{view.scale > 1.001 ? 'Imagen ampliada' : 'Imagen ajustada'}</span>
-        <small>{view.scale > 1.001 ? 'Arrastra para recorrerla' : 'Desliza a izquierda o derecha para cambiar de contenido'}</small>
+        <span>{mediaType === 'image' ? (view.scale > 1.001 ? 'Imagen ampliada' : 'Imagen ajustada') : mediaType === 'video' ? 'Video inmersivo' : 'Presentación inmersiva'}</span>
+        <small>{mediaType === 'image' ? (view.scale > 1.001 ? 'Arrastra para recorrerla' : 'Doble clic: pantalla completa · desliza para cambiar') : 'Doble clic: pantalla completa · usa los botones para avanzar'}</small>
       </div>
       <button
         type="button"

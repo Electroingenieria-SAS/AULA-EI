@@ -63,6 +63,17 @@ const fileBudgets = {
   'studio/src/compliance/CompliancePanels.jsx': 26000,
   'studio/src/UsersManager.jsx': 30000,
   'studio/src/users/UserPanels.jsx': 18000,
+  'studio/src/styles/core.css': 30000,
+  'studio/src/styles/users.css': 12000,
+  'studio/src/styles/certificates.css': 14000,
+  'studio/src/styles/courses.css': 36000,
+  'studio/src/styles/compliance.css': 28000,
+  'player/src/styles/core.css': 40000,
+  'player/src/styles/course.css': 27000,
+  'player/src/styles/catalog.css': 35000,
+  'player/src/styles/shell.css': 26000,
+  'player/src/styles/modules.css': 17000,
+  'player/src/styles/notifications.css': 8000,
 }
 
 for (const [file, maxBytes] of Object.entries(fileBudgets)) {

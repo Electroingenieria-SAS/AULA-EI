@@ -361,7 +361,7 @@ function MobileAssignmentCard({ row }) {
         aria-pressed={row.getIsSelected()}
         aria-label={(row.getIsSelected() ? 'Quitar selección de ' : 'Seleccionar ') + person.name}
         disabled={disabled}
-        onClick={row.getToggleSelectedHandler()}
+        onClick={() => row.toggleSelected()}
       >
         <span className="mobile-assignment-checkbox" aria-hidden="true">{row.getIsSelected() ? <CheckCircle2 size={18} /> : null}</span>
       </button>

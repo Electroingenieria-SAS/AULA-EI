@@ -34,7 +34,7 @@ export default function ExperienceLayer() {
   useEffect(() => {
     // Los reveals son decorativos: nunca deben vigilar cada mutación del DOM.
     // Se aplican una vez y al cambiar de ruta; las vistas dinámicas permanecen
-    // visibles por defecto en lugar de pagar un MutationObserver global.
+    // visibles por defecto en lugar de mantener vigilancia continua del DOM.
     let frame = 0
     const scan = () => {
       if (frame) cancelAnimationFrame(frame)

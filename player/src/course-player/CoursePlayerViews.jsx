@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   ArrowLeft, ArrowRight, Award, BookOpen, BrainCircuit, CheckCircle2,
   CircleAlert, GraduationCap, Loader2, RotateCcw,
@@ -21,7 +22,7 @@ export function PracticeGateModal({ question, selected, verdict, checking, selec
   const resolved = verdict === true || verdict === false
   const unavailable = verdict === 'unavailable'
 
-  return <div className="practice-gate-backdrop" role="presentation">
+  const modal = <div className="practice-gate-backdrop" role="presentation">
     <section className="practice-gate-modal" role="dialog" aria-modal="true" aria-labelledby="practice-gate-title">
       <div className="practice-gate-accent" />
 
@@ -108,6 +109,8 @@ export function PracticeGateModal({ question, selected, verdict, checking, selec
       )}
     </section>
   </div>
+
+  return createPortal(modal, document.body)
 }
 export function ExamExperience({ questions, answers, setAnswers, passingScore, submit, loading }) {
   const answered = Object.keys(answers).length

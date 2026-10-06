@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, Award, BookOpen, BrainCircuit, CheckCircle2,
-  CircleAlert, ExternalLink, GraduationCap, Images, Loader2, RotateCcw,
-  ShieldCheck, Sparkles, Trophy, X, ZoomIn, ZoomOut,
+  CircleAlert, GraduationCap, Loader2, RotateCcw,
+  ShieldCheck, Sparkles, Trophy, X,
 } from 'lucide-react'
 import LearnerTopbar from '../LearnerTopbar.jsx'
 import { appUrl, navigateLearner } from '../navigation.js'
@@ -16,105 +16,6 @@ export function ReadingContent({ value }) {
   return <div className="reading-experience">{text.split(/\n{2,}/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
 }
 
-export function ImageLightbox({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
-  const [zoom, setZoom] = useState(1)
-  const gestureRef = useRef({ distance: 0, startZoom: 1, lastTap: 0 })
-
-  const clampZoom = (value) => Math.min(4, Math.max(1, value))
-  const touchDistance = (touches) => {
-    if (!touches || touches.length < 2) return 0
-    const x = touches[0].clientX - touches[1].clientX
-    const y = touches[0].clientY - touches[1].clientY
-    return Math.hypot(x, y)
-  }
-
-  useEffect(() => {
-    const onKey = (event) => {
-      if (event.key === 'Escape') close()
-      if (event.key === 'ArrowLeft' && canPrevious) previous()
-      if (event.key === 'ArrowRight' && canNext) next()
-      if ((event.key === '+' || event.key === '=') && !event.ctrlKey) setZoom((value) => clampZoom(value + .25))
-      if (event.key === '-' && !event.ctrlKey) setZoom((value) => clampZoom(value - .25))
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [canPrevious, canNext, previous, next, close])
-
-  const onTouchStart = (event) => {
-    if (event.touches.length === 2) {
-      gestureRef.current.distance = touchDistance(event.touches)
-      gestureRef.current.startZoom = zoom
-      return
-    }
-    if (event.touches.length === 1) {
-      const now = Date.now()
-      if (now - gestureRef.current.lastTap < 300) {
-        setZoom((value) => value > 1.15 ? 1 : 2)
-        gestureRef.current.lastTap = 0
-      } else {
-        gestureRef.current.lastTap = now
-      }
-    }
-  }
-
-  const onTouchMove = (event) => {
-    if (event.touches.length !== 2 || !gestureRef.current.distance) return
-    event.preventDefault()
-    const distance = touchDistance(event.touches)
-    const ratio = distance / gestureRef.current.distance
-    setZoom(clampZoom(gestureRef.current.startZoom * ratio))
-  }
-
-  const onTouchEnd = (event) => {
-    if (event.touches.length < 2) gestureRef.current.distance = 0
-  }
-
-  return <div className="image-lightbox" onMouseDown={(event) => { if (event.target === event.currentTarget) close() }}>
-    <div className="lightbox-toolbar">
-      <div><Images size={17} /><strong>{alt}</strong></div>
-      <div>
-        <button onClick={() => setZoom((value) => clampZoom(value - .25))} title="Alejar"><ZoomOut size={18} /></button>
-        <span>{Math.round(zoom * 100)}%</span>
-        <button onClick={() => setZoom((value) => clampZoom(value + .25))} title="Acercar"><ZoomIn size={18} /></button>
-        <button onClick={() => setZoom(1)} title="Restablecer zoom"><RotateCcw size={17} /></button>
-        {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer" title="Abrir original"><ExternalLink size={17} /></a>}
-        <button onClick={close} title="Cerrar"><X size={19} /></button>
-      </div>
-    </div>
-
-    <div
-      className={'lightbox-canvas touch-zoom-canvas ' + (zoom > 1 ? 'is-zoomed' : '')}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      onDoubleClick={() => setZoom((value) => value > 1.15 ? 1 : 2)}
-    >
-      <img
-        src={src}
-        alt={alt}
-        draggable="false"
-        style={{ width: zoom === 1 ? '100%' : (zoom * 100) + '%', maxWidth: zoom === 1 ? '100%' : 'none' }}
-      />
-    </div>
-
-    <nav className="lightbox-course-nav" aria-label="Navegación de la capacitación">
-      <button disabled={!canPrevious} onClick={previous}>
-        <ArrowLeft size={19} />
-        <span><small>Contenido anterior</small><strong>{previousTitle}</strong></span>
-      </button>
-      <div>
-        <span>Pantalla completa</span>
-        <small>Pellizca o usa + / − para ampliar · doble toque restablece · desliza la imagen cuando esté ampliada.</small>
-      </div>
-      <button disabled={!canNext} onClick={next}>
-        <span><small>Siguiente contenido</small><strong>{nextTitle}</strong></span>
-        <ArrowRight size={19} />
-      </button>
-    </nav>
-  </div>
-}
 
 export function PracticeGateModal({ question, selected, verdict, checking, selectAnswer, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion }) {
   const resolved = verdict === true || verdict === false

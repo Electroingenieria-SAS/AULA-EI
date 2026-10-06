@@ -59,6 +59,7 @@ const fileBudgets = {
   'player/src/CoursePlayer.jsx': 30000,
   'player/src/course-player/CourseContentViews.jsx': 17000,
   'player/src/course-player/CoursePlayerViews.jsx': 18000,
+  'player/src/course-player/ImageGallery.jsx': 17000,
   'studio/src/ComplianceCenter.jsx': 22000,
   'studio/src/compliance/CompliancePanels.jsx': 26000,
   'studio/src/UsersManager.jsx': 30000,
@@ -74,6 +75,7 @@ const fileBudgets = {
   'player/src/styles/shell.css': 26000,
   'player/src/styles/modules.css': 17000,
   'player/src/styles/notifications.css': 8000,
+  'player/src/styles/gallery.css': 15000,
 }
 
 for (const [file, maxBytes] of Object.entries(fileBudgets)) {
@@ -98,6 +100,7 @@ for (const requiredFile of [
   'studio/src/compliance/CompliancePanels.jsx',
   'player/src/course-player/CourseContentViews.jsx',
   'player/src/course-player/CoursePlayerViews.jsx',
+  'player/src/course-player/ImageGallery.jsx',
   'studio/src/styles/core.css',
   'studio/src/styles/users.css',
   'studio/src/styles/certificates.css',
@@ -109,6 +112,7 @@ for (const requiredFile of [
   'player/src/styles/shell.css',
   'player/src/styles/modules.css',
   'player/src/styles/notifications.css',
+  'player/src/styles/gallery.css',
 ]) {
   if (!await exists(requiredFile)) {
     throw new Error('Arquitectura modular incompleta: falta ' + requiredFile)

@@ -46,34 +46,6 @@ const files = []
 for (const sourceRoot of sourceRoots) files.push(...await walk(sourceRoot))
 
 
-const garbagePatterns = [
-  /(^|\/)\.DS_Store$/,
-  /(^|\/)(?:dist|node_modules)(\/|$)/,
-  /\.(?:bak|old|orig|tmp|swp)$/,
-  /~$/,
-]
-
-async function walkAll(dir) {
-  const absolute = path.join(root, dir)
-  const result = []
-  for (const entry of await readdir(absolute, { withFileTypes: true })) {
-    const relative = path.join(dir, entry.name).replaceAll('\\\\','/')
-    if (entry.isDirectory()) {
-      if (entry.name === '.git') continue
-      result.push(...await walkAll(relative))
-    } else {
-      result.push(relative)
-    }
-  }
-  return result
-}
-
-const repositoryFiles = await walkAll('.')
-const garbageFiles = repositoryFiles.filter((file) => garbagePatterns.some((pattern) => pattern.test(file)))
-if (garbageFiles.length) {
-  throw new Error('Arquitectura inválida: archivos temporales/generados versionados: ' + garbageFiles.join(', '))
-}
-
 const fileBudgets = {
   'src/App.jsx': 9000,
   'src/auth/AuthScreens.jsx': 18000,

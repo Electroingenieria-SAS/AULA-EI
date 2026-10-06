@@ -40,11 +40,20 @@ for (const required of [
   if (!app.includes(required)) throw new Error('Runtime móvil incompleto: falta ' + required)
 }
 
-if (!main.includes("import './mobile.css'") || !main.includes("import './mobile-app.css'")) {
-  throw new Error('El sistema móvil debe cargar mobile.css y la capa Mobile App Experience al final.')
+for (const required of [
+  "window.matchMedia('(max-width: 900px)')",
+  'function loadMobileStyles()',
+  "await import('./mobile.css')",
+  "await import('./mobile-app.css')",
+  'if (mobileStyleQuery.matches) await loadMobileStyles()',
+]) {
+  if (!main.includes(required)) throw new Error('Carga móvil bajo demanda incompleta: falta ' + required)
 }
-if (main.indexOf("import './mobile-app.css'") < main.indexOf("import './mobile.css'")) {
+if (main.indexOf("await import('./mobile-app.css')") < main.indexOf("await import('./mobile.css')")) {
   throw new Error('mobile-app.css debe cargarse después de mobile.css para resolver conflictos de composición.')
+}
+if (main.includes("import './mobile.css'") || main.includes("import './mobile-app.css'")) {
+  throw new Error('Las capas móviles no deben formar parte del CSS inicial de escritorio.')
 }
 
 for (const required of [

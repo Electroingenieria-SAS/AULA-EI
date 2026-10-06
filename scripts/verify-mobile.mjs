@@ -40,11 +40,20 @@ for (const required of [
   if (!app.includes(required)) throw new Error('Runtime móvil incompleto: falta ' + required)
 }
 
-if (!main.includes("import './mobile.css'") || !main.includes("import './mobile-app.css'")) {
-  throw new Error('El sistema móvil debe cargar mobile.css y la capa Mobile App Experience al final.')
+for (const required of [
+  "window.matchMedia('(max-width: 900px)')",
+  'function loadMobileStyles()',
+  "await import('./mobile.css')",
+  "await import('./mobile-app.css')",
+  'if (mobileStyleQuery.matches) await loadMobileStyles()',
+]) {
+  if (!main.includes(required)) throw new Error('Carga móvil bajo demanda incompleta: falta ' + required)
 }
-if (main.indexOf("import './mobile-app.css'") < main.indexOf("import './mobile.css'")) {
+if (main.indexOf("await import('./mobile-app.css')") < main.indexOf("await import('./mobile.css')")) {
   throw new Error('mobile-app.css debe cargarse después de mobile.css para resolver conflictos de composición.')
+}
+if (main.includes("import './mobile.css'") || main.includes("import './mobile-app.css'")) {
+  throw new Error('Las capas móviles no deben formar parte del CSS inicial de escritorio.')
 }
 
 for (const required of [
@@ -210,6 +219,28 @@ for (const required of [
 }
 
 for (const required of [
+  'Aula EI · Mobile Professional v6',
+  '.mobile-assignment-card{',
+  '.mobile-assignment-card.is-selected{',
+  '.course-authoring-header{',
+  '.authoring-step-nav{',
+  '.course-create-modal .modal-actions',
+  '@media(max-width:900px) and (prefers-reduced-motion:reduce)',
+  'will-change:auto!important',
+]) {
+  if (!mobileApp.includes(required)) throw new Error('Mobile Professional v6 incompleta: falta ' + required)
+}
+
+for (const required of [
+  'assignment-mobile-list mobile-data-view',
+  'MobileAssignmentCard',
+  'mobile-assignment-check',
+  'aria-pressed={row.getIsSelected()}',
+]) {
+  if (!assignments.includes(required)) throw new Error('Asignaciones móvil nativo incompleto: falta ' + required)
+}
+
+for (const required of [
   'Aula EI · iOS Experience v5',
   'body.aula-ios-runtime',
   'font-size:16px!important',
@@ -225,4 +256,4 @@ if (!index.includes('apple-mobile-web-app-status-bar-style') || !index.includes(
   throw new Error('La PWA iOS debe usar status bar edge-to-edge.')
 }
 
-console.log('Mobile App Experience v4 validada: 320-900px, landscape, tablet, compositor táctil y zoom móvil.')
+console.log('Mobile Professional v6 validada: 320-900px, Studio nativo, authoring táctil, iOS/Android, landscape y zoom móvil.')

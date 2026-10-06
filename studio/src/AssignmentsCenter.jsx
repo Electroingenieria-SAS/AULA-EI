@@ -296,11 +296,16 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
         <div><button className="text-action" onClick={selectAllFiltered}>Seleccionar todos los filtrados</button>{selectedRows.length > 0 && <button className="text-action danger" onClick={() => setRowSelection({})}>Limpiar selección</button>}</div>
       </div>
 
-      <div className="data-table-wrap">
+      <div className="data-table-wrap desktop-data-view">
         <table className="data-table">
           <thead>{table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined} className={header.column.getCanSort() ? 'sortable' : ''}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === 'asc' ? <ArrowUp size={13} /> : header.column.getIsSorted() === 'desc' ? <ArrowDown size={13} /> : null}</th>)}</tr>)}</thead>
           <tbody>{table.getRowModel().rows.map((row) => <tr key={row.id} className={row.getIsSelected() ? 'selected-row' : row.original.is_active === false ? 'inactive-row' : ''}>{row.getVisibleCells().map((cell) => <td key={cell.id} data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS[cell.column.id] || cell.column.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}</tbody>
         </table>
+        {!table.getRowModel().rows.length && <div className="table-empty">No hay usuarios que coincidan con los filtros.</div>}
+      </div>
+
+      <div className="assignment-mobile-list mobile-data-view" aria-label="Personas disponibles para asignación">
+        {table.getRowModel().rows.map((row) => <MobileAssignmentCard key={row.id} row={row} />)}
         {!table.getRowModel().rows.length && <div className="table-empty">No hay usuarios que coincidan con los filtros.</div>}
       </div>
 
@@ -343,6 +348,40 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
       </div>
     </section>}
   </div>
+}
+
+function MobileAssignmentCard({ row }) {
+  const person = row.original
+  const disabled = person.is_active === false
+  return <article className={'mobile-assignment-card' + (row.getIsSelected() ? ' is-selected' : '') + (disabled ? ' is-inactive' : '')}>
+    <div className="mobile-assignment-card-head">
+      <button
+        type="button"
+        className="mobile-assignment-check"
+        aria-pressed={row.getIsSelected()}
+        aria-label={(row.getIsSelected() ? 'Quitar selección de ' : 'Seleccionar ') + person.name}
+        disabled={disabled}
+        onClick={() => row.toggleSelected()}
+      >
+        <span className="mobile-assignment-checkbox" aria-hidden="true">{row.getIsSelected() ? <CheckCircle2 size={18} /> : null}</span>
+      </button>
+      <div className="mobile-assignment-person">
+        <span className="avatar-mini">{person.name.slice(0, 2).toUpperCase()}</span>
+        <span>
+          <strong>{person.name}</strong>
+          <small>{person.email || 'Sin correo registrado'}</small>
+        </span>
+      </div>
+      <StatusBadge status={person.assignment_status} />
+    </div>
+
+    <div className="mobile-assignment-meta">
+      <span><small>Rol</small><strong>{ROLE_LABELS[person.role] || person.role}</strong></span>
+      <span><small>Fecha límite</small><strong>{dateLabel(person.enrollment?.due_at)}</strong></span>
+    </div>
+
+    {disabled && <div className="mobile-assignment-note">Cuenta inactiva · no puede seleccionarse para nuevas asignaciones.</div>}
+  </article>
 }
 
 function MiniMetric({ label, value, icon: Icon }) {

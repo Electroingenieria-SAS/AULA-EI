@@ -23,53 +23,33 @@ const REVEAL = [
   '.studio-navigation-shell',
 ].join(',')
 
+function markVisibleElements(root = document) {
+  if (!root?.querySelectorAll) return
+  root.querySelectorAll(REVEAL).forEach((element) => {
+    element.classList.add('premium-reveal', 'premium-reveal-in')
+  })
+}
+
 export default function ExperienceLayer() {
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return
-        entry.target.classList.add('premium-reveal-in')
-        observer.unobserve(entry.target)
-      })
-    }, { threshold: .06, rootMargin: '0px 0px -4% 0px' })
-
-    let revealOrder = 0
-    const scan = (root = document) => {
-      const nodes = []
-      if (root.matches?.(REVEAL)) nodes.push(root)
-      if (root.querySelectorAll) nodes.push(...root.querySelectorAll(REVEAL))
-      nodes.forEach((element) => {
-        if (element.dataset.premiumReveal === '1') return
-        element.dataset.premiumReveal = '1'
-        element.dataset.revealOrder = String((revealOrder % 4) + 1)
-        revealOrder += 1
-        element.classList.add('premium-reveal')
-        observer.observe(element)
+    // Los reveals son decorativos: nunca deben vigilar cada mutación del DOM.
+    // Se aplican una vez y al cambiar de ruta; las vistas dinámicas permanecen
+    // visibles por defecto en lugar de pagar un MutationObserver global.
+    let frame = 0
+    const scan = () => {
+      if (frame) cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        markVisibleElements()
       })
     }
 
     scan()
-    const pendingRoots = new Set()
-    let scanFrame = 0
-    const flushScans = () => {
-      scanFrame = 0
-      pendingRoots.forEach((node) => scan(node))
-      pendingRoots.clear()
-    }
-    const mutations = new MutationObserver((records) => {
-      records.forEach((record) => record.addedNodes.forEach((node) => {
-        if (node.nodeType === 1) pendingRoots.add(node)
-      }))
-      if (pendingRoots.size && !scanFrame) scanFrame = requestAnimationFrame(flushScans)
-    })
-    mutations.observe(document.body, { childList: true, subtree: true })
+    window.addEventListener('hashchange', scan)
 
     return () => {
-      if (scanFrame) cancelAnimationFrame(scanFrame)
-      observer.disconnect()
-      mutations.disconnect()
+      if (frame) cancelAnimationFrame(frame)
+      window.removeEventListener('hashchange', scan)
     }
   }, [])
 

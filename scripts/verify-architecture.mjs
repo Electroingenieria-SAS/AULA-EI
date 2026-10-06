@@ -11,6 +11,8 @@ const forbiddenFiles = [
   'player/src/main.jsx',
   'certificate/vite.config.js',
   'certificate/src/main.jsx',
+  'studio/src/styles.css',
+  'player/src/styles.css',
 ]
 
 async function exists(relativePath) {
@@ -85,6 +87,17 @@ for (const requiredFile of [
   'studio/src/compliance/CompliancePanels.jsx',
   'player/src/course-player/CourseContentViews.jsx',
   'player/src/course-player/CoursePlayerViews.jsx',
+  'studio/src/styles/core.css',
+  'studio/src/styles/users.css',
+  'studio/src/styles/certificates.css',
+  'studio/src/styles/courses.css',
+  'studio/src/styles/compliance.css',
+  'player/src/styles/core.css',
+  'player/src/styles/course.css',
+  'player/src/styles/catalog.css',
+  'player/src/styles/shell.css',
+  'player/src/styles/modules.css',
+  'player/src/styles/notifications.css',
 ]) {
   if (!await exists(requiredFile)) {
     throw new Error('Arquitectura modular incompleta: falta ' + requiredFile)

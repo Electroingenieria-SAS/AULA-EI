@@ -18,7 +18,10 @@ const course = [
 const users = await read('studio/src/UsersManager.jsx')
 const assignments = await read('studio/src/AssignmentsCenter.jsx')
 const certificates = await read('studio/src/CertificatesManager.jsx')
-const compliance = await read('studio/src/ComplianceCenter.jsx')
+const compliance = [
+  await read('studio/src/ComplianceCenter.jsx'),
+  await read('studio/src/compliance/CompliancePanels.jsx'),
+].join('\n')
 const index = await read('index.html')
 const experience = await read('src/ExperienceLayer.jsx')
 const playerStyles = [

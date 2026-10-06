@@ -5,26 +5,44 @@ const root = process.cwd()
 const read = (file) => readFile(path.join(root,file),'utf8')
 
 const app = await read('src/App.jsx')
+const authScreens = await read('src/auth/AuthScreens.jsx')
 const authShell = await read('src/AuthVisualShell.jsx')
 const mfa = await read('src/AdminMfaGate.jsx')
 const auth = await read('src/auth.css')
 const learnerApp = await read('player/src/LearnerApp.jsx')
 const learnerShell = await read('player/src/LearnerShell.jsx')
-const player = await read('player/src/styles.css')
+const player = [
+  await read('player/src/styles/core.css'),
+  await read('player/src/styles/course.css'),
+  await read('player/src/styles/catalog.css'),
+  await read('player/src/styles/shell.css'),
+  await read('player/src/styles/modules.css'),
+  await read('player/src/styles/notifications.css'),
+].join('\n')
 const playerExperience = await read('player/src/experience.css')
 const studioApp = await read('studio/src/App.jsx')
-const studio = await read('studio/src/styles.css')
+const studio = [
+  await read('studio/src/styles/core.css'),
+  await read('studio/src/styles/users.css'),
+  await read('studio/src/styles/certificates.css'),
+  await read('studio/src/styles/courses.css'),
+  await read('studio/src/styles/compliance.css'),
+].join('\n')
 const certificate = await read('certificate/src/styles.css')
 const index = await read('index.html')
 const globalExperience = await read('src/global-experience.css')
 
 for (const required of [
-  "AuthVisualShell",
-  "AuthPanelBrand",
   "loadLearnerApp",
   "void loadLearnerApp()",
 ]) {
-  if (!app.includes(required)) throw new Error('Flujo de autenticación estable incompleto: falta ' + required)
+  if (!app.includes(required)) throw new Error('Carga principal estable incompleta: falta ' + required)
+}
+for (const required of [
+  "AuthVisualShell",
+  "AuthPanelBrand",
+]) {
+  if (!authScreens.includes(required)) throw new Error('Flujo de autenticación modular incompleto: falta ' + required)
 }
 
 for (const required of [

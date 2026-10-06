@@ -45,13 +45,50 @@ if (packageJson.dependencies?.['javascript-obfuscator']) {
 const files = []
 for (const sourceRoot of sourceRoots) files.push(...await walk(sourceRoot))
 
+
+const garbagePatterns = [
+  /(^|\/)\.DS_Store$/,
+  /(^|\/)(?:dist|node_modules)(\/|$)/,
+  /\.(?:bak|old|orig|tmp|swp)$/,
+  /~$/,
+]
+
+async function walkAll(dir) {
+  const absolute = path.join(root, dir)
+  const result = []
+  for (const entry of await readdir(absolute, { withFileTypes: true })) {
+    const relative = path.join(dir, entry.name).replaceAll('\\\\','/')
+    if (entry.isDirectory()) {
+      if (entry.name === '.git') continue
+      result.push(...await walkAll(relative))
+    } else {
+      result.push(relative)
+    }
+  }
+  return result
+}
+
+const repositoryFiles = await walkAll('.')
+const garbageFiles = repositoryFiles.filter((file) => garbagePatterns.some((pattern) => pattern.test(file)))
+if (garbageFiles.length) {
+  throw new Error('Arquitectura inválida: archivos temporales/generados versionados: ' + garbageFiles.join(', '))
+}
+
 const fileBudgets = {
   'src/App.jsx': 9000,
+  'src/auth/AuthScreens.jsx': 18000,
   'studio/src/App.jsx': 9000,
-  'studio/src/CoursesManager.jsx': 58000,
-  'player/src/CoursePlayer.jsx': 45000,
+  'studio/src/CoursesManager.jsx': 16000,
+  'studio/src/course-editor/CourseBuilder.jsx': 22000,
+  'studio/src/course-editor/CourseBuilderPanels.jsx': 26000,
+  'studio/src/course-editor/ExamBuilder.jsx': 15000,
+  'player/src/CoursePlayer.jsx': 30000,
+  'player/src/course-player/CourseContentViews.jsx': 17000,
+  'player/src/course-player/CoursePlayerViews.jsx': 18000,
   'studio/src/ComplianceCenter.jsx': 22000,
+  'studio/src/compliance/CompliancePanels.jsx': 26000,
   'studio/src/UsersManager.jsx': 30000,
+  'studio/src/users/UserPanels.jsx': 18000,
 }
 
 for (const [file, maxBytes] of Object.entries(fileBudgets)) {
@@ -67,10 +104,14 @@ for (const requiredFile of [
   'studio/src/studio-modules.js',
   'studio/src/useStudioData.js',
   'studio/src/StudioLoading.jsx',
+  'studio/src/course-editor/CourseBuilder.jsx',
+  'studio/src/course-editor/CourseBuilderPanels.jsx',
   'studio/src/course-editor/ExamBuilder.jsx',
+  'studio/src/course-editor/course-utils.js',
   'studio/src/users/UserPanels.jsx',
   'studio/src/users/user-utils.js',
   'studio/src/compliance/CompliancePanels.jsx',
+  'player/src/course-player/CourseContentViews.jsx',
   'player/src/course-player/CoursePlayerViews.jsx',
 ]) {
   if (!await exists(requiredFile)) {

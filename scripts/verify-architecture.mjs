@@ -76,6 +76,7 @@ const fileBudgets = {
   'player/src/styles/modules.css': 17000,
   'player/src/styles/notifications.css': 8000,
   'player/src/styles/gallery.css': 15000,
+  'player/src/styles/immersive.css': 10000,
 }
 
 for (const [file, maxBytes] of Object.entries(fileBudgets)) {
@@ -113,6 +114,7 @@ for (const requiredFile of [
   'player/src/styles/modules.css',
   'player/src/styles/notifications.css',
   'player/src/styles/gallery.css',
+  'player/src/styles/immersive.css',
 ]) {
   if (!await exists(requiredFile)) {
     throw new Error('Arquitectura modular incompleta: falta ' + requiredFile)

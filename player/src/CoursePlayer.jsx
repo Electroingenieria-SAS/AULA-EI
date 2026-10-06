@@ -33,7 +33,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [outlineOpen, setOutlineOpen] = useState(false)
-  const [visualFocus, setVisualFocus] = useState(false)
   const [examQuestions, setExamQuestions] = useState(null)
   const [examAnswers, setExamAnswers] = useState({})
   const [examResult, setExamResult] = useState(null)
@@ -54,7 +53,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   }, [])
 
   useEffect(() => {
-    setVisualFocus(false)
   }, [currentBlockId])
 
   const load = async () => {
@@ -411,7 +409,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
     {message && <div className="learner-inline-message"><CircleAlert size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={15} /></button></div>}
 
-    <div className={'learner-course-layout ' + (visualFocus ? 'visual-focus' : '')}>
+    <div className="learner-course-layout">
       <CourseOutline
         course={course}
         allBlocks={allBlocks}
@@ -458,8 +456,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
               canNext={true}
               previous={goPrevious}
               next={goNext}
-              imageExpanded={visualFocus}
-              setImageExpanded={setVisualFocus}
             />
           ) : (
             <div className="learner-empty-stage"><BookOpen size={38} /><h2>Esta capacitación aún no tiene contenido visible.</h2><p>Cuando el equipo publique contenidos aparecerán aquí.</p></div>

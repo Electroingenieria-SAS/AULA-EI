@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import {
-  BookOpen, BrainCircuit, Check, CheckCircle2, ChevronRight, CircleAlert, ExternalLink, File, FileAudio, FileText, Gamepad2, GraduationCap, Image as ImageIcon, Images, Link2, Loader2, LockKeyhole, Maximize2, Minimize2, PlayCircle, Presentation, ShieldCheck, Video, X,
+  BookOpen, BrainCircuit, Check, CheckCircle2, ChevronRight, CircleAlert, ExternalLink, File, FileAudio, FileText, Gamepad2, GraduationCap, Image as ImageIcon, Link2, Loader2, LockKeyhole, Maximize2, PlayCircle, Presentation, ShieldCheck, Video, X,
 } from 'lucide-react'
 import { safeExternalUrl } from '../../../src/security.js'
 import { signedAsset } from '../supabase.js'
 import { ReadingContent } from './CoursePlayerViews.jsx'
 import ImageGallery from './ImageGallery.jsx'
+import '../styles/immersive.css'
 
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
   return <>
@@ -48,12 +49,12 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
   </>
 }
 
-export function ContentExperience({ block, completed, previousTitle, nextTitle, canPrevious, canNext, previous, next, imageExpanded, setImageExpanded }) {
+export function ContentExperience({ block, completed, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
   const [assetUrl, setAssetUrl] = useState(null)
   const [assetError, setAssetError] = useState('')
   const [feedback, setFeedback] = useState('')
   const [selectedOption, setSelectedOption] = useState(null)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [mediaViewerOpen, setMediaViewerOpen] = useState(false)
   const content = block.content || {}
   const externalUrl = String(content.url || '').trim()
 
@@ -79,14 +80,21 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
   }
 
   const TypeIcon = typeIcon(block.type)
-  const openImage = () => {
-    const mobileViewer = window.matchMedia('(max-width: 900px), (pointer: coarse)').matches
-    if (mobileViewer || imageExpanded) {
-      setLightboxOpen(true)
-      return
+  const visualMedia = ['image', 'video', 'presentation'].includes(block.type)
+
+  const openImmersive = async ({ fullscreen = false } = {}) => {
+    if (fullscreen && window.matchMedia('(min-width: 901px) and (pointer: fine)').matches) {
+      try {
+        const root = document.documentElement
+        if (!(document.fullscreenElement || document.webkitFullscreenElement)) {
+          if (root.requestFullscreen) await root.requestFullscreen({ navigationUI: 'hide' })
+          else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen()
+        }
+      } catch {}
     }
-    setImageExpanded(true)
+    setMediaViewerOpen(true)
   }
+
 
   return <article className="content-experience">
     <header className="content-experience-header">
@@ -103,9 +111,15 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
       {block.type === 'text' && <ReadingContent value={String(content.html ?? content.text ?? '')} />}
 
       {block.type === 'video' && displayUrl && (
-        <div className="media-experience">
-          {isExternalEmbed ? <iframe src={displayUrl} title={block.title} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen /> : <video controls src={displayUrl} />}
-          {isExternalEmbed && <div className="media-completion-note"><PlayCircle size={16} /><span>Cuando termines, usa “Siguiente” y responde la pregunta rápida para registrar tu avance.</span></div>}
+        <div className="immersive-media-preview video-preview" onDoubleClick={() => openImmersive({ fullscreen: true })}>
+          <div className="immersive-media-placeholder">
+            <span className="immersive-media-icon"><PlayCircle size={42} /></span>
+            <div><small>Video de la capacitación</small><strong>{block.title}</strong><p>Ábrelo en el visor inmersivo para reproducirlo con la navegación del curso siempre disponible.</p></div>
+          </div>
+          <div className="immersive-media-preview-actions">
+            <span>Doble clic en PC: pantalla completa del navegador.</span>
+            <button type="button" className="primary" onClick={() => openImmersive()}><Maximize2 size={16} /> Abrir vista inmersiva</button>
+          </div>
         </div>
       )}
 
@@ -117,53 +131,49 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
       )}
 
       {block.type === 'image' && displayUrl && (
-        <div className={'image-learning-experience ' + (imageExpanded ? 'expanded' : '')}>
-          <button
-            className="image-learning-canvas"
-            onClick={openImage}
-            aria-label="Abrir imagen a pantalla completa"
+        <div className="immersive-media-preview image-preview">
+          <div
+            className="immersive-image-preview-canvas"
+            role="button"
+            tabIndex={0}
+            aria-label="Abrir imagen en vista inmersiva"
+            onClick={() => {
+              if (window.matchMedia('(max-width: 900px), (pointer: coarse)').matches) void openImmersive()
+            }}
+            onDoubleClick={() => openImmersive({ fullscreen: true })}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                void openImmersive()
+              }
+            }}
           >
             <img src={displayUrl} alt={block.title} />
-            <span className="image-desktop-cta">{imageExpanded ? <><Maximize2 size={17} /> Pantalla completa</> : <><Maximize2 size={17} /> Ampliar imagen</>}</span>
-            <span className="image-mobile-cta"><Maximize2 size={17} /> Ver a pantalla completa</span>
-          </button>
-
-          <div className="image-learning-actions">
-            <span className="image-desktop-hint"><Images size={16} /> {imageExpanded ? 'Vista ampliada activa. La ruta y tus logros se acomodaron debajo para darle más espacio a la imagen.' : 'Amplía primero la imagen sin salir de la capacitación.'}</span>
-            <span className="image-mobile-hint"><Images size={16} /> Toca la imagen para verla a pantalla completa. Pellizca para hacer zoom y arrastra cuando esté ampliada.</span>
-            <div className="image-view-actions">
-              <button type="button" className="primary mobile-image-fullscreen-button" onClick={() => setLightboxOpen(true)}><Maximize2 size={15} /> Pantalla completa</button>
-              {imageExpanded && <button type="button" className="desktop-image-action" onClick={() => setImageExpanded(false)}><Minimize2 size={15} /> Tamaño normal</button>}
-              {imageExpanded && <button type="button" className="primary desktop-image-action" onClick={() => setLightboxOpen(true)}><Maximize2 size={15} /> Pantalla completa</button>}
-              {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Abrir original</a>}
+            <span className="immersive-image-preview-badge"><Maximize2 size={16} /> Doble clic: pantalla completa</span>
+          </div>
+          <div className="immersive-media-preview-actions">
+            <span>Visor tipo galería · zoom, paneo y navegación flotante.</span>
+            <div>
+              {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Original</a>}
+              <button type="button" className="primary" onClick={() => openImmersive()}><Maximize2 size={16} /> Abrir vista inmersiva</button>
             </div>
           </div>
-
-          {lightboxOpen && <ImageGallery
-            src={displayUrl}
-            alt={block.title}
-            originalUrl={originalUrl}
-            close={() => setLightboxOpen(false)}
-            previousTitle={previousTitle}
-            nextTitle={nextTitle}
-            canPrevious={canPrevious}
-            canNext={canNext}
-            previous={() => {
-              setLightboxOpen(false)
-              previous()
-            }}
-            next={() => {
-              setLightboxOpen(false)
-              next()
-            }}
-          />}
         </div>
       )}
 
       {block.type === 'presentation' && displayUrl && (
-        <div className="presentation-experience">
-          <iframe src={displayUrl} title={block.title} allowFullScreen />
-          {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Abrir presentación en otra pestaña</a>}
+        <div className="immersive-media-preview presentation-preview" onDoubleClick={() => openImmersive({ fullscreen: true })}>
+          <div className="immersive-media-placeholder">
+            <span className="immersive-media-icon"><Presentation size={40} /></span>
+            <div><small>Presentación</small><strong>{block.title}</strong><p>Revisa las diapositivas dentro del visor inmersivo sin abandonar la ruta de aprendizaje.</p></div>
+          </div>
+          <div className="immersive-media-preview-actions">
+            <span>Doble clic en PC: pantalla completa del navegador.</span>
+            <div>
+              {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Original</a>}
+              <button type="button" className="primary" onClick={() => openImmersive()}><Maximize2 size={16} /> Abrir vista inmersiva</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -203,6 +213,21 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
       )}
 
       {!displayUrl && ['video','audio','image','presentation','file'].includes(block.type) && <div className="asset-unavailable"><CircleAlert size={24} /><strong>Recurso no disponible</strong><span>{assetError || 'No fue posible cargar el archivo asociado a este contenido.'}</span></div>}
+
+      {mediaViewerOpen && visualMedia && displayUrl && <ImageGallery
+        src={displayUrl}
+        alt={block.title}
+        originalUrl={originalUrl}
+        mediaType={block.type}
+        isExternalEmbed={isExternalEmbed}
+        close={() => setMediaViewerOpen(false)}
+        previousTitle={previousTitle}
+        nextTitle={nextTitle}
+        canPrevious={canPrevious}
+        canNext={canNext}
+        previous={previous}
+        next={next}
+      />}
 
       {feedback && <div className={'content-feedback ' + (feedback.startsWith('¡') ? 'success' : '')}>{feedback}</div>}
     </div>

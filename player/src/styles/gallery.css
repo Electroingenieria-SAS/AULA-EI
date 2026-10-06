@@ -3,12 +3,12 @@
    Visor inmersivo: portal a body, gestos nativos, controles flotantes.
    ========================================================================== */
 
-body.aula-image-viewer-open{
+body.aula-media-viewer-open{
   overflow:hidden!important;
   overscroll-behavior:none!important;
 }
 
-body.aula-image-viewer-open :where(
+body.aula-media-viewer-open :where(
   .learner-mobile-appbar,
   .learner-mobile-global-nav,
   .learner-stage-nav,

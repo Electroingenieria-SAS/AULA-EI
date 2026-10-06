@@ -6,8 +6,17 @@ const read = (file) => readFile(path.join(root, file), 'utf8')
 
 const main = await read('src/main.jsx')
 const visualOrder = [
-  "import '../studio/src/styles.css'",
-  "import '../player/src/styles.css'",
+  "import '../studio/src/styles/core.css'",
+  "import '../studio/src/styles/users.css'",
+  "import '../studio/src/styles/certificates.css'",
+  "import '../studio/src/styles/courses.css'",
+  "import '../studio/src/styles/compliance.css'",
+  "import '../player/src/styles/core.css'",
+  "import '../player/src/styles/course.css'",
+  "import '../player/src/styles/catalog.css'",
+  "import '../player/src/styles/shell.css'",
+  "import '../player/src/styles/modules.css'",
+  "import '../player/src/styles/notifications.css'",
   "import '../player/src/experience.css'",
   "import '../certificate/src/styles.css'",
   "import '../certificate/src/experience.css'",
@@ -36,7 +45,14 @@ for (const required of [
 
 const learner = await read('player/src/LearnerApp.jsx')
 const navigation = await read('player/src/navigation.js')
-const playerStyles = await read('player/src/styles.css')
+const playerStyles = [
+  await read('player/src/styles/core.css'),
+  await read('player/src/styles/course.css'),
+  await read('player/src/styles/catalog.css'),
+  await read('player/src/styles/shell.css'),
+  await read('player/src/styles/modules.css'),
+  await read('player/src/styles/notifications.css'),
+].join('\n')
 const playerExperience = await read('player/src/experience.css')
 const globalMotion = await read('src/global-experience.css')
 const mobileApp = await read('src/mobile-app.css')

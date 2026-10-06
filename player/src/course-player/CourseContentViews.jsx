@@ -148,8 +148,14 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
             nextTitle={nextTitle}
             canPrevious={canPrevious}
             canNext={canNext}
-            previous={previous}
-            next={next}
+            previous={() => {
+              setLightboxOpen(false)
+              previous()
+            }}
+            next={() => {
+              setLightboxOpen(false)
+              next()
+            }}
           />}
         </div>
       )}

@@ -57,15 +57,14 @@ html{scroll-behavior:smooth}
     border-color var(--ux-normal) var(--ux-ease),
     background-color var(--ux-normal) var(--ux-ease),
     color var(--ux-normal) var(--ux-ease),
-    opacity var(--ux-normal) ease,
-    filter var(--ux-normal) ease;
+    opacity var(--ux-normal) ease;
 }
 .learner-app-shell button:not(:disabled):active,.learner-app-shell [role="button"]:not([aria-disabled="true"]):active{transform:translateY(1px) scale(.985)}
 .learner-app-shell button:focus-visible,.learner-app-shell a:focus-visible,.learner-app-shell input:focus-visible,.learner-app-shell select:focus-visible,.learner-app-shell textarea:focus-visible,.learner-app-shell [role="button"]:focus-visible{
   outline:none;
   box-shadow:var(--ux-focus);
 }
-.learner-app-shell button:disabled,.learner-app-shell [aria-disabled="true"]{filter:saturate(.62);cursor:not-allowed}
+.learner-app-shell button:disabled,.learner-app-shell [aria-disabled="true"]{opacity:.62;cursor:not-allowed}
 
 /* ---------- Ambiente global ---------- */
 .learner-shell-main{
@@ -79,39 +78,23 @@ html{scroll-behavior:smooth}
   z-index:-1;
   pointer-events:none;
   border-radius:50%;
-  filter:blur(4px);
-  opacity:.34;
+  opacity:.22;
 }
 .learner-shell-main:before{
   width:310px;height:310px;
   right:-120px;top:16vh;
   background:radial-gradient(circle,rgba(0,91,190,.14),transparent 68%);
-  animation:premiumAmbientFloat 12s ease-in-out infinite alternate;
+
 }
 .learner-shell-main:after{
   width:240px;height:240px;
   left:23%;bottom:-120px;
   background:radial-gradient(circle,rgba(255,210,0,.13),transparent 68%);
-  animation:premiumAmbientFloat 15s ease-in-out infinite alternate-reverse;
-}
-@keyframes premiumAmbientFloat{
-  to{transform:translate3d(-24px,18px,0) scale(1.08)}
-}
 
+}
 .learner-route-transition{
   position:relative;
   min-height:100%;
-}
-.learner-home-page,
-.catalog-original-page,
-.learner-games-page,
-.learner-course-app,
-.studio-single-content{
-  animation:premiumPageIn .42s var(--ux-ease-out) both;
-}
-@keyframes premiumPageIn{
-  from{opacity:.18}
-  to{opacity:1}
 }
 .experience-route-progress{
   position:fixed;
@@ -122,12 +105,12 @@ html{scroll-behavior:smooth}
   transform-origin:left center;
   background:linear-gradient(90deg,var(--premium-blue),#2d7ed6 68%,var(--premium-yellow));
   box-shadow:0 2px 14px rgba(0,59,142,.20);
-  animation:premiumRouteProgress .72s var(--ux-ease-out) both;
+  animation:premiumRouteProgress .26s var(--ux-ease-out) both;
 }
 @keyframes premiumRouteProgress{
   0%{transform:scaleX(.025);opacity:0}
   15%{opacity:1}
-  72%{transform:scaleX(.94);opacity:1}
+  70%{transform:scaleX(.9);opacity:1}
   100%{transform:scaleX(1);opacity:0}
 }
 

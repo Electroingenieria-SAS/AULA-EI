@@ -16,18 +16,10 @@
 
 /* ---------- Scroll reveal común ---------- */
 .premium-reveal{
-  opacity:0;
-  transform:translate3d(0,12px,0) scale(.992);
-  will-change:transform,opacity;
-  transition:
-    opacity var(--motion-enter) var(--motion-ease-out),
-    transform var(--motion-enter) var(--motion-ease-out);
+  opacity:1;
+  transform:none;
 }
-.premium-reveal.premium-reveal-in{opacity:1;transform:none}
 .premium-reveal-in{will-change:auto}
-.premium-reveal[data-reveal-order="2"]{transition-delay:45ms}
-.premium-reveal[data-reveal-order="3"]{transition-delay:90ms}
-.premium-reveal[data-reveal-order="4"]{transition-delay:135ms}
 
 /* ---------- Panels / cards ---------- */
 :where(
@@ -179,12 +171,12 @@
 }
 
 /* ---------- Studio: cambio de herramientas ---------- */
-.studio-tab-stage{
-  transform-origin:top center;
-  animation:motionStageIn .32s var(--motion-ease-out) both;
+.studio-tab-stage{transform-origin:top center}
+.studio-tab-content{
+  animation:motionStageIn .16s var(--motion-ease-out) both;
 }
 @keyframes motionStageIn{
-  from{opacity:.25;transform:translateY(5px) scale(.997)}
+  from{opacity:.55;transform:translate3d(0,2px,0)}
   to{opacity:1;transform:none}
 }
 .studio-navigation-button .studio-navigation-icon{
@@ -287,30 +279,13 @@
   100%{transform:translateX(130%);opacity:0}
 }
 
-/* ---------- View Transitions API (progresivo) ---------- */
-.learner-route-transition{view-transition-name:aula-route}
-.studio-tab-stage{view-transition-name:aula-studio-stage}
-::view-transition-old(aula-route),
-::view-transition-old(aula-studio-stage){
-  animation:motionViewOld .16s ease both;
-}
-::view-transition-new(aula-route),
-::view-transition-new(aula-studio-stage){
-  animation:motionViewNew .26s var(--motion-ease-out) both;
-}
-@keyframes motionViewOld{to{opacity:0;transform:translate3d(0,-2px,0)}}
-@keyframes motionViewNew{
-  from{opacity:0;transform:translateY(4px)}
-  to{opacity:1;transform:none}
-}
-
 /* ---------- Responsive / accessibility ---------- */
 @media(max-width:900px){
   .premium-reveal{
     transform:none;
     transition:opacity .24s ease;
   }
-  .studio-tab-stage{animation-duration:.22s}
+  .studio-tab-content{animation-duration:.12s}
   :where(
     .panel-card,.home-course-card,.catalog-course-card,.games-grid>article,
     .course-library-card,.pending-certificate-card,.compliance-metrics article
@@ -320,7 +295,7 @@
 }
 @media(prefers-reduced-motion:reduce){
   .premium-reveal{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
-  :where(.modal-backdrop,.drawer-backdrop,.course-create-modal,.user-create-modal,.user-detail-drawer,.message-banner,.bulk-action-bar,.user-bulk-bar,.studio-sync-feedback,.studio-tab-stage){
+  :where(.modal-backdrop,.drawer-backdrop,.course-create-modal,.user-create-modal,.user-detail-drawer,.message-banner,.bulk-action-bar,.user-bulk-bar,.studio-sync-feedback,.studio-tab-content){
     animation:none!important
   }
   *{scroll-behavior:auto!important}

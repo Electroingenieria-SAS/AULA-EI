@@ -27,12 +27,8 @@ export function navigateLearner(target = '/', options = {}) {
     window.dispatchEvent(event)
   }
 
-  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
-  if (!reduceMotion && typeof document.startViewTransition === 'function') {
-    document.startViewTransition(commitNavigation)
-    return
-  }
-
+  // Las capturas completas de View Transitions encarecen rutas grandes.
+  // La navegación por hash ya conserva la shell; actualizamos solo el contenido.
   commitNavigation()
 }
 

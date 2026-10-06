@@ -35,8 +35,9 @@ for (const [file, content] of source) {
 }
 
 const app = source.get('src/App.jsx') || ''
+const authScreens = source.get('src/auth/AuthScreens.jsx') || ''
 if (!app.includes('AdminMfaGate')) throw new Error('AdminMfaGate debe proteger la aplicación administrativa.')
-if (!app.includes('password.length < 12')) throw new Error('La contraseña inicial debe exigir mínimo 12 caracteres.')
+if (!authScreens.includes('password.length < 12')) throw new Error('La contraseña inicial debe exigir mínimo 12 caracteres.')
 
 const mfa = source.get('src/AdminMfaGate.jsx') || ''
 for (const required of [
@@ -102,7 +103,7 @@ for (const required of ['{{ .Token }}','código','Aula EI']) {
   if (!recoveryTemplate.includes(required)) throw new Error('Plantilla OTP de recuperación incompleta: falta ' + required)
 }
 for (const required of ['resetPasswordForEmail','verifyOtp',"type: 'recovery'","reason: 'recovery'"]) {
-  if (!app.includes(required)) throw new Error('Flujo de recuperación por OTP incompleto: falta ' + required)
+  if (!authScreens.includes(required)) throw new Error('Flujo de recuperación por OTP incompleto: falta ' + required)
 }
 
 const completePasswordEdge = await readFile(path.join(root,'supabase/functions/complete-password-change/index.ts'),'utf8')

@@ -1690,6 +1690,14 @@
     text-rendering:optimizeLegibility;
   }
 
+  body.aula-mobile-runtime:has(.modal-backdrop),
+  body.aula-mobile-runtime:has(.drawer-backdrop),
+  body.aula-mobile-runtime:has(.practice-gate-backdrop),
+  body.aula-mobile-runtime:has(.image-lightbox){
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+  }
+
   body.aula-mobile-runtime :where(button,a,[role="button"],input,select,textarea):focus-visible{
     outline:3px solid rgba(7,91,185,.28)!important;
     outline-offset:2px!important;

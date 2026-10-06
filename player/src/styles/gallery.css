@@ -524,3 +524,345 @@ body.aula-image-viewer-open :where(
     animation:none!important;
   }
 }
+
+
+/* ==========================================================================
+   Aula EI · Course Immersive Desktop v8
+   Una sola arquitectura visual para imagen, video y presentación.
+   ========================================================================== */
+
+.immersive-media-preview{
+  width:100%;
+  min-width:0;
+  display:grid;
+  gap:10px;
+}
+
+.immersive-image-preview-canvas{
+  position:relative;
+  width:100%;
+  min-height:clamp(460px,64vh,760px);
+  border:1px solid #d7e2ed;
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 40%,rgba(34,76,119,.16),transparent 42%),
+    linear-gradient(180deg,#101a27,#08111c);
+  box-shadow:0 18px 54px rgba(14,42,74,.14);
+  cursor:zoom-in;
+  outline:none;
+}
+
+.immersive-image-preview-canvas:focus-visible{
+  box-shadow:0 0 0 3px rgba(7,91,185,.22),0 18px 54px rgba(14,42,74,.14);
+}
+
+.immersive-image-preview-canvas img{
+  width:auto;
+  height:auto;
+  max-width:100%;
+  max-height:min(70vh,760px);
+  object-fit:contain;
+  display:block;
+}
+
+.immersive-image-preview-badge{
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  min-height:38px;
+  padding:8px 11px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:12px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  background:rgba(4,12,21,.74);
+  color:#f4f8fc;
+  font-size:.67rem;
+  font-weight:850;
+  box-shadow:0 10px 24px rgba(0,0,0,.22);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+.immersive-media-placeholder{
+  min-height:clamp(360px,52vh,620px);
+  padding:44px;
+  border:1px solid #d7e2ed;
+  border-radius:20px;
+  display:grid;
+  grid-template-columns:auto minmax(0,640px);
+  align-content:center;
+  justify-content:center;
+  align-items:center;
+  gap:22px;
+  background:
+    radial-gradient(circle at 78% 25%,rgba(35,104,180,.14),transparent 30%),
+    radial-gradient(circle at 18% 78%,rgba(255,210,0,.10),transparent 26%),
+    linear-gradient(145deg,#f7fbff,#eef4fa);
+  box-shadow:0 18px 54px rgba(14,42,74,.10);
+}
+
+.immersive-media-icon{
+  width:82px;
+  height:82px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#0b5dbd,#06458d);
+  color:#fff;
+  box-shadow:0 16px 36px rgba(7,78,157,.22);
+}
+
+.presentation-preview .immersive-media-icon{
+  background:linear-gradient(145deg,#173f6d,#2d6ea9);
+}
+
+.immersive-media-placeholder>div:last-child{
+  min-width:0;
+}
+
+.immersive-media-placeholder small{
+  display:block;
+  margin-bottom:7px;
+  color:#71869b;
+  font-size:.66rem;
+  font-weight:900;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+
+.immersive-media-placeholder strong{
+  display:block;
+  color:#183e69;
+  font-size:clamp(1.15rem,2vw,1.65rem);
+  line-height:1.15;
+  letter-spacing:-.025em;
+}
+
+.immersive-media-placeholder p{
+  max-width:620px;
+  margin:9px 0 0;
+  color:#6a7e92;
+  font-size:.82rem;
+  line-height:1.55;
+}
+
+.immersive-media-preview-actions{
+  min-height:52px;
+  padding:10px 12px;
+  border:1px solid #dce6ef;
+  border-radius:15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:#f8fbfe;
+  color:#718397;
+  font-size:.68rem;
+}
+
+.immersive-media-preview-actions>div{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+.immersive-media-preview-actions button,
+.immersive-media-preview-actions a{
+  min-height:38px;
+  border:1px solid #ceddea;
+  border-radius:11px;
+  padding:8px 11px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  background:#fff;
+  color:#315e89;
+  font-size:.66rem;
+  font-weight:900;
+  text-decoration:none;
+}
+
+.immersive-media-preview-actions button.primary{
+  border-color:#075bb9;
+  background:#075bb9;
+  color:#fff;
+}
+
+.immersive-media-preview-actions button.primary:hover{
+  background:#064f9f;
+}
+
+.immersive-video-frame,
+.immersive-presentation-frame{
+  position:relative;
+  z-index:2;
+  width:min(1320px,calc(100vw - 160px));
+  height:min(78dvh,900px);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;
+  overflow:hidden;
+  background:#000;
+  box-shadow:0 26px 90px rgba(0,0,0,.44);
+}
+
+.immersive-video-frame{
+  height:auto;
+  aspect-ratio:16/9;
+}
+
+.immersive-video-frame iframe,
+.immersive-video-frame video,
+.immersive-presentation-frame iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  background:#000;
+}
+
+.immersive-media-viewer.media-video .gallery-stage,
+.immersive-media-viewer.media-presentation .gallery-stage{
+  padding:72px 76px 64px!important;
+  cursor:default;
+}
+
+.immersive-media-viewer.media-video .gallery-stage:active,
+.immersive-media-viewer.media-presentation .gallery-stage:active{
+  cursor:default;
+}
+
+/* Pregunta rápida dentro del mismo contexto inmersivo */
+body.aula-media-viewer-open .practice-gate-backdrop{
+  z-index:5200!important;
+  background:rgba(1,6,12,.72)!important;
+  backdrop-filter:blur(16px)!important;
+  -webkit-backdrop-filter:blur(16px)!important;
+}
+
+body.aula-media-viewer-open .practice-gate-modal{
+  width:min(760px,calc(100vw - 40px));
+  max-height:min(88dvh,820px);
+  border-color:rgba(209,226,243,.92);
+  box-shadow:0 34px 120px rgba(0,0,0,.48);
+}
+
+body.aula-media-viewer-open .practice-gate-header{
+  background:linear-gradient(180deg,#fff,#f8fbff);
+}
+
+@media(max-width:900px){
+  .immersive-image-preview-canvas{
+    min-height:240px;
+    border-radius:18px;
+  }
+
+  .immersive-image-preview-canvas img{
+    max-height:62dvh;
+  }
+
+  .immersive-image-preview-badge{
+    right:10px;
+    bottom:10px;
+    min-height:34px;
+    padding:7px 9px;
+    font-size:.62rem;
+  }
+
+  .immersive-media-placeholder{
+    min-height:220px;
+    padding:24px 18px;
+    grid-template-columns:1fr;
+    justify-items:start;
+    gap:14px;
+    border-radius:18px;
+  }
+
+  .immersive-media-icon{
+    width:58px;
+    height:58px;
+    border-radius:18px;
+  }
+
+  .immersive-media-icon svg{
+    width:28px;
+    height:28px;
+  }
+
+  .immersive-media-placeholder strong{
+    font-size:1.05rem;
+  }
+
+  .immersive-media-placeholder p{
+    font-size:.76rem;
+  }
+
+  .immersive-media-preview-actions{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .immersive-media-preview-actions>div{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .immersive-media-preview-actions>button,
+  .immersive-media-preview-actions>div>button{
+    width:100%;
+  }
+
+  .immersive-video-frame,
+  .immersive-presentation-frame{
+    width:100vw;
+    max-width:100vw;
+    border-radius:0;
+  }
+
+  .immersive-video-frame{
+    aspect-ratio:16/9;
+  }
+
+  .immersive-presentation-frame{
+    height:var(--mobile-vh,100dvh);
+  }
+
+  .immersive-media-viewer.media-video .gallery-stage,
+  .immersive-media-viewer.media-presentation .gallery-stage{
+    padding:0!important;
+  }
+
+  body.aula-media-viewer-open .practice-gate-modal{
+    width:100%;
+    max-height:92dvh;
+  }
+}
+
+@media(max-width:520px){
+  .immersive-media-preview-actions>div{
+    grid-template-columns:1fr;
+  }
+
+  .immersive-image-preview-badge{
+    max-width:calc(100% - 20px);
+  }
+}
+
+:fullscreen .gallery-viewer-v7,
+:-webkit-full-screen .gallery-viewer-v7{
+  width:100vw!important;
+  height:100vh!important;
+}
+
+:fullscreen .gallery-toolbar,
+:-webkit-full-screen .gallery-toolbar{
+  top:12px!important;
+}

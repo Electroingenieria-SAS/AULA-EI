@@ -10,10 +10,13 @@ const runtime = await read('src/MobileViewportSync.jsx')
 const mobile = await read('src/mobile.css')
 const mobileApp = await read('src/mobile-app.css')
 const shell = await read('player/src/LearnerShell.jsx')
+const gallery = await read('player/src/course-player/ImageGallery.jsx')
+const galleryStyles = await read('player/src/styles/gallery.css')
 const course = [
   await read('player/src/CoursePlayer.jsx'),
   await read('player/src/course-player/CourseContentViews.jsx'),
   await read('player/src/course-player/CoursePlayerViews.jsx'),
+  gallery,
 ].join('\n')
 const users = await read('studio/src/UsersManager.jsx')
 const assignments = await read('studio/src/AssignmentsCenter.jsx')
@@ -31,6 +34,7 @@ const playerStyles = [
   await read('player/src/styles/shell.css'),
   await read('player/src/styles/modules.css'),
   await read('player/src/styles/notifications.css'),
+  galleryStyles,
 ].join('\n')
 
 for (const required of [
@@ -118,8 +122,18 @@ if (!shell.includes('mobileHaptic')) {
 if (!course.includes('mobile-outline-button') || !course.includes('learner-stage-nav')) {
   throw new Error('El reproductor perdió controles específicos de móvil.')
 }
-for (const required of ['touchDistance','onTouchStart','onTouchMove','touch-zoom-canvas','onDoubleClick']) {
-  if (!course.includes(required)) throw new Error('El visor táctil de capacitaciones está incompleto: falta ' + required)
+for (const required of [
+  'createPortal(viewer, document.body)',
+  'onPointerDown',
+  'onPointerMove',
+  'setPointerCapture',
+  'pointerDistance',
+  'pointerCenter',
+  'zoomAt(2.5',
+  'Math.abs(dx) >= 62',
+  'aula-image-viewer-open',
+]) {
+  if (!gallery.includes(required)) throw new Error('Course Image Gallery v7 incompleta: falta ' + required)
 }
 for (const required of [
   "window.matchMedia('(max-width: 900px), (pointer: coarse)').matches",
@@ -129,21 +143,24 @@ for (const required of [
   if (!course.includes(required)) throw new Error('El visor móvil debe abrir directamente a pantalla completa: falta ' + required)
 }
 for (const required of [
-  'height:100dvh!important',
-  '.lightbox-canvas.touch-zoom-canvas:not(.is-zoomed) img',
-  '.lightbox-canvas.touch-zoom-canvas.is-zoomed',
-  'pointer-events:none!important',
+  'Course Image Gallery v7',
+  '.gallery-viewer-v7.image-lightbox',
+  'z-index:5000!important',
+  '.gallery-stage.lightbox-canvas.touch-zoom-canvas',
+  'touch-action:none!important',
+  '--gallery-scale',
+  '.gallery-course-nav .gallery-nav-button',
+  '.gallery-nav-previous',
+  '.gallery-nav-next',
+  'body.aula-image-viewer-open',
 ]) {
-  if (!mobileApp.includes(required)) throw new Error('El visor móvil tipo galería está incompleto: falta ' + required)
+  if (!galleryStyles.includes(required)) throw new Error('Visual de Course Image Gallery v7 incompleto: falta ' + required)
 }
-if (course.includes("document.body.style.overflow = 'hidden'")) {
-  throw new Error('El visor de imágenes no debe bloquear el scroll global del body.')
+if (!galleryStyles.includes('transform:\n    translate3d(var(--gallery-x,0px),var(--gallery-y,0px),0)\n    scale(var(--gallery-scale,1))!important')) {
+  throw new Error('La galería debe imponer translate + scale sobre las reglas móviles heredadas.')
 }
-for (const required of ['.lightbox-canvas.is-zoomed', 'overscroll-behavior:contain', '-webkit-overflow-scrolling:touch']) {
-  if (!playerStyles.includes(required)) throw new Error('El lightbox debe conservar scroll interno al ampliar: falta ' + required)
-}
-if (!mobileApp.includes('touch-action:pan-x pan-y pinch-zoom')) {
-  throw new Error('El lightbox móvil debe permitir pan y pinch-zoom sin congelar el scroll.')
+if (!course.includes("previous={() => {") || !course.includes("setLightboxOpen(false)")) {
+  throw new Error('La navegación flotante debe cerrar el visor antes de cambiar el contenido.')
 }
 if (!assignments.includes('MOBILE_ASSIGNMENT_COLUMN_LABELS') || !assignments.includes('data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS')) {
   throw new Error('Asignaciones no puede degradar su tabla a tarjetas móviles.')
@@ -256,4 +273,4 @@ if (!index.includes('apple-mobile-web-app-status-bar-style') || !index.includes(
   throw new Error('La PWA iOS debe usar status bar edge-to-edge.')
 }
 
-console.log('Mobile Professional v6 validada: 320-900px, Studio nativo, authoring táctil, iOS/Android, landscape y zoom móvil.')
+console.log('Mobile Professional v7 validada: CoursePlayer con galería inmersiva, pinch/pan/doble toque/swipe, Studio móvil e iOS/Android.')

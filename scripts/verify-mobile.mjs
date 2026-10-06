@@ -10,14 +10,25 @@ const runtime = await read('src/MobileViewportSync.jsx')
 const mobile = await read('src/mobile.css')
 const mobileApp = await read('src/mobile-app.css')
 const shell = await read('player/src/LearnerShell.jsx')
-const course = await read('player/src/CoursePlayer.jsx')
+const course = [
+  await read('player/src/CoursePlayer.jsx'),
+  await read('player/src/course-player/CourseContentViews.jsx'),
+  await read('player/src/course-player/CoursePlayerViews.jsx'),
+].join('\n')
 const users = await read('studio/src/UsersManager.jsx')
 const assignments = await read('studio/src/AssignmentsCenter.jsx')
 const certificates = await read('studio/src/CertificatesManager.jsx')
 const compliance = await read('studio/src/ComplianceCenter.jsx')
 const index = await read('index.html')
 const experience = await read('src/ExperienceLayer.jsx')
-const playerStyles = await read('player/src/styles.css')
+const playerStyles = [
+  await read('player/src/styles/core.css'),
+  await read('player/src/styles/course.css'),
+  await read('player/src/styles/catalog.css'),
+  await read('player/src/styles/shell.css'),
+  await read('player/src/styles/modules.css'),
+  await read('player/src/styles/notifications.css'),
+].join('\n')
 
 for (const required of [
   "import MobileViewportSync from './MobileViewportSync.jsx'",

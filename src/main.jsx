@@ -17,14 +17,36 @@ import '../certificate/src/styles.css'
 import '../certificate/src/experience.css'
 import './auth.css'
 import './global-experience.css'
-import './mobile.css'
-import './mobile-app.css'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
+const mobileStyleQuery = window.matchMedia('(max-width: 900px)')
+let mobileStylesPromise = null
+
+function loadMobileStyles() {
+  if (mobileStylesPromise) return mobileStylesPromise
+  mobileStylesPromise = (async () => {
+    await import('./mobile.css')
+    await import('./mobile-app.css')
+  })()
+  return mobileStylesPromise
+}
+
+async function bootstrap() {
+  // En móvil cargamos la capa responsive antes del primer render para evitar FOUC.
+  if (mobileStyleQuery.matches) await loadMobileStyles()
+
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  )
+
+  // Mantiene responsive real si una ventana de escritorio se reduce después.
+  mobileStyleQuery.addEventListener?.('change', (event) => {
+    if (event.matches) void loadMobileStyles()
+  })
+}
+
+void bootstrap()
 
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

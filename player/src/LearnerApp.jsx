@@ -39,6 +39,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     const warm = () => {
       void loadCatalogPage()
       void loadGamesPage()
+      void loadCoursePlayer()
       if (['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))) {
         void loadStudioApp()
       }

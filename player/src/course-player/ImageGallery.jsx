@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import {
   ArrowLeft, ArrowRight, ExternalLink, Images, RotateCcw, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
+import '../styles/gallery.css'
 
 export default function ImageGallery({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
   const stageRef = useRef(null)
@@ -337,7 +338,9 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
         decoding="async"
         onLoad={() => applyView(viewRef.current)}
         style={{
-          transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
+          '--gallery-x': view.x + 'px',
+          '--gallery-y': view.y + 'px',
+          '--gallery-scale': String(view.scale),
         }}
       />
 

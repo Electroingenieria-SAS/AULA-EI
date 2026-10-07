@@ -18,6 +18,7 @@ import '../certificate/src/experience.css'
 import './auth.css'
 import './global-experience.css'
 import './responsive-foundation.css'
+import './responsive-controls.css'
 
 const mobileStyleQuery = window.matchMedia('(max-width: 900px)')
 let mobileStylesPromise = null

@@ -21,7 +21,7 @@
     "check:database": "node scripts/verify-database-contract.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.107.0",
+    "@supabase/supabase-js": "^2.117.2",
     "@tanstack/react-table": "^8.21.3",
     "@vitejs/plugin-react": "^4.3.4",
     "jspdf": "4.2.1",

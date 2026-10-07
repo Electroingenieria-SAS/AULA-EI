@@ -4,20 +4,20 @@ const LEGAL_RECEIPT_PREFIX = 'aula-ei-legal-receipt:v1:'
 
 export function normalizeLegalRequirement(row = {}) {
   return {
-    documentId: row.document_id || null,
-    versionId: row.document_version_id || null,
-    code: String(row.document_code || ''),
-    title: String(row.title || ''),
-    category: String(row.category || ''),
-    version: String(row.version || ''),
-    content: String(row.content_markdown || ''),
-    sha256: String(row.content_sha256 || ''),
-    isMaterial: Boolean(row.is_material),
-    effectiveAt: row.effective_at || null,
+    documentId: row.documentId ?? row.document_id ?? null,
+    versionId: row.versionId ?? row.document_version_id ?? null,
+    code: String(row.code ?? row.document_code ?? ''),
+    title: String(row.title ?? ''),
+    category: String(row.category ?? ''),
+    version: String(row.version ?? ''),
+    content: String(row.content ?? row.content_markdown ?? ''),
+    sha256: String(row.sha256 ?? row.content_sha256 ?? ''),
+    isMaterial: Boolean(row.isMaterial ?? row.is_material),
+    effectiveAt: row.effectiveAt ?? row.effective_at ?? null,
     accepted: Boolean(row.accepted),
-    acceptedAt: row.accepted_at || null,
-    needsAcceptance: Boolean(row.needs_acceptance),
-    userType: String(row.user_type || 'employee'),
+    acceptedAt: row.acceptedAt ?? row.accepted_at ?? null,
+    needsAcceptance: Boolean(row.needsAcceptance ?? row.needs_acceptance),
+    userType: String(row.userType ?? row.user_type ?? 'employee'),
   }
 }
 

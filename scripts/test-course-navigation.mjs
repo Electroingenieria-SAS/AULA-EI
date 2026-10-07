@@ -11,10 +11,21 @@ assert.match(
   /onClick=\{\(\) => void navigateFromViewer\(next\)\}/,
   'El botón Siguiente del visor debe cerrar/sincronizar el visor antes de avanzar.',
 )
+const viewerNavigationBody = navigation.match(/export async function runViewerNavigation[\s\S]*?\n}\n?$/)?.[0] || ''
+assert.doesNotMatch(
+  viewerNavigationBody,
+  /exitBrowserFullscreen\(/,
+  'Siguiente/Anterior debe conservar el fullscreen durante la transición.',
+)
 assert.match(
-  navigation,
-  /await exitBrowserFullscreen\(\)[\s\S]*close\(\)[\s\S]*requestAnimationFrame/,
-  'La navegación inmersiva debe salir de fullscreen, cerrar el visor y luego avanzar.',
+  viewerNavigationBody,
+  /close\(\)[\s\S]*requestAnimationFrame/,
+  'La navegación inmersiva debe cerrar solo el visor y luego avanzar.',
+)
+assert.match(
+  gallery,
+  /const closeViewer = async \(\) => \{[\s\S]*exitBrowserFullscreen\(\)[\s\S]*close\(\)/,
+  'Cerrar explícitamente el visor sí debe permitir salir de fullscreen.',
 )
 assert.match(
   content,

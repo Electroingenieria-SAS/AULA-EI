@@ -1,12 +1,13 @@
 import React from 'react'
 
-export default function LegalDocument({ requirement }) {
+export default function LegalDocument({ requirement, idBase = 'legal-document' }) {
   if (!requirement) return null
+  const titleId = idBase + '-title'
 
-  return <article className="legal-document" aria-labelledby="legal-document-title">
+  return <article className="legal-document" aria-labelledby={titleId}>
     <header className="legal-document-header">
       <span>{requirement.code} · Versión {requirement.version}</span>
-      <h1 id="legal-document-title">{requirement.title}</h1>
+      <h3 id={titleId}>{requirement.title}</h3>
       <p>
         Vigente desde {formatDate(requirement.effectiveAt)}
         {requirement.isMaterial ? ' · Cambio material sujeto a aceptación.' : ' · Actualización no material.'}

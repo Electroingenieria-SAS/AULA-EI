@@ -146,3 +146,15 @@
 }
 
 
+
+@media(min-width:901px) and (max-width:1250px){
+  .certificate-results-meta{
+    min-height:48px;
+    align-items:center;
+    flex-direction:row;
+  }
+  .certificate-results-meta>button{
+    margin-left:auto;
+    min-height:44px;
+  }
+}

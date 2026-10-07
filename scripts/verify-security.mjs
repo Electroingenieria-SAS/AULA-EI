@@ -37,6 +37,15 @@ for (const [file, content] of source) {
 
 const app = source.get('src/App.jsx') || ''
 const authScreens = source.get('src/auth/AuthScreens.jsx') || ''
+const legalGate = source.get('src/legal/LegalGate.jsx') || ''
+const legalApi = source.get('src/legal/legal-api.js') || ''
+if (!app.includes('LegalGate')) throw new Error('LegalGate debe bloquear el LMS antes del contenido protegido.')
+for (const required of ['get_my_legal_requirements','accept_legal_document','get_my_legal_acceptances']) {
+  if (!legalApi.includes(required)) throw new Error('Cliente legal incompleto: falta ' + required)
+}
+if (!legalGate.includes('accepted') || !legalGate.includes('disabled')) {
+  throw new Error('LegalGate debe exigir aceptación explícita y prevenir envíos duplicados.')
+}
 if (!app.includes('AdminMfaGate')) throw new Error('AdminMfaGate debe proteger la aplicación administrativa.')
 if (!authScreens.includes('password.length < 12')) throw new Error('La contraseña inicial debe exigir mínimo 12 caracteres.')
 

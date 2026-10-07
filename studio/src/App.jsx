@@ -1,6 +1,6 @@
 import React, { Suspense, startTransition, useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  BookOpen, Briefcase, ClipboardList, GraduationCap, RefreshCw,
+  BookOpen, Briefcase, ClipboardList, FileText, GraduationCap, RefreshCw,
   ShieldCheck, Sparkles, Users, X,
 } from 'lucide-react'
 import { STAFF_ROLES } from './shared.js'
@@ -9,6 +9,7 @@ import {
   CertificatesManager,
   ComplianceCenter,
   CoursesManager,
+  LegalComplianceManager,
   UsersManager,
   preloadStudioTools,
 } from './studio-modules.js'
@@ -47,6 +48,7 @@ export default function App({ initialProfile = null }) {
     if (tab === 'courses') return loaded.courses
     if (tab === 'assignments' || tab === 'users') return loaded.courses && loaded.profiles && loaded.enrollments
     if (tab === 'compliance') return loaded.courses && loaded.profiles
+    if (tab === 'legal') return true
     return true
   }, [tab, loaded])
 
@@ -73,6 +75,7 @@ export default function App({ initialProfile = null }) {
       ['users', 'Usuarios y roles', Users],
       ['compliance', 'Formación y cumplimiento', Briefcase],
       ['certificates', 'Ranking y certificados', GraduationCap],
+      ['legal', 'Privacidad y legal', FileText],
     ] : []),
   ]
 
@@ -136,6 +139,7 @@ export default function App({ initialProfile = null }) {
               {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={refreshCurrent} setMessage={setMessage} />}
               {tab === 'compliance' && canAdmin && <ComplianceCenter courses={courses} profiles={profiles} setMessage={setMessage} />}
               {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
+              {tab === 'legal' && canAdmin && <LegalComplianceManager profile={profile} setMessage={setMessage} />}
             </Suspense>
           )}
         </div>

@@ -7,7 +7,7 @@
   },
   "scripts": {
     "check:architecture": "node scripts/verify-architecture.mjs",
-    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
+    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run check:legal && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
     "check:security": "node scripts/verify-security.mjs",
     "check:performance": "node scripts/verify-performance.mjs",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
@@ -18,7 +18,8 @@
     "check:controls": "node scripts/verify-responsive-controls.mjs",
     "test:security-runtime": "node scripts/test-security-helpers.mjs",
     "check:artifact": "node scripts/verify-production-artifact.mjs",
-    "check:database": "node scripts/verify-database-contract.mjs"
+    "check:database": "node scripts/verify-database-contract.mjs",
+    "check:legal": "node scripts/verify-legal-compliance.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

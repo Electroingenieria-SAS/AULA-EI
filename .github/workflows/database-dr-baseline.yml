@@ -27,25 +27,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Check database backup secret
-        id: db_secret
+      - name: Require database backup secret
         shell: bash
         run: |
-          if [ -n "${SUPABASE_DB_URL:-}" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::SUPABASE_DB_URL is not configured. The DR baseline was not generated."
+          if [ -z "${SUPABASE_DB_URL:-}" ]; then
+            echo "::error::SUPABASE_DB_URL is not configured. A successful DR control requires a real roles.sql + schema.sql artifact."
+            exit 1
           fi
 
       - name: Setup Supabase CLI
-        if: steps.db_secret.outputs.configured == 'true'
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
         with:
           version: 2.120.0
 
       - name: Generate structural DR baseline
-        if: steps.db_secret.outputs.configured == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -54,7 +49,6 @@ jobs:
           supabase db dump --db-url "$SUPABASE_DB_URL" -f dr-baseline/schema.sql
 
       - name: Validate baseline
-        if: steps.db_secret.outputs.configured == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -75,7 +69,6 @@ jobs:
           } > dr-baseline/MANIFEST.txt
 
       - name: Upload DR baseline
-        if: steps.db_secret.outputs.configured == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: aula-ei-dr-baseline-${{ github.run_id }}

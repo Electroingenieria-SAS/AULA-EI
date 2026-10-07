@@ -14,6 +14,7 @@ Migraciones live registradas durante el hardening: `20261007145446`, `2026100714
 - `touch_training_engine_updated_at` queda sin EXECUTE para `authenticated`, `anon` ni `PUBLIC`.
 - Las RPC sensibles verificadas usan `SECURITY DEFINER` con `search_path` explícito y `anon` sin EXECUTE.
 - Las RPC administrativas verificadas comprueban internamente Admin/Super Admin y MFA/sesión viva cuando corresponde.
+- Existen 4 cuentas administrativas activas: 2 tienen MFA verificado y 2 deben completar personalmente el enrolamiento. Las cuentas sin factor verificado no superan el gate AAL2 ni pueden ejercer funciones administrativas.
 - Las cinco Edge Functions de Aula EI fueron sincronizadas desde `main` y redeployadas con `verify_jwt=true`:
   - create-managed-user
   - delete-managed-user
@@ -40,7 +41,9 @@ Aula EI mantiene una compensación gratuita:
 - verificación contra HaveIBeenPwned en creación/cambio/reset de contraseñas gestionadas;
 - MFA AAL2 para administración.
 
-## Pendientes no resueltos por esta auditoría
+## Cierre de controles externos
 
-- Ruleset nativo de GitHub para `main` continúa requiriendo permisos administrativos del repositorio.
-- La baseline completa de recuperación de la base sigue requiriendo un export de esquema reproducible; no se inventa a partir de introspección parcial.
+- GitHub continúa reportando `main` como `protected: false` y no existen Rulesets nativos. El pipeline mantiene la compensación que impide desplegar a producción un push directo no asociado a un PR fusionado. El conector instalado no expone mutaciones de Branch Protection/Rulesets.
+- Se incorporó mediante PR #78 el workflow `Database DR Baseline`, basado en `supabase db dump`, para generar `roles.sql` y `schema.sql` de forma reproducible, con hashes y manifest.
+- La primera ejecución no produjo la baseline porque el Secret `SUPABASE_DB_URL` aún no está configurado en GitHub Actions. El workflow queda en modo fail-closed: mientras falte la credencial, el control debe aparecer fallido y no puede declararse cerrado.
+- No se modifica unilateralmente ninguna cuenta administrativa para forzar MFA. El enrolamiento TOTP ya está integrado en `AdminMfaGate` y debe ser completado por cada titular.

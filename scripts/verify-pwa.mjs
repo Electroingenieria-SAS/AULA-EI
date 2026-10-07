@@ -72,4 +72,4 @@ for (const required of [
   if (!worker.includes(required)) throw new Error('Estrategia PWA incompleta: falta ' + required)
 }
 
-console.log('PWA v2 validada: actualización inmediata de JS/CSS, installable iOS/Android y caché segura.')
+console.log('PWA v3 validada: actualización inmediata de JS/CSS, installable iOS/Android y caché segura.')

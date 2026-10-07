@@ -97,3 +97,57 @@ html,body,#root{min-width:320px;min-height:100%;margin:0}
   .certificate-paper{width:11in!important;height:8.5in!important;aspect-ratio:auto!important;margin:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important}
   .certificate-svg{width:11in!important;height:8.5in!important;display:block!important}
 }
+
+
+/* Certificate responsive controls v10 */
+@media(max-width:900px){
+  .certificate-export-actions{
+    gap:8px;
+  }
+
+  .export-button{
+    min-height:48px;
+    min-width:0;
+    padding:10px 12px;
+    white-space:normal;
+    text-align:center;
+  }
+
+  .toolbar-icon-button{
+    flex:0 0 48px;
+    width:48px;
+    min-width:48px;
+    height:48px;
+    min-height:48px;
+  }
+
+  .small-action-button{
+    min-height:44px;
+    padding:8px 10px;
+    white-space:normal;
+  }
+
+  .signature-export-control>div:last-child{
+    gap:8px;
+    flex-wrap:wrap;
+  }
+}
+
+@media(max-width:470px){
+  .certificate-export-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+
+  .export-button{
+    width:100%;
+    min-width:0;
+  }
+}
+
+@media(max-width:340px){
+  .certificate-export-actions{
+    grid-template-columns:1fr;
+  }
+}

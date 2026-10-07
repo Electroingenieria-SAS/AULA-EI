@@ -2702,3 +2702,693 @@
     max-height:var(--mobile-vh,100dvh)!important;
   }
 }
+
+
+/* ==========================================================================
+   Aula EI · Responsive Controls Mobile v10
+   Matriz final de botones y grupos: 320–900 px.
+   ========================================================================== */
+@media(max-width:900px){
+  :root{
+    --control-hit-mobile-v10:48px;
+    --control-hit-compact-v10:46px;
+    --control-hit-icon-v10:48px;
+    --control-gap-v10:8px;
+    --control-radius-v10:14px;
+  }
+
+  body.aula-mobile-runtime :where(
+    .primary-button,.secondary-button,.danger-button,.file-button,
+    .home-yellow-button,.home-glass-button,
+    .catalog-original-yellow,.catalog-original-glass,
+    .catalog-open-button,.catalog-certificate-button,
+    .hero-primary-button,.secondary-action,.mobile-outline-button,
+    .practice-gate-continue,.practice-gate-skip,
+    .result-primary,.result-secondary,.validation-submit,
+    .export-button,.auth-secondary
+  ){
+    min-height:var(--control-hit-mobile-v10)!important;
+    max-width:100%!important;
+    padding-block:10px!important;
+    border-radius:var(--control-radius-v10)!important;
+    line-height:1.2!important;
+    text-align:center!important;
+    white-space:normal!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .primary-button.compact,.secondary-button.compact,
+    .danger-button.compact,.file-button.compact
+  ){
+    min-height:var(--control-hit-compact-v10)!important;
+    padding:9px 11px!important;
+  }
+
+  body.aula-mobile-runtime .icon-button{
+    flex:0 0 var(--control-hit-icon-v10)!important;
+    width:var(--control-hit-icon-v10)!important;
+    min-width:var(--control-hit-icon-v10)!important;
+    height:var(--control-hit-icon-v10)!important;
+    min-height:var(--control-hit-icon-v10)!important;
+    padding:0!important;
+    border-radius:14px!important;
+  }
+
+  body.aula-mobile-runtime .text-action{
+    min-height:44px!important;
+    max-width:100%!important;
+    padding:8px 7px!important;
+    line-height:1.25!important;
+    white-space:normal!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .catalog-filter-row button,
+    .certificate-view-switch button,
+    .authoring-step-nav button,
+    .compliance-tabs button,
+    .competency-level-buttons button
+  ){
+    min-height:46px!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .user-identity-button,.certificate-person-button,
+    .mobile-user-identity,.mobile-certificate-person,
+    .phase-toggle-button
+  ){
+    min-height:48px!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .training-notification-panel>header button,
+    .achievement-toast>button
+  ){
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+    padding:0!important;
+  }
+
+  body.aula-mobile-runtime .mobile-assignment-check{
+    width:48px!important;
+    min-width:48px!important;
+    height:48px!important;
+    min-height:48px!important;
+  }
+
+  /* Hero y tarjetas */
+  body.aula-mobile-runtime .home-hero-actions,
+  body.aula-mobile-runtime .catalog-original-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .home-hero-actions button,
+  body.aula-mobile-runtime .catalog-original-actions button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .catalog-card-footer{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    padding:11px 13px 14px!important;
+  }
+
+  body.aula-mobile-runtime .catalog-card-footer button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:46px!important;
+    padding:9px 10px!important;
+    justify-content:center!important;
+    font-size:.72rem!important;
+  }
+
+  body.aula-mobile-runtime .catalog-card-footer button:only-child{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .catalog-resume-meta>button,
+  body.aula-mobile-runtime .home-section-heading>button,
+  body.aula-mobile-runtime .home-certificate-list button{
+    min-height:46px!important;
+  }
+
+  /* Filtros: scroll horizontal deliberado, nunca compresión. */
+  body.aula-mobile-runtime .catalog-filter-row{
+    display:flex!important;
+    align-items:center!important;
+    gap:7px!important;
+    overflow-x:auto!important;
+    overscroll-behavior-inline:contain!important;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+  }
+
+  body.aula-mobile-runtime .catalog-filter-row::-webkit-scrollbar{display:none!important}
+
+  body.aula-mobile-runtime .catalog-filter-row>svg{
+    flex:0 0 auto!important;
+  }
+
+  body.aula-mobile-runtime .catalog-filter-row button{
+    flex:0 0 auto!important;
+    min-width:max-content!important;
+    padding:8px 11px!important;
+    scroll-snap-align:start;
+  }
+
+  /* Studio navegación: cada tab conserva texto e hit target. */
+  body.aula-mobile-runtime .studio-navigation-list{
+    gap:7px!important;
+    scroll-snap-type:x proximity!important;
+  }
+
+  body.aula-mobile-runtime .studio-navigation-button{
+    flex:0 0 auto!important;
+    min-width:118px!important;
+    min-height:48px!important;
+    padding:7px 10px!important;
+    justify-content:flex-start!important;
+    gap:7px!important;
+  }
+
+  body.aula-mobile-runtime .studio-refresh-button{
+    flex:0 0 48px!important;
+    width:48px!important;
+    min-width:48px!important;
+    height:48px!important;
+    min-height:48px!important;
+  }
+
+  /* Toolbars operativas */
+  body.aula-mobile-runtime :where(
+    .header-actions,.toolbar-buttons,.import-actions
+  ){
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .header-actions,.toolbar-buttons,.import-actions
+  )>button,
+  body.aula-mobile-runtime .import-actions>.file-button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .selection-toolbar{
+    width:100%!important;
+    align-items:stretch!important;
+    flex-direction:column!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .selection-toolbar>div{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  body.aula-mobile-runtime .selection-toolbar>div:last-child{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+
+  body.aula-mobile-runtime .selection-toolbar>div:last-child button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .pagination-bar{
+    width:100%!important;
+    align-items:stretch!important;
+    flex-direction:column!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .pagination-bar>div:last-child{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .pagination-bar>div:last-child .icon-button{
+    width:100%!important;
+  }
+
+  body.aula-mobile-runtime .pagination-bar label{
+    width:100%!important;
+    justify-content:space-between!important;
+  }
+
+  /* Usuarios y certificados */
+  body.aula-mobile-runtime .users-directory-meta .toolbar-buttons{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .users-directory-meta .toolbar-buttons>*{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .users-directory-meta .toolbar-buttons .secondary-button{
+    grid-column:1/-1!important;
+    margin-left:0!important;
+  }
+
+  body.aula-mobile-runtime .mobile-user-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .mobile-user-actions button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .mobile-user-actions button:last-child:nth-child(odd){
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .mobile-certificate-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .mobile-certificate-actions button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .mobile-certificate-actions .primary-button{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .certificate-view-switch{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+
+  body.aula-mobile-runtime .certificate-view-switch button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+    white-space:normal!important;
+  }
+
+  body.aula-mobile-runtime .certificate-detail-actions{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .certificate-detail-actions button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .certificate-detail-actions .primary-button{
+    grid-column:1/-1!important;
+  }
+
+  /* Asignaciones */
+  body.aula-mobile-runtime .bulk-buttons{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .bulk-buttons button,
+  body.aula-mobile-runtime .bulk-clear-selection{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .deadline-controls :where(button,label,select,input){
+    max-width:100%!important;
+  }
+
+  /* Autoría y examen */
+  body.aula-mobile-runtime .course-authoring-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .course-authoring-actions button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .block-editor-footer,.authoring-step-footer,.question-editor-pro-footer
+  ){
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .block-editor-footer,.authoring-step-footer,.question-editor-pro-footer
+  ) button{
+    min-height:48px!important;
+  }
+
+  body.aula-mobile-runtime .phase-actions,
+  body.aula-mobile-runtime .block-authoring-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+
+  body.aula-mobile-runtime .phase-actions .icon-button,
+  body.aula-mobile-runtime .block-authoring-actions .icon-button{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  body.aula-mobile-runtime .exam-toolbar{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .exam-toolbar button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .exam-toolbar button:last-child{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .publish-action-buttons{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .publish-action-buttons button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .content-type-picker button,
+    .readiness-checklist button,
+    .publish-check-grid button,
+    .course-option-list button,
+    .course-admin-list>button,
+    .compliance-position-list button,
+    .compliance-path-list button,
+    .compliance-course-pool-grid button
+  ){
+    min-height:48px!important;
+  }
+
+  /* Curso: anterior es icono, siguiente usa el espacio restante. */
+  body.aula-mobile-runtime .learner-stage-nav{
+    display:grid!important;
+    grid-template-columns:50px minmax(0,1fr)!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .stage-nav-button.previous{
+    width:50px!important;
+    min-width:50px!important;
+    min-height:50px!important;
+    padding:0!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .stage-nav-button.next{
+    width:100%!important;
+    min-width:0!important;
+    min-height:50px!important;
+    padding:8px 11px!important;
+  }
+
+  body.aula-mobile-runtime .stage-nav-button.next strong{
+    max-width:none!important;
+    min-width:0!important;
+  }
+
+  body.aula-mobile-runtime .practice-gate-footer{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+
+  body.aula-mobile-runtime .practice-gate-footer>div{
+    min-width:0!important;
+  }
+
+  body.aula-mobile-runtime .practice-gate-continue{
+    width:100%!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .practice-gate-error-actions,
+  body.aula-mobile-runtime .result-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .practice-gate-error-actions button,
+  body.aula-mobile-runtime .result-actions button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:48px!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .exam-submit-bar{
+    gap:10px!important;
+  }
+
+  body.aula-mobile-runtime .exam-submit-bar button{
+    width:100%!important;
+    min-height:50px!important;
+    justify-content:center!important;
+  }
+
+  body.aula-mobile-runtime .practice-gate-options button,
+  body.aula-mobile-runtime .validation-answer-grid button{
+    min-height:52px!important;
+  }
+
+  /* Modales */
+  body.aula-mobile-runtime .modal-actions,
+  body.aula-mobile-runtime .course-create-modal .modal-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .modal-actions button,
+  body.aula-mobile-runtime .course-create-modal .modal-actions button{
+    width:100%!important;
+    min-width:0!important;
+    justify-content:center!important;
+  }
+
+  /* Auth y certificado público */
+  body.aula-mobile-runtime .auth-link-button{
+    min-height:44px!important;
+    padding:8px 4px!important;
+  }
+
+  body.aula-mobile-runtime .auth-primary{
+    min-height:54px!important;
+  }
+}
+
+/* 761–900: tablet / ventana táctil ancha */
+@media(min-width:761px) and (max-width:900px){
+  body.aula-mobile-runtime .header-actions,
+  body.aula-mobile-runtime .toolbar-buttons{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  body.aula-mobile-runtime .mobile-certificate-actions{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  body.aula-mobile-runtime .mobile-certificate-actions .primary-button{
+    grid-column:auto!important;
+  }
+
+  body.aula-mobile-runtime .result-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+/* 541–760: teléfono grande / tablet vertical */
+@media(min-width:541px) and (max-width:760px){
+  body.aula-mobile-runtime .home-hero-actions,
+  body.aula-mobile-runtime .catalog-original-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+
+  body.aula-mobile-runtime .course-authoring-actions,
+  body.aula-mobile-runtime .course-create-modal .modal-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+/* 381–540: teléfono estándar */
+@media(min-width:381px) and (max-width:540px){
+  body.aula-mobile-runtime .home-hero-actions,
+  body.aula-mobile-runtime .catalog-original-actions,
+  body.aula-mobile-runtime .course-authoring-actions,
+  body.aula-mobile-runtime .course-create-modal .modal-actions,
+  body.aula-mobile-runtime .exam-toolbar,
+  body.aula-mobile-runtime .practice-gate-error-actions,
+  body.aula-mobile-runtime .result-actions{
+    grid-template-columns:1fr!important;
+  }
+
+  body.aula-mobile-runtime .exam-toolbar button:last-child{
+    grid-column:auto!important;
+  }
+}
+
+/* 341–380: teléfono estrecho */
+@media(min-width:341px) and (max-width:380px){
+  body.aula-mobile-runtime :where(
+    .header-actions,.toolbar-buttons,.import-actions,
+    .users-directory-meta .toolbar-buttons,
+    .mobile-user-actions,.mobile-certificate-actions,
+    .certificate-view-switch,
+    .selection-toolbar>div:last-child,
+    .course-authoring-actions,.exam-toolbar,
+    .course-create-modal .modal-actions,
+    .certificate-detail-actions,
+    .practice-gate-error-actions,.result-actions,
+    .home-hero-actions,.catalog-original-actions
+  ){
+    grid-template-columns:1fr!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .users-directory-meta .toolbar-buttons .secondary-button,
+    .mobile-user-actions button:last-child:nth-child(odd),
+    .mobile-certificate-actions .primary-button,
+    .certificate-detail-actions .primary-button,
+    .exam-toolbar button:last-child,
+    .catalog-card-footer button:only-child
+  ){
+    grid-column:auto!important;
+  }
+
+  body.aula-mobile-runtime .catalog-card-footer{
+    grid-template-columns:1fr!important;
+  }
+
+  body.aula-mobile-runtime .phase-actions,
+  body.aula-mobile-runtime .block-authoring-actions{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+
+  body.aula-mobile-runtime .studio-navigation-button{
+    min-width:112px!important;
+  }
+}
+
+/* 320–340: ultra estrecho, una acción textual por fila. */
+@media(max-width:340px){
+  body.aula-mobile-runtime :where(
+    .header-actions,.toolbar-buttons,.import-actions,
+    .users-directory-meta .toolbar-buttons,
+    .mobile-user-actions,.mobile-certificate-actions,
+    .certificate-view-switch,
+    .selection-toolbar>div:last-child,
+    .course-authoring-actions,.exam-toolbar,
+    .course-create-modal .modal-actions,
+    .certificate-detail-actions,
+    .practice-gate-error-actions,.result-actions,
+    .home-hero-actions,.catalog-original-actions,
+    .catalog-card-footer
+  ){
+    grid-template-columns:1fr!important;
+  }
+
+  body.aula-mobile-runtime :where(
+    .users-directory-meta .toolbar-buttons .secondary-button,
+    .mobile-user-actions button:last-child:nth-child(odd),
+    .mobile-certificate-actions .primary-button,
+    .certificate-detail-actions .primary-button,
+    .exam-toolbar button:last-child,
+    .catalog-card-footer button:only-child
+  ){
+    grid-column:auto!important;
+  }
+
+  body.aula-mobile-runtime .learner-stage-nav{
+    grid-template-columns:48px minmax(0,1fr)!important;
+    gap:6px!important;
+  }
+
+  body.aula-mobile-runtime .stage-nav-button.previous{
+    width:48px!important;
+    min-width:48px!important;
+  }
+
+  body.aula-mobile-runtime .stage-nav-button.next{
+    padding-inline:8px!important;
+  }
+
+  body.aula-mobile-runtime .stage-nav-button.next small{
+    display:none!important;
+  }
+
+  body.aula-mobile-runtime .stage-nav-button.next strong{
+    font-size:.72rem!important;
+  }
+
+  body.aula-mobile-runtime .phase-actions,
+  body.aula-mobile-runtime .block-authoring-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+
+  body.aula-mobile-runtime .studio-navigation-button{
+    min-width:106px!important;
+    font-size:.69rem!important;
+  }
+}

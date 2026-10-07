@@ -6,11 +6,13 @@ const loadStudioApp = () => import('../../studio/src/App.jsx')
 const loadCatalogPage = () => import('./CatalogPage.jsx')
 const loadCoursePlayer = () => import('./CoursePlayer.jsx')
 const loadGamesPage = () => import('./GamesPage.jsx')
+const loadPrivacyCenter = () => import('./PrivacyCenter.jsx')
 
 const StudioApp = lazy(loadStudioApp)
 const CatalogPage = lazy(loadCatalogPage)
 const CoursePlayer = lazy(loadCoursePlayer)
 const GamesPage = lazy(loadGamesPage)
+const PrivacyCenter = lazy(loadPrivacyCenter)
 
 function readRoute() {
   const hash = window.location.hash || '#/'
@@ -19,6 +21,7 @@ function readRoute() {
   if (/^#\/catalog(?:\/|$)/.test(hash)) return { key: 'catalog', type: 'catalog' }
   if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games' }
   if (/^#\/studio(?:\/|$)/.test(hash)) return { key: 'studio', type: 'studio' }
+  if (/^#\/privacy(?:\/|$)/.test(hash)) return { key: 'privacy', type: 'privacy' }
   return { key: 'home', type: 'home' }
 }
 
@@ -40,6 +43,7 @@ export default function LearnerApp({ profile, sessionUser }) {
       void loadCatalogPage()
       void loadGamesPage()
       void loadCoursePlayer()
+      void loadPrivacyCenter()
       if (['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))) {
         void loadStudioApp()
       }
@@ -59,6 +63,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'catalog') void loadCatalogPage()
     if (route.type === 'games') void loadGamesPage()
     if (route.type === 'studio') void loadStudioApp()
+    if (route.type === 'privacy') void loadPrivacyCenter()
   }, [route.type])
 
   const content = useMemo(() => {
@@ -66,6 +71,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage />
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
+    if (route.type === 'privacy') return <PrivacyCenter />
     return <HomePage profile={profile} sessionUser={sessionUser} />
   }, [route.key, route.type, profile, sessionUser])
 

@@ -24,6 +24,19 @@ for(const required of [
 const app=await mustRead('src/App.jsx')
 if(!app.includes('LegalGate')) throw new Error('LegalGate no está integrado en App.')
 
+const legalGate=await mustRead('src/legal/LegalGate.jsx')
+for(const token of ['legal-consent-overlay','aria-modal="true"','acceptLegalDocuments','saveLocalLegalReceipt']){
+  if(!legalGate.includes(token)) throw new Error('Gate legal obligatorio incompleto: falta '+token)
+}
+
+const legalApi=await mustRead('src/legal/legal-api.js')
+for(const token of ['aula-ei-legal-receipt:v1:','localStorage.setItem','acceptLegalDocuments']){
+  if(!legalApi.includes(token)) throw new Error('Recibo local legal incompleto: falta '+token)
+}
+
+const serviceWorker=await mustRead('public/sw.js')
+if(!serviceWorker.includes("aula-ei-pwa-v3")) throw new Error('La caché PWA no fue invalidada para el consentimiento legal.')
+
 const learner=await mustRead('player/src/LearnerApp.jsx')
 if(!learner.includes("type: 'privacy'")||!learner.includes('PrivacyCenter')) throw new Error('Centro de Privacidad no está enrutado.')
 

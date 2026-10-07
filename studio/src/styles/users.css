@@ -135,3 +135,18 @@
 }
 
 
+
+@media(min-width:901px) and (max-width:1250px){
+  .users-directory-meta{
+    align-items:center;
+    flex-direction:row;
+  }
+  .users-directory-meta .toolbar-buttons{
+    margin-left:auto;
+    flex-wrap:nowrap;
+    justify-content:flex-end;
+  }
+  .users-directory-meta .text-action{
+    white-space:nowrap;
+  }
+}

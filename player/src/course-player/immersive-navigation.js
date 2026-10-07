@@ -10,7 +10,6 @@ export async function exitBrowserFullscreen() {
 export async function runViewerNavigation({ action, navigationBusyRef, close }) {
   if (!action || navigationBusyRef.current) return
   navigationBusyRef.current = true
-  await exitBrowserFullscreen()
   close()
   window.requestAnimationFrame(() => {
     action()

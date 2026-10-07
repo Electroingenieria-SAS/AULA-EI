@@ -563,6 +563,93 @@ $$;
 revoke all on function public.admin_set_legal_user_type(uuid, text) from public, anon;
 grant execute on function public.admin_set_legal_user_type(uuid, text) to authenticated;
 
+-- Database-level immutability for probative evidence.
+create or replace function public.block_legal_acceptance_mutation()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $
+begin
+  raise exception 'legal acceptance evidence is immutable';
+end;
+$;
+
+revoke all on function public.block_legal_acceptance_mutation() from public, anon, authenticated;
+
+drop trigger if exists trg_legal_acceptances_immutable on public.legal_acceptances;
+create trigger trg_legal_acceptances_immutable
+before update or delete on public.legal_acceptances
+for each row execute function public.block_legal_acceptance_mutation();
+
+create or replace function public.protect_published_legal_version()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $
+begin
+  if old.status in ('published','retired') then
+    if new.document_id is distinct from old.document_id
+       or new.version is distinct from old.version
+       or new.content_markdown is distinct from old.content_markdown
+       or new.content_sha256 is distinct from old.content_sha256
+       or new.is_material is distinct from old.is_material
+       or new.effective_at is distinct from old.effective_at
+       or new.published_at is distinct from old.published_at
+       or new.approved_at is distinct from old.approved_at
+       or new.approved_by is distinct from old.approved_by then
+      raise exception 'published legal document versions are immutable';
+    end if;
+    if old.status = 'retired' and new.status is distinct from old.status then
+      raise exception 'retired legal document versions cannot be reactivated';
+    end if;
+    if old.status = 'published' and new.status not in ('published','retired') then
+      raise exception 'published legal document version can only be retired';
+    end if;
+  end if;
+  return new;
+end;
+$;
+
+revoke all on function public.protect_published_legal_version() from public, anon, authenticated;
+
+drop trigger if exists trg_legal_versions_immutable on public.legal_document_versions;
+create trigger trg_legal_versions_immutable
+before update on public.legal_document_versions
+for each row execute function public.protect_published_legal_version();
+
+-- Explicit restrictive RLS policies preserve defense in depth even if table grants change later.
+create policy "legal documents active authenticated"
+on public.legal_documents for select to authenticated
+using (is_active = true and (select auth.uid()) is not null);
+
+create policy "legal versions published authenticated"
+on public.legal_document_versions for select to authenticated
+using (status = 'published' and effective_at <= now() and (select auth.uid()) is not null);
+
+create policy "legal acceptances own authenticated"
+on public.legal_acceptances for select to authenticated
+using ((select auth.uid()) = user_id);
+
+create policy "privacy requests own authenticated"
+on public.privacy_requests for select to authenticated
+using ((select auth.uid()) = requester_user_id);
+
+create policy "legal user context own authenticated"
+on public.legal_user_contexts for select to authenticated
+using ((select auth.uid()) = user_id);
+
+create policy "legal audience authenticated deny direct"
+on public.legal_audience_rules for select to authenticated
+using (false);
+
+create policy "privacy incidents authenticated deny direct"
+on public.privacy_incidents for select to authenticated
+using (false);
+
+create policy "retention rules authenticated deny direct"
+on public.retention_rules for select to authenticated
+using (false);
+
 -- Defense in depth: no direct API path to append-only evidence or legal configuration.
 revoke insert, update, delete on table public.legal_acceptances from authenticated;
 revoke insert, update, delete on table public.legal_documents from authenticated;

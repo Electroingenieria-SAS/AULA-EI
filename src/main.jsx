@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import AppErrorBoundary from './AppErrorBoundary.jsx'
+import { installRuntimeDiagnostics } from './runtime-diagnostics.js'
 import '../studio/src/styles/core.css'
 import '../studio/src/styles/users.css'
 import '../studio/src/styles/certificates.css'
@@ -20,6 +21,8 @@ import './auth.css'
 import './global-experience.css'
 import './responsive-foundation.css'
 import './responsive-controls.css'
+
+installRuntimeDiagnostics()
 
 const mobileStyleQuery = window.matchMedia('(max-width: 900px)')
 let mobileStylesPromise = null

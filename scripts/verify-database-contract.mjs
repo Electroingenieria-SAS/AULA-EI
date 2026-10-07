@@ -1,0 +1,43 @@
+import { readFile, readdir } from 'node:fs/promises'
+import path from 'node:path'
+
+const root = process.cwd()
+const migrationDir = path.join(root, 'supabase', 'migrations')
+const files = (await readdir(migrationDir))
+  .filter((name) => name.endsWith('.sql'))
+  .sort()
+
+const hardeningIndex = files.findIndex((name) => name.includes('20260922143000_harden_aula_rpc_surface'))
+if (hardeningIndex < 0) throw new Error('No se encontró el punto de hardening de RPC de Aula EI.')
+
+const postHardening = files.slice(hardeningIndex)
+for (const file of postHardening) {
+  const sql = await readFile(path.join(migrationDir, file), 'utf8')
+  const normalized = sql.replace(/--.*$/gm, '').toLowerCase()
+
+  if (/disable\s+row\s+level\s+security/.test(normalized)) {
+    throw new Error('Migración posterior al hardening desactiva RLS: ' + file)
+  }
+  if (/\bgrant\s+all(?:\s+privileges)?\s+on\s+[^;]+?\s+to\s+anon\b/.test(normalized)) {
+    throw new Error('Migración posterior al hardening concede ALL a anon: ' + file)
+  }
+  if (/\bgrant\s+execute\s+on\s+function\s+[^;]+?\s+to\s+anon\b/.test(normalized)) {
+    throw new Error('Migración posterior al hardening concede EXECUTE a anon: ' + file)
+  }
+
+  for (const match of normalized.matchAll(/security\s+definer/g)) {
+    const window = normalized.slice(match.index, match.index + 700)
+    if (!/set\s+search_path\s*(?:=|to)\s*(?:''|'?public'?|'?pg_catalog'?)/.test(window)) {
+      throw new Error('SECURITY DEFINER posterior al hardening sin search_path cercano: ' + file)
+    }
+  }
+}
+
+for (const required of [
+  '20260922150000_security_hardening_v3.sql',
+  '20260922151000_require_live_admin_session.sql',
+]) {
+  if (!files.includes(required)) throw new Error('Falta migración final requerida: ' + required)
+}
+
+console.log('Database contract gate passed: migraciones post-hardening sin reapertura anon, sin RLS disabled y SECURITY DEFINER controlado.')

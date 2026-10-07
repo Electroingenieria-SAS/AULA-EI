@@ -33,7 +33,7 @@ for (const required of [
   'import.meta.env.BASE_URL',
   "updateViaCache: 'none'",
   "controllerchange",
-  "sw.js?v=2",
+  "sw.js?v=3",
 ]) {
   if (!main.includes(required)) throw new Error('Registro PWA incompleto: falta ' + required)
 }
@@ -61,7 +61,7 @@ for (const forbidden of [
 for (const required of [
   "url.origin !== self.location.origin) return false",
   "request.mode === 'navigate'",
-  "CACHE_VERSION = 'aula-ei-pwa-v2'",
+  "CACHE_VERSION = 'aula-ei-pwa-v3'",
   'isFreshCode',
   'networkFirst(request)',
   "fetch(request, { cache: 'no-store' })",

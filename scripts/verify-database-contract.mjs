@@ -27,7 +27,7 @@ for (const file of postHardening) {
 
   for (const match of normalized.matchAll(/security\s+definer/g)) {
     const window = normalized.slice(match.index, match.index + 700)
-    if (!/set\s+search_path\s*=\s*(?:''|public|pg_catalog)/.test(window)) {
+    if (!/set\s+search_path\s*(?:=|to)\s*(?:''|'?public'?|'?pg_catalog'?)/.test(window)) {
       throw new Error('SECURITY DEFINER posterior al hardening sin search_path cercano: ' + file)
     }
   }

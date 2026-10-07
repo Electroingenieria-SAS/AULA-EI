@@ -9,6 +9,7 @@ const main = await read('src/main.jsx')
 const runtime = await read('src/MobileViewportSync.jsx')
 const mobile = await read('src/mobile.css')
 const mobileApp = await read('src/mobile-app.css')
+const responsiveFoundation = await read('src/responsive-foundation.css')
 const shell = await read('player/src/LearnerShell.jsx')
 const gallery = await read('player/src/course-player/ImageGallery.jsx')
 const galleryStyles = await read('player/src/styles/gallery.css')
@@ -60,6 +61,29 @@ if (main.indexOf("await import('./mobile-app.css')") < main.indexOf("await impor
 }
 if (main.includes("import './mobile.css'") || main.includes("import './mobile-app.css'")) {
   throw new Error('Las capas móviles no deben formar parte del CSS inicial de escritorio.')
+}
+if (!main.includes("import './responsive-foundation.css'")) {
+  throw new Error('La base responsive debe cargarse siempre, también en escritorio.')
+}
+for (const required of [
+  'Aula EI · Responsive Foundation v9',
+  '.mobile-data-view{display:none!important}',
+  '.desktop-data-view{display:block!important}',
+  '.learner-mobile-appbar{display:contents}',
+  '@media(min-width:1101px)',
+  '@media(max-width:1100px)',
+  '.learner-global-sidebar{',
+  'display:none!important',
+  '.learner-app-shell>.learner-mobile-appbar',
+  '.learner-mobile-global-nav',
+  '.data-table-wrap,',
+  '@media(max-width:900px)',
+  '.mobile-data-view{display:block!important}',
+  '.desktop-data-view{display:none!important}',
+]) {
+  if (!responsiveFoundation.includes(required)) {
+    throw new Error('Responsive Foundation v9 incompleta: falta ' + required)
+  }
 }
 
 for (const required of [
@@ -299,4 +323,4 @@ if (!index.includes('apple-mobile-web-app-status-bar-style') || !index.includes(
   throw new Error('La PWA iOS debe usar status bar edge-to-edge.')
 }
 
-console.log('Mobile/Desktop Professional v8 validada: medios inmersivos, fullscreen real, galería táctil y pregunta de transición integrada.')
+console.log('Responsive Professional v9 validada: base desktop siempre cargada, modo compacto 901-1100, móvil explícito y CoursePlayer inmersivo.')

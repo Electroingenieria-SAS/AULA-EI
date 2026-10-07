@@ -568,11 +568,11 @@ create or replace function public.block_legal_acceptance_mutation()
 returns trigger
 language plpgsql
 set search_path = public, pg_temp
-as $
+as $$
 begin
   raise exception 'legal acceptance evidence is immutable';
 end;
-$;
+$$;
 
 revoke all on function public.block_legal_acceptance_mutation() from public, anon, authenticated;
 
@@ -585,7 +585,7 @@ create or replace function public.protect_published_legal_version()
 returns trigger
 language plpgsql
 set search_path = public, pg_temp
-as $
+as $$
 begin
   if old.status in ('published','retired') then
     if new.document_id is distinct from old.document_id
@@ -608,7 +608,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.protect_published_legal_version() from public, anon, authenticated;
 

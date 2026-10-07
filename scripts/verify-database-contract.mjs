@@ -36,8 +36,27 @@ for (const file of postHardening) {
 for (const required of [
   '20260922150000_security_hardening_v3.sql',
   '20260922151000_require_live_admin_session.sql',
+  '20261007193000_aula_ei_compliance_center.sql',
 ]) {
   if (!files.includes(required)) throw new Error('Falta migración final requerida: ' + required)
 }
 
-console.log('Database contract gate passed: migraciones post-hardening sin reapertura anon, sin RLS disabled y SECURITY DEFINER controlado.')
+const complianceMigration = await readFile(path.join(migrationDir, '20261007193000_aula_ei_compliance_center.sql'), 'utf8')
+for (const required of [
+  'create table if not exists public.legal_documents',
+  'create table if not exists public.legal_document_versions',
+  'create table if not exists public.legal_acceptances',
+  'create table if not exists public.privacy_requests',
+  'enable row level security',
+  'get_my_legal_requirements',
+  'accept_legal_document',
+  'get_my_legal_acceptances',
+  'create_my_privacy_request',
+  'admin_set_legal_user_type',
+]) {
+  if (!complianceMigration.toLowerCase().includes(required.toLowerCase())) {
+    throw new Error('Compliance Center incompleto: falta ' + required)
+  }
+}
+
+console.log('Database contract gate passed: hardening y contratos del Compliance Center presentes.')

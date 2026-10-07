@@ -3392,3 +3392,252 @@
     font-size:.69rem!important;
   }
 }
+
+
+/* ==========================================================================
+   Aula EI · Responsive Composition v11
+   Corrige filtros, selects y heroes en tablet/móvil.
+   ========================================================================== */
+@media(max-width:900px){
+  body.aula-mobile-runtime .filter-select{
+    position:relative!important;
+    display:block!important;
+    min-height:48px!important;
+    height:48px!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+
+  body.aula-mobile-runtime .filter-select>svg{
+    position:absolute!important;
+    z-index:2!important;
+    left:12px!important;
+    top:50%!important;
+    width:15px!important;
+    height:15px!important;
+    transform:translateY(-50%)!important;
+    pointer-events:none!important;
+    color:#456b94!important;
+  }
+
+  body.aula-mobile-runtime .filter-select select{
+    width:100%!important;
+    height:100%!important;
+    min-height:100%!important;
+    padding:0 34px 0 36px!important;
+    border:0!important;
+    background:transparent!important;
+    line-height:1.2!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric{
+    margin-top:0!important;
+  }
+}
+
+@media(min-width:761px) and (max-width:900px){
+  body.aula-mobile-runtime .users-toolbar{
+    grid-template-columns:repeat(3,minmax(0,1fr)) auto!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .users-main-search{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .users-clear-button{
+    width:auto!important;
+    min-width:96px!important;
+    justify-self:stretch!important;
+  }
+
+  body.aula-mobile-runtime .certificate-toolbar{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  body.aula-mobile-runtime .certificate-main-search{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .certificate-toolbar .filter-select:last-child{
+    grid-column:auto!important;
+  }
+
+  body.aula-mobile-runtime .studio-hero{
+    min-height:210px!important;
+    padding:24px!important;
+    grid-template-columns:minmax(0,1fr) 180px!important;
+    align-items:center!important;
+    gap:18px!important;
+  }
+
+  body.aula-mobile-runtime .studio-hero-copy h1{
+    font-size:2rem!important;
+  }
+
+  body.aula-mobile-runtime .studio-hero-copy p{
+    display:block!important;
+    font-size:.82rem!important;
+  }
+
+  body.aula-mobile-runtime .studio-hero-metric{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:15px!important;
+    grid-template-columns:42px 1fr!important;
+    align-content:center!important;
+  }
+
+  body.aula-mobile-runtime .studio-hero-metric small{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .games-original-hero{
+    min-height:210px!important;
+    padding:24px!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:18px!important;
+  }
+
+  body.aula-mobile-runtime .games-original-hero>div:first-child{
+    min-width:0!important;
+    flex:1 1 auto!important;
+  }
+
+  body.aula-mobile-runtime .games-original-hero h1{
+    margin-top:12px!important;
+    font-size:2.35rem!important;
+  }
+
+  body.aula-mobile-runtime .games-original-hero p{
+    font-size:.82rem!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric{
+    flex:0 0 160px!important;
+    width:160px!important;
+    min-width:160px!important;
+    padding:16px!important;
+    border-radius:20px!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric strong{
+    font-size:2rem!important;
+  }
+}
+
+@media(min-width:541px) and (max-width:760px){
+  body.aula-mobile-runtime .users-toolbar{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  body.aula-mobile-runtime .users-main-search{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .users-clear-button{
+    width:100%!important;
+  }
+
+  body.aula-mobile-runtime .certificate-toolbar{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  body.aula-mobile-runtime .certificate-main-search{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .certificate-toolbar .filter-select:last-child{
+    grid-column:1/-1!important;
+  }
+
+  body.aula-mobile-runtime .studio-hero{
+    min-height:0!important;
+    padding:20px!important;
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+
+  body.aula-mobile-runtime .studio-hero-metric{
+    width:100%!important;
+    max-width:none!important;
+  }
+
+  body.aula-mobile-runtime .games-original-hero{
+    min-height:0!important;
+    padding:21px!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:14px!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric{
+    width:100%!important;
+    min-width:0!important;
+    min-height:68px!important;
+    padding:13px 16px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    text-align:left!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric strong{
+    font-size:1.6rem!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric span{
+    margin-top:0!important;
+    text-align:right!important;
+  }
+}
+
+@media(max-width:540px){
+  body.aula-mobile-runtime .users-toolbar,
+  body.aula-mobile-runtime .certificate-toolbar{
+    grid-template-columns:1fr!important;
+  }
+
+  body.aula-mobile-runtime .users-main-search,
+  body.aula-mobile-runtime .certificate-main-search,
+  body.aula-mobile-runtime .certificate-toolbar .filter-select:last-child{
+    grid-column:auto!important;
+  }
+
+  body.aula-mobile-runtime .users-clear-button{
+    width:100%!important;
+  }
+
+  body.aula-mobile-runtime .games-original-hero{
+    min-height:0!important;
+    padding:20px 18px!important;
+    gap:12px!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric{
+    width:100%!important;
+    min-width:0!important;
+    min-height:64px!important;
+    padding:12px 14px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    text-align:left!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric strong{
+    font-size:1.5rem!important;
+  }
+
+  body.aula-mobile-runtime .games-hero-metric span{
+    margin-top:0!important;
+    max-width:58%;
+    text-align:right!important;
+  }
+}

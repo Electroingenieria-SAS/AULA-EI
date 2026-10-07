@@ -19,6 +19,10 @@ const desktop = await read('src/responsive-controls.css')
 const mobile = await read('src/mobile-app.css')
 const gallery = await read('player/src/styles/gallery.css')
 const certificate = await read('certificate/src/styles.css')
+const studioCore = await read('studio/src/styles/core.css')
+const usersStyles = await read('studio/src/styles/users.css')
+const certificateStyles = await read('studio/src/styles/certificates.css')
+const modulesStyles = await read('player/src/styles/modules.css')
 
 if (!main.includes("import './responsive-controls.css'")) {
   throw new Error('Responsive Controls v10 debe cargarse siempre desde src/main.jsx.')
@@ -97,6 +101,57 @@ for (const required of [
   if (!certificate.includes(required)) throw new Error('Controles responsive del certificado incompletos: falta ' + required)
 }
 
+for (const required of [
+  '.filter-select{position:relative',
+  '.filter-select>svg{position:absolute',
+  'left:12px',
+  'top:50%',
+  'padding:0 34px 0 36px',
+]) {
+  if (!studioCore.includes(required)) throw new Error('Composición de filtros v11 incompleta: falta ' + required)
+}
+
+for (const required of [
+  'grid-template-columns:repeat(3,minmax(0,1fr)) auto',
+  '@media(min-width:901px) and (max-width:1250px)',
+  'white-space:nowrap',
+]) {
+  if (!usersStyles.includes(required)) throw new Error('Usuarios responsive v11 incompleto: falta ' + required)
+}
+
+for (const required of [
+  'grid-template-columns:repeat(3,minmax(0,1fr))',
+  '@media(min-width:901px) and (max-width:1250px)',
+  'min-height:48px',
+]) {
+  if (!certificateStyles.includes(required)) throw new Error('Certificados responsive v11 incompleto: falta ' + required)
+}
+
+for (const required of [
+  '@media(min-width:901px) and (max-width:1180px)',
+  '.games-original-hero',
+  'min-height:224px',
+  '.games-hero-metric',
+  'min-width:160px',
+]) {
+  if (!modulesStyles.includes(required)) throw new Error('Hero Juegos responsive v11 incompleto: falta ' + required)
+}
+
+for (const required of [
+  'Aula EI · Responsive Composition v11',
+  '@media(min-width:761px) and (max-width:900px)',
+  '@media(min-width:541px) and (max-width:760px)',
+  '@media(max-width:540px)',
+  '.filter-select>svg',
+  '.users-toolbar',
+  '.certificate-toolbar',
+  '.studio-hero',
+  '.games-original-hero',
+  '.games-hero-metric',
+]) {
+  if (!mobile.includes(required)) throw new Error('Responsive Composition v11 incompleta: falta ' + required)
+}
+
 const sourceRoots = ['src', 'player/src', 'studio/src', 'certificate/src']
 const jsxFiles = []
 for (const sourceRoot of sourceRoots) jsxFiles.push(...await walk(sourceRoot))
@@ -115,7 +170,7 @@ if (buttonCount < 180) {
 }
 
 console.log(
-  'Responsive Controls v10 validado: ' +
+  'Responsive Controls/Composition v11 validado: ' +
   buttonCount + ' botones JSX en ' + filesWithButtons +
-  ' archivos; breakpoints 320-340, 341-380, 381-540, 541-760, 761-900, 901-1100, 1101-1279 y >=1280.'
+  ' archivos; filtros alineados, heroes compactos y breakpoints 320-340, 341-380, 381-540, 541-760, 761-900, 901-1100, 1101-1279 y >=1280.'
 )

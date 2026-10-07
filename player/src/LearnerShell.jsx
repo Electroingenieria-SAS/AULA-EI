@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { BookOpen, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
+import { BookOpen, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
 import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
@@ -13,7 +13,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     return (parts.slice(0, 2).map((part) => part[0]).join('') || 'EI').toUpperCase()
   }, [displayName])
   const canManage = ['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))
-  const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
+  const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'privacy' ? 'Privacidad y legal' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -40,6 +40,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         <SidebarLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
         <SidebarLink icon={BookOpen} label="Mis capacitaciones" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
         <SidebarLink icon={Gamepad2} label="Juegos EI" active={activeRoute === 'games'} onClick={() => navigateLearner('/games')} />
+        <SidebarLink icon={FileText} label="Privacidad y Legal" active={activeRoute === 'privacy'} onClick={() => navigateLearner('/privacy')} />
         {canManage && <SidebarLink icon={ShieldCheck} label="Gestión Aula EI" active={activeRoute === 'studio'} onClick={() => navigateLearner('/studio')} />}
       </nav>
 
@@ -62,11 +63,12 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     <nav
       className="learner-mobile-global-nav"
       aria-label="Navegación móvil"
-      style={{ '--mobile-nav-items': canManage ? 4 : 3 }}
+      style={{ '--mobile-nav-items': canManage ? 5 : 4 }}
     >
       <MobileLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
       <MobileLink icon={BookOpen} label="Cursos" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
       <MobileLink icon={Gamepad2} label="Juegos" active={activeRoute === 'games'} onClick={() => navigateLearner('/games')} />
+      <MobileLink icon={FileText} label="Legal" active={activeRoute === 'privacy'} onClick={() => navigateLearner('/privacy')} />
       {canManage && <MobileLink icon={ShieldCheck} label="Gestión" active={activeRoute === 'studio'} onClick={() => navigateLearner('/studio')} />}
     </nav>
   </div>

@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Aula EI · Responsive Foundation v9
+   Base siempre cargada. Evita depender de la capa mobile dinámica para:
+   - ocultar vistas móviles en desktop,
+   - posicionar la appbar/notificaciones,
+   - resolver el rango compacto 901-1100px.
+   ========================================================================== */
+
+/* Contrato base: nunca renderizar desktop + mobile al mismo tiempo. */
+.mobile-data-view{display:none!important}
+.desktop-data-view{display:block!important}
+
+/* La appbar existe siempre en el DOM, pero en desktop solo expone notificaciones. */
+.learner-mobile-appbar{display:contents}
+.learner-mobile-brand{display:none!important}
+
+@media(min-width:1101px){
+  .learner-mobile-appbar .training-notification-center{
+    position:fixed!important;
+    right:20px!important;
+    top:18px!important;
+    width:auto!important;
+    margin:0!important;
+    z-index:180!important;
+  }
+
+  .learner-mobile-appbar .training-notification-trigger{
+    width:auto!important;
+    min-width:150px!important;
+  }
+
+  .learner-mobile-appbar .training-notification-panel{
+    left:auto!important;
+    right:0!important;
+    top:52px!important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Modo compacto: portátil estrecho / tablet horizontal.
+   No es todavía la UI móvil completa, pero elimina la sidebar y recupera
+   ancho útil para Studio, tablas, certificados y directorios.
+   -------------------------------------------------------------------------- */
+@media(max-width:1100px){
+  .learner-app-shell{
+    --aula-sidebar-width:0px!important;
+  }
+
+  .learner-global-sidebar{
+    display:none!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar{
+    position:sticky!important;
+    z-index:230!important;
+    top:0!important;
+    width:100%!important;
+    min-height:64px!important;
+    padding:8px 14px!important;
+    box-sizing:border-box!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    gap:10px!important;
+    border-bottom:1px solid rgba(32,78,130,.12)!important;
+    background:rgba(250,253,255,.96)!important;
+    backdrop-filter:blur(18px) saturate(1.08)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(1.08)!important;
+    box-shadow:0 5px 18px rgba(11,42,77,.06)!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .learner-mobile-brand{
+    min-width:0!important;
+    min-height:48px!important;
+    padding:4px 6px!important;
+    border:0!important;
+    border-radius:14px!important;
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:8px!important;
+    background:transparent!important;
+    color:#173b69!important;
+    text-align:left!important;
+    box-shadow:none!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .learner-mobile-brand img{
+    width:42px!important;
+    height:42px!important;
+    max-width:42px!important;
+    object-fit:contain!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .learner-mobile-brand>span{
+    min-width:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:1px!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .learner-mobile-brand small{
+    color:#72869a!important;
+    font-size:.62rem!important;
+    font-weight:800!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .learner-mobile-brand strong{
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    color:#173b69!important;
+    font-size:.9rem!important;
+    line-height:1.2!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .training-notification-center{
+    position:relative!important;
+    inset:auto!important;
+    width:auto!important;
+    margin:0!important;
+    z-index:240!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .training-notification-trigger{
+    width:48px!important;
+    min-width:48px!important;
+    height:48px!important;
+    min-height:48px!important;
+    padding:0!important;
+    border-radius:14px!important;
+    display:grid!important;
+    place-items:center!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .training-notification-trigger>span{
+    display:none!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .training-notification-trigger b{
+    position:absolute!important;
+    right:-3px!important;
+    top:-3px!important;
+    min-width:18px!important;
+    height:18px!important;
+    padding:0 4px!important;
+    font-size:.58rem!important;
+  }
+
+  .learner-app-shell>.learner-mobile-appbar .training-notification-panel{
+    position:absolute!important;
+    left:auto!important;
+    right:0!important;
+    top:calc(100% + 8px)!important;
+    width:min(430px,calc(100vw - 24px))!important;
+    max-height:min(620px,calc(100dvh - 86px))!important;
+  }
+
+  .learner-shell-main{
+    width:100%!important;
+    min-width:0!important;
+    min-height:calc(100dvh - 64px)!important;
+    margin-left:0!important;
+    padding-bottom:92px!important;
+  }
+
+  .learner-shell-main>.learner-route-transition{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  .experience-route-progress{
+    left:0!important;
+  }
+
+  .learner-mobile-global-nav{
+    position:fixed!important;
+    z-index:225!important;
+    left:12px!important;
+    right:12px!important;
+    bottom:12px!important;
+    min-height:66px!important;
+    padding:6px!important;
+    display:grid!important;
+    grid-template-columns:repeat(var(--mobile-nav-items,4),minmax(0,1fr))!important;
+    align-items:stretch!important;
+    gap:5px!important;
+    border:1px solid rgba(211,224,238,.95)!important;
+    border-radius:21px!important;
+    background:rgba(255,255,255,.96)!important;
+    backdrop-filter:blur(20px) saturate(1.08)!important;
+    -webkit-backdrop-filter:blur(20px) saturate(1.08)!important;
+    box-shadow:0 18px 46px rgba(15,39,70,.17)!important;
+    overflow:hidden!important;
+  }
+
+  .learner-mobile-global-nav button{
+    min-width:0!important;
+    min-height:52px!important;
+    margin:0!important;
+    padding:5px 4px!important;
+    border:0!important;
+    border-radius:15px!important;
+    background:transparent!important;
+    color:#64748b!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    box-shadow:none!important;
+    font-size:.52rem!important;
+    line-height:1.05!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+
+  .learner-mobile-global-nav button svg{
+    width:18px!important;
+    height:18px!important;
+    flex:none!important;
+  }
+
+  .learner-mobile-global-nav button span{
+    display:block!important;
+    width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    text-align:center!important;
+  }
+
+  .learner-mobile-global-nav button.active{
+    position:relative!important;
+    background:#eaf4ff!important;
+    color:#075bb9!important;
+  }
+
+  .learner-mobile-global-nav button.active:before{
+    content:""!important;
+    position:absolute!important;
+    top:0!important;
+    left:27%!important;
+    right:27%!important;
+    height:3px!important;
+    border-radius:0 0 999px 999px!important;
+    background:#ffd200!important;
+  }
+
+  .learner-home-page,
+  .learner-games-page,
+  .catalog-original-page,
+  .studio-single-content .studio-single-page{
+    max-width:none!important;
+    padding-left:18px!important;
+    padding-right:18px!important;
+    padding-bottom:104px!important;
+  }
+
+  .studio-single-content{
+    min-width:0!important;
+  }
+
+  .studio-single-content :where(
+    .admin-page,
+    .panel-card,
+    .users-directory,
+    .certificates-workspace,
+    .assignment-center,
+    .courses-library
+  ){
+    min-width:0!important;
+    max-width:100%!important;
+  }
+
+  .data-table-wrap,
+  .users-data-wrap,
+  .certificates-data-wrap{
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overscroll-behavior-inline:contain!important;
+    scrollbar-gutter:stable!important;
+  }
+}
+
+/* Móvil real: la capa dinámica toma control de qué representación mostrar. */
+@media(max-width:900px){
+  .mobile-data-view{display:block!important}
+  .desktop-data-view{display:none!important}
+}

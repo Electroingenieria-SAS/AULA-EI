@@ -4,7 +4,6 @@ set -euo pipefail
 PORT=4173
 BASE_URL="http://127.0.0.1:${PORT}/AULA-EI/#/login"
 LOG_FILE="/tmp/aula-ei-preview.log"
-DOM_FILE="/tmp/aula-ei-smoke-dom.html"
 
 ./node_modules/.bin/vite preview --host 127.0.0.1 --port "$PORT" >"$LOG_FILE" 2>&1 &
 PREVIEW_PID=$!
@@ -26,14 +25,32 @@ if [ -z "$CHROME" ]; then
   exit 1
 fi
 
-"$CHROME"   --headless=new   --no-sandbox   --disable-gpu   --disable-dev-shm-usage   --window-size=390,844   --virtual-time-budget=5000   --dump-dom   "$BASE_URL" >"$DOM_FILE"
+VIEWPORTS=(
+  "320,700"
+  "360,800"
+  "390,844"
+  "430,932"
+  "768,1024"
+  "1024,768"
+  "1280,800"
+  "1440,900"
+)
 
-grep -q "Aula EI" "$DOM_FILE"
-grep -Eq "Iniciar sesión|Acceso seguro|Correo" "$DOM_FILE"
+for viewport in "${VIEWPORTS[@]}"; do
+  label="${viewport/,/x}"
+  dom="/tmp/aula-ei-smoke-${label}.html"
 
-if grep -q "Aula EI encontró un error inesperado" "$DOM_FILE"; then
-  echo "::error::El ErrorBoundary se activó durante el smoke test."
-  exit 1
-fi
+  "$CHROME"     --headless=new     --no-sandbox     --disable-gpu     --disable-dev-shm-usage     --window-size="$viewport"     --virtual-time-budget=5000     --dump-dom     "$BASE_URL" >"$dom"
 
-echo "Browser smoke passed: login renderizado con JavaScript en 390x844."
+  grep -q "Aula EI" "$dom"
+  grep -Eq "Iniciar sesión|Acceso seguro|Correo" "$dom"
+
+  if grep -q "Aula EI encontró un error inesperado" "$dom"; then
+    echo "::error::El ErrorBoundary se activó en viewport ${label}."
+    exit 1
+  fi
+
+  echo "Smoke OK: ${label}"
+done
+
+echo "Browser smoke matrix passed: 8 viewports entre 320px y 1440px."

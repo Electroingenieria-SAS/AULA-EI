@@ -59,7 +59,11 @@ jobs:
             echo "::error::Potential credential material detected in generated baseline."
             exit 1
           fi
-          sha256sum dr-baseline/roles.sql dr-baseline/schema.sql > dr-baseline/SHA256SUMS.txt
+          (
+            cd dr-baseline
+            sha256sum roles.sql schema.sql > SHA256SUMS.txt
+            sha256sum -c SHA256SUMS.txt
+          )
           {
             echo "project_ref=ipoidimevokogptydbvt"
             echo "source_commit=${GITHUB_SHA}"

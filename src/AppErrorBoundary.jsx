@@ -7,8 +7,6 @@ function saveRuntimeError(error, errorInfo, id) {
       id,
       at: new Date().toISOString(),
       name: error?.name || 'Error',
-      message: String(error?.message || 'Error inesperado').slice(0, 500),
-      componentStack: String(errorInfo?.componentStack || '').slice(0, 2000),
     }
     sessionStorage.setItem('aula-ei-last-runtime-error', JSON.stringify(payload))
   } catch {}

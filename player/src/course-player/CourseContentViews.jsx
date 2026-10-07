@@ -59,6 +59,12 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
   const externalUrl = String(content.url || '').trim()
 
   useEffect(() => {
+    setMediaViewerOpen(false)
+    setFeedback('')
+    setSelectedOption(null)
+  }, [block.id])
+
+  useEffect(() => {
     let active = true
     setAssetUrl(null)
     setAssetError('')

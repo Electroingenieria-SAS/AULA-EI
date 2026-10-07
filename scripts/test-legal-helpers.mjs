@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { normalizeLegalRequirement, pendingLegalRequirements } from '../src/legal/legal-api.js'
+import { parseLegalMarkdown, stripLegalMarkdown } from '../src/legal/legal-markdown.js'
 
 const raw = [{
   document_id: 'doc-1',
@@ -21,5 +22,26 @@ assert.equal(
   1,
   'Una fila ya normalizada con needsAcceptance=true no puede perder su estado pendiente',
 )
+
+const policySample = `# Política de ejemplo
+
+**Versión:** 1.0
+
+## Objetivo
+
+Texto institucional con **énfasis importante**.
+
+1. **Primera medida:** aplicar el control.
+2. **Segunda medida:** conservar evidencia.
+
+- Protección de datos
+- Trazabilidad`
+
+const policyBlocks = parseLegalMarkdown(policySample)
+assert.equal(policyBlocks[0].type, 'heading', 'El título Markdown debe convertirse en heading estructurado')
+assert.equal(policyBlocks.some((block) => block.type === 'ordered-list'), true, 'La numeración debe convertirse en lista ordenada')
+assert.equal(policyBlocks.some((block) => block.type === 'unordered-list'), true, 'Los guiones deben convertirse en lista visual')
+assert.equal(stripLegalMarkdown('**Texto fuerte**'), 'Texto fuerte', 'La presentación no debe exponer asteriscos Markdown')
+assert.equal(stripLegalMarkdown('## Título'), 'Título', 'La presentación no debe exponer numerales Markdown')
 
 console.log('Legal helper runtime tests passed.')

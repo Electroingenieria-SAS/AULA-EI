@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import {
   ArrowLeft, ArrowRight, ExternalLink, Images, Maximize2, Minimize2, RotateCcw, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
+import { exitBrowserFullscreen, runViewerNavigation } from './immersive-navigation.js'
 import '../styles/gallery.css'
 
 export default function ImageGallery({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false }) {
@@ -10,6 +11,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
   const stageRef = useRef(null)
   const imageRef = useRef(null)
   const pointersRef = useRef(new Map())
+  const navigationBusyRef = useRef(false)
   const viewRef = useRef({ scale: 1, x: 0, y: 0 })
   const gestureRef = useRef({
     mode: 'idle',
@@ -141,15 +143,15 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
   }
 
   const closeViewer = async () => {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-    if (fullscreenElement) {
-      try {
-        if (document.exitFullscreen) await document.exitFullscreen()
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen()
-      } catch {}
-    }
+    await exitBrowserFullscreen()
     close()
   }
+
+  const navigateFromViewer = (action) => runViewerNavigation({
+    action,
+    navigationBusyRef,
+    close,
+  })
 
   useEffect(() => {
     document.body.classList.add('aula-media-viewer-open')
@@ -157,8 +159,14 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
 
     const onKey = (event) => {
       if (event.key === 'Escape' && !(document.fullscreenElement || document.webkitFullscreenElement)) close()
-      if (event.key === 'ArrowLeft' && canPrevious) previous()
-      if (event.key === 'ArrowRight' && canNext) next()
+      if (event.key === 'ArrowLeft' && canPrevious) {
+        event.preventDefault()
+        void navigateFromViewer(previous)
+      }
+      if (event.key === 'ArrowRight' && canNext) {
+        event.preventDefault()
+        void navigateFromViewer(next)
+      }
       if ((event.key === '+' || event.key === '=') && !event.ctrlKey) zoomAt(viewRef.current.scale + .5)
       if (event.key === '-' && !event.ctrlKey) zoomAt(viewRef.current.scale - .5)
       if (event.key === '0' && !event.ctrlKey) resetView()
@@ -297,8 +305,8 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
       && Math.abs(dx) > Math.abs(dy) * 1.25
 
     if (isSwipe) {
-      if (dx < 0 && canNext) next()
-      if (dx > 0 && canPrevious) previous()
+      if (dx < 0 && canNext) void navigateFromViewer(next)
+      if (dx > 0 && canPrevious) void navigateFromViewer(previous)
       gesture.lastTapAt = 0
       gesture.lastTapPoint = null
       return
@@ -410,7 +418,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
         type="button"
         className="gallery-nav-button gallery-nav-previous"
         disabled={!canPrevious}
-        onClick={previous}
+        onClick={() => void navigateFromViewer(previous)}
         aria-label={'Contenido anterior: ' + previousTitle}
       >
         <ArrowLeft size={24} />
@@ -424,7 +432,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
         type="button"
         className="gallery-nav-button gallery-nav-next"
         disabled={!canNext}
-        onClick={next}
+        onClick={() => void navigateFromViewer(next)}
         aria-label={'Siguiente contenido: ' + nextTitle}
       >
         <span><small>Siguiente</small><strong>{nextTitle}</strong></span>

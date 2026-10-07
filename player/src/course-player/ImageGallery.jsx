@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import {
   ArrowLeft, ArrowRight, ExternalLink, Images, Maximize2, Minimize2, RotateCcw, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
+import { exitBrowserFullscreen, runViewerNavigation } from './immersive-navigation.js'
 import '../styles/gallery.css'
 
 export default function ImageGallery({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false }) {
@@ -141,33 +142,16 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
     } catch {}
   }
 
-  const exitBrowserFullscreen = async () => {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-    if (!fullscreenElement) return
-    try {
-      if (document.exitFullscreen) await document.exitFullscreen()
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen()
-    } catch {}
-  }
-
   const closeViewer = async () => {
     await exitBrowserFullscreen()
     close()
   }
 
-  const navigateFromViewer = async (action) => {
-    if (!action || navigationBusyRef.current) return
-    navigationBusyRef.current = true
-    await exitBrowserFullscreen()
-    close()
-
-    // El visor debe desmontarse antes de abrir la pregunta de transición.
-    // Así no quedan dos capas de navegación compitiendo por el mismo bloque.
-    window.requestAnimationFrame(() => {
-      action()
-      window.setTimeout(() => { navigationBusyRef.current = false }, 250)
-    })
-  }
+  const navigateFromViewer = (action) => runViewerNavigation({
+    action,
+    navigationBusyRef,
+    close,
+  })
 
   useEffect(() => {
     document.body.classList.add('aula-media-viewer-open')

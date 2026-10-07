@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 
 const gallery = await readFile(new URL('../player/src/course-player/ImageGallery.jsx', import.meta.url), 'utf8')
 const content = await readFile(new URL('../player/src/course-player/CourseContentViews.jsx', import.meta.url), 'utf8')
+const navigation = await readFile(new URL('../player/src/course-player/immersive-navigation.js', import.meta.url), 'utf8')
 
 assert.match(gallery, /navigateFromViewer/, 'El visor inmersivo debe usar una transición de navegación única.')
 assert.match(
@@ -11,7 +12,7 @@ assert.match(
   'El botón Siguiente del visor debe cerrar/sincronizar el visor antes de avanzar.',
 )
 assert.match(
-  gallery,
+  navigation,
   /await exitBrowserFullscreen\(\)[\s\S]*close\(\)[\s\S]*requestAnimationFrame/,
   'La navegación inmersiva debe salir de fullscreen, cerrar el visor y luego avanzar.',
 )

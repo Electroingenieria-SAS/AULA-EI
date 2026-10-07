@@ -411,9 +411,16 @@ begin
     nullif(auth.jwt()->>'session_id','')::uuid,
     nullif(left(trim(coalesce(p_application_version,'')),128),'')
   )
-  on conflict (user_id, document_version_id) do update
-    set application_version = coalesce(public.legal_acceptances.application_version, excluded.application_version)
+  on conflict (user_id, document_version_id) do nothing
   returning * into v_acceptance;
+
+  if v_acceptance.id is null then
+    select la.*
+      into v_acceptance
+    from public.legal_acceptances la
+    where la.user_id = v_user_id
+      and la.document_version_id = p_document_version_id;
+  end if;
 
   return query
   select

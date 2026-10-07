@@ -123,7 +123,7 @@ if (!mainEntry.includes('AppErrorBoundary')) throw new Error('La aplicación deb
 if (!mainEntry.includes('installRuntimeDiagnostics')) throw new Error('La aplicación debe instalar diagnósticos locales de runtime.')
 
 const runtimeDiagnostics = await readFile(path.join(root,'src/runtime-diagnostics.js'),'utf8')
-for (const required of ['MAX_EVENTS = 20','VITE_RELEASE_SHA','unhandledrejection','window-error']) {
+for (const required of ['MAX_EVENTS = 20','VITE_RELEASE_SHA','unhandledrejection','window-error','email-redacted','jwt-redacted','secret-redacted']) {
   if (!runtimeDiagnostics.includes(required)) throw new Error('Diagnóstico de runtime incompleto: falta ' + required)
 }
 if (/fetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/.test(runtimeDiagnostics)) {
@@ -151,6 +151,7 @@ for (const required of [
   'pull-requests: read',
   'pages: write',
   'id-token: write',
+  'VITE_RELEASE_SHA: ${{ github.sha }}',
 ]) {
   if (!deployWorkflow.includes(required)) throw new Error('Workflow de producción sin hardening: falta ' + required)
 }

@@ -3,6 +3,7 @@ import path from 'node:path'
 
 const root = process.cwd()
 const clientRoots = ['src','player/src','studio/src','certificate/src']
+const workflowRoot = path.join(root,'.github','workflows')
 
 async function walk(dir) {
   const output = []
@@ -111,9 +112,70 @@ for (const required of ['complete_password_recovery','change_reason','reason ===
   if (!completePasswordEdge.includes(required)) throw new Error('Auditoría de recuperación incompleta: falta ' + required)
 }
 
+
+const gitignore = await readFile(path.join(root,'.gitignore'),'utf8')
+for (const required of ['node_modules/','dist/','.env','.env.*','*.key']) {
+  if (!gitignore.includes(required)) throw new Error('.gitignore incompleto para producción: falta ' + required)
+}
+
+const mainEntry = await readFile(path.join(root,'src/main.jsx'),'utf8')
+if (!mainEntry.includes('AppErrorBoundary')) throw new Error('La aplicación debe tener un ErrorBoundary global de producción.')
+
+const courseContent = await readFile(path.join(root,'player/src/course-player/CourseContentViews.jsx'),'utf8')
+if (!courseContent.includes("const originalUrl = externalUrl ? safeExternalUrl(externalUrl) : assetUrl")) {
+  throw new Error('Las URLs originales de contenido externo deben pasar por safeExternalUrl().')
+}
+
+const workflowFiles = (await readdir(workflowRoot)).filter((name) => /\.ya?ml$/i.test(name))
+for (const workflowFile of workflowFiles) {
+  const workflow = await readFile(path.join(workflowRoot,workflowFile),'utf8')
+  for (const match of workflow.matchAll(/uses:\s*[^@\s]+@([^\s]+)/g)) {
+    if (!/^[0-9a-f]{40}$/i.test(match[1])) {
+      throw new Error('GitHub Action sin pin SHA en ' + workflowFile + ': ' + match[0])
+    }
+  }
+}
+
+const deployWorkflow = await readFile(path.join(workflowRoot,'deploy-pages.yml'),'utf8')
+for (const required of [
+  'Verify production push came from merged PR',
+  'pull-requests: read',
+  'pages: write',
+  'id-token: write',
+]) {
+  if (!deployWorkflow.includes(required)) throw new Error('Workflow de producción sin hardening: falta ' + required)
+}
+if (/^permissions:\s*\n\s+contents:\s*read\s*\n\s+pages:\s*write/m.test(deployWorkflow)) {
+  throw new Error('Los permisos de Pages no deben ser globales; deben limitarse al job deploy.')
+}
+
+for (const requiredPath of [
+  '.github/workflows/codeql.yml',
+  '.github/workflows/dependency-review.yml',
+  '.github/dependabot.yml',
+  '.github/CODEOWNERS',
+  'SECURITY.md',
+]) {
+  try { await readFile(path.join(root,requiredPath),'utf8') }
+  catch { throw new Error('Hardening de repositorio incompleto: falta ' + requiredPath) }
+}
+
+for (const edgePath of [
+  'supabase/functions/create-managed-user/index.ts',
+  'supabase/functions/delete-managed-user/index.ts',
+  'supabase/functions/complete-password-change/index.ts',
+  'supabase/functions/reset-managed-user-password/index.ts',
+  'supabase/functions/get-my-profile/index.ts',
+]) {
+  const content = await readFile(path.join(root,edgePath),'utf8')
+  if (!content.includes('"Cache-Control": "no-store"')) {
+    throw new Error('Edge Function sin Cache-Control no-store: ' + edgePath)
+  }
+}
+
 const resetPasswordEdge = await readFile(path.join(root,'supabase/functions/reset-managed-user-password/index.ts'),'utf8')
 for (const required of ['updateUserById','aula_ei_must_change_password: true','reset_managed_user_password','ROLE_RANK']) {
   if (!resetPasswordEdge.includes(required)) throw new Error('Restablecimiento administrativo inseguro o incompleto: falta ' + required)
 }
 
-console.log('Security v3.3 validada: MFA AAL2, recuperación OTP, sesión administrativa viva, secretos, contraseñas, restablecimiento seguro, rate limits, auditoría y deploy.')
+console.log('Security v4 validada: MFA AAL2, URLs seguras, ErrorBoundary, secretos, contraseñas, rate limits, Edge no-store, Actions pinneadas, CodeQL/Dependency Review y deploy protegido por PR.')

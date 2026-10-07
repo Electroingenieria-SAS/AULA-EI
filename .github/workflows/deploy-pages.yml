@@ -9,11 +9,6 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
   group: aula-ei-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
@@ -21,14 +16,29 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
     env:
       VITE_BASE_PATH: /AULA-EI/
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Verify production push came from merged PR
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          merged_pr_count="$(gh api             -H "Accept: application/vnd.github+json"             "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls"             --jq '[.[] | select(.merged_at != null and .base.ref == "main")] | length')"
+          if [ "$merged_pr_count" -lt 1 ]; then
+            echo "::error::Push directo a main detectado. Producción solo acepta commits asociados a un PR fusionado."
+            exit 1
+          fi
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24
           cache: npm
@@ -43,15 +53,18 @@ jobs:
       - name: Build Aula EI
         run: npm run build
 
+      - name: Browser smoke test
+        run: bash scripts/smoke-browser.sh
+
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
         with:
           enablement: true
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
         with:
           path: ./dist
 
@@ -61,8 +74,12 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e

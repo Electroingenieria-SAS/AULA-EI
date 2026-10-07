@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
+import AppErrorBoundary from './AppErrorBoundary.jsx'
 import '../studio/src/styles/core.css'
 import '../studio/src/styles/users.css'
 import '../studio/src/styles/certificates.css'
@@ -38,7 +39,9 @@ async function bootstrap() {
 
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </React.StrictMode>,
   )
 

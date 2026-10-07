@@ -50,6 +50,7 @@ for (const sourceRoot of sourceRoots) files.push(...await walk(sourceRoot))
 
 const fileBudgets = {
   'src/App.jsx': 9000,
+  'src/AppErrorBoundary.jsx': 5000,
   'src/responsive-foundation.css': 10000,
   'src/responsive-controls.css': 10000,
   'src/auth/AuthScreens.jsx': 18000,
@@ -90,6 +91,7 @@ for (const [file, maxBytes] of Object.entries(fileBudgets)) {
 
 for (const requiredFile of [
   'src/auth/AuthScreens.jsx',
+  'src/AppErrorBoundary.jsx',
   'src/async-utils.js',
   'src/responsive-foundation.css',
   'src/responsive-controls.css',

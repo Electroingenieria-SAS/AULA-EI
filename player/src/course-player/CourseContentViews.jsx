@@ -70,7 +70,7 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
   }, [block.id, block.asset_path])
 
   const displayUrl = externalUrl ? normalizeExternalUrl(externalUrl, block.type) : assetUrl
-  const originalUrl = externalUrl || assetUrl
+  const originalUrl = externalUrl ? safeExternalUrl(externalUrl) : assetUrl
   const isExternalEmbed = Boolean(displayUrl && isEmbedProvider(displayUrl))
 
   const validate = () => {

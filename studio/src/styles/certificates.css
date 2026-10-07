@@ -104,7 +104,7 @@
 
 @media(max-width:1250px){
   .certificate-metrics-grid{grid-template-columns:repeat(3,1fr)}
-  .certificate-toolbar{grid-template-columns:1fr 1fr}
+  .certificate-toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}
   .certificate-main-search{grid-column:1/-1}
 }
 @media(max-width:900px){
@@ -134,8 +134,8 @@
 .certificate-toolbar .filter-select{min-width:0;width:100%;overflow:hidden}
 .certificate-toolbar .filter-select select{min-width:0;width:100%;max-width:100%;text-overflow:ellipsis}
 .certificate-main-search input{min-width:0;max-width:100%;width:100%}
-@media(max-width:1400px){
-  .certificate-toolbar{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+@media(min-width:1251px) and (max-width:1400px){
+  .certificate-toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}
   .certificate-main-search{grid-column:1/-1}
 }
 @media(max-width:760px){

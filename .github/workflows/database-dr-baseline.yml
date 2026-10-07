@@ -58,7 +58,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s dr-baseline/roles.sql
+          test -f dr-baseline/roles.sql
           test -s dr-baseline/schema.sql
           grep -Eq 'CREATE (TABLE|FUNCTION|TYPE|SEQUENCE|SCHEMA)|CREATE POLICY|ALTER TABLE' dr-baseline/schema.sql
           if grep -Eq 'postgres(ql)?://|sb_secret_' dr-baseline/roles.sql dr-baseline/schema.sql; then

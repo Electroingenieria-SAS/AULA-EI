@@ -226,14 +226,18 @@ begin
     raise exception 'admin AAL2 required';
   end if;
 
-  select v.*, d.code
-  into v_row, v_code
+  select v.*
+    into v_row
   from public.legal_document_versions v
-  join public.legal_documents d on d.id=v.document_id
   where v.id=p_version_id
-  for update of v;
+  for update;
 
   if v_row.id is null then raise exception 'legal version not found'; end if;
+
+  select d.code
+    into v_code
+  from public.legal_documents d
+  where d.id=v_row.document_id;
   if v_row.status not in ('draft','approved') then
     raise exception 'only draft or approved versions can be published';
   end if;

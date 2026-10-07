@@ -15,6 +15,9 @@ for (const file of postHardening) {
   const sql = await readFile(path.join(migrationDir, file), 'utf8')
   const normalized = sql.replace(/--.*$/gm, '').toLowerCase()
 
+  if (/\bas\s+\$\s*(?:begin|select)/.test(normalized)) {
+    throw new Error('Migración con dollar-quote SQL inválido (AS $): ' + file)
+  }
   if (/disable\s+row\s+level\s+security/.test(normalized)) {
     throw new Error('Migración posterior al hardening desactiva RLS: ' + file)
   }

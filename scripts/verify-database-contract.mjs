@@ -18,10 +18,10 @@ for (const file of postHardening) {
   if (/disable\s+row\s+level\s+security/.test(normalized)) {
     throw new Error('Migración posterior al hardening desactiva RLS: ' + file)
   }
-  if (/grant\s+all(?:\s+privileges)?[\s\S]{0,180}\bto\s+anon\b/.test(normalized)) {
+  if (/\bgrant\s+all(?:\s+privileges)?\s+on\s+[^;]+?\s+to\s+anon\b/.test(normalized)) {
     throw new Error('Migración posterior al hardening concede ALL a anon: ' + file)
   }
-  if (/grant\s+execute[\s\S]{0,220}\bto\s+anon\b/.test(normalized)) {
+  if (/\bgrant\s+execute\s+on\s+function\s+[^;]+?\s+to\s+anon\b/.test(normalized)) {
     throw new Error('Migración posterior al hardening concede EXECUTE a anon: ' + file)
   }
 

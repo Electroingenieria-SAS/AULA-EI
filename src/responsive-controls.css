@@ -1,0 +1,382 @@
+/* ==========================================================================
+   Aula EI · Responsive Controls System v10
+   Base siempre cargada para desktop + modo compacto (>=901px).
+   Mobile <=900px se completa al final de mobile-app.css.
+   ========================================================================== */
+
+:root{
+  --control-hit-desktop:42px;
+  --control-hit-compact:44px;
+  --control-hit-icon:40px;
+  --control-gap:8px;
+  --control-radius:13px;
+}
+
+/* Contrato transversal de controles */
+:where(
+  .primary-button,.secondary-button,.danger-button,.file-button,
+  .home-yellow-button,.home-glass-button,
+  .catalog-original-yellow,.catalog-original-glass,
+  .catalog-open-button,.catalog-certificate-button,
+  .hero-primary-button,.secondary-action,.mobile-outline-button,
+  .practice-gate-continue,.practice-gate-skip,
+  .result-primary,.result-secondary,.validation-submit,
+  .export-button,.auth-secondary
+){
+  box-sizing:border-box;
+  min-height:var(--control-hit-desktop);
+  max-width:100%;
+  line-height:1.2;
+  text-align:center;
+  white-space:normal;
+}
+
+:where(
+  .primary-button,.secondary-button,.danger-button,.file-button,
+  .home-yellow-button,.home-glass-button,
+  .catalog-original-yellow,.catalog-original-glass,
+  .catalog-open-button,.catalog-certificate-button,
+  .hero-primary-button,.secondary-action,.mobile-outline-button,
+  .practice-gate-continue,.practice-gate-skip,
+  .result-primary,.result-secondary,.validation-submit,
+  .export-button,.small-action-button,.auth-primary,.auth-secondary,
+  .text-action,.studio-navigation-button,.studio-refresh-button,
+  .catalog-filter-row button,.certificate-view-switch button
+)>svg{
+  flex:0 0 auto;
+}
+
+.primary-button.compact,
+.secondary-button.compact,
+.danger-button.compact,
+.file-button.compact,
+.compact.primary-button,
+.compact.secondary-button,
+.compact.danger-button{
+  min-height:38px;
+}
+
+.icon-button,
+.toolbar-icon-button{
+  flex:0 0 var(--control-hit-icon);
+  width:var(--control-hit-icon);
+  min-width:var(--control-hit-icon);
+  height:var(--control-hit-icon);
+  min-height:var(--control-hit-icon);
+  padding:0;
+}
+
+.text-action{
+  min-height:36px;
+  max-width:100%;
+  line-height:1.25;
+  white-space:normal;
+}
+
+.catalog-card-footer button{
+  min-height:40px;
+  line-height:1.2;
+}
+
+.certificate-code-button,
+.small-action-button,
+.bulk-clear-selection{
+  min-height:36px;
+  box-sizing:border-box;
+}
+
+.user-identity-button,
+.certificate-person-button{
+  min-height:42px;
+  max-width:100%;
+}
+
+.training-notification-trigger{
+  min-height:44px;
+}
+
+.training-notification-panel>header button{
+  width:40px;
+  min-width:40px;
+  height:40px;
+  min-height:40px;
+}
+
+.studio-navigation-button,
+.studio-refresh-button{
+  min-height:44px;
+}
+
+.certificate-view-switch button,
+.catalog-filter-row button{
+  min-height:40px;
+}
+
+/* Los grupos declaran su comportamiento, no dependen de wrap accidental. */
+:where(
+  .header-actions,.toolbar-buttons,.row-actions,.import-actions,
+  .home-hero-actions,.catalog-original-actions,.learner-topbar-actions,
+  .course-authoring-actions,.publish-action-buttons,
+  .practice-gate-error-actions,.result-actions,
+  .user-row-actions,.certificate-row-actions
+){
+  gap:var(--control-gap);
+}
+
+:where(
+  .header-actions,.toolbar-buttons,.row-actions,.import-actions,
+  .home-hero-actions,.catalog-original-actions,.learner-topbar-actions,
+  .course-authoring-actions,.publish-action-buttons,
+  .practice-gate-error-actions,.result-actions,
+  .user-row-actions,.certificate-row-actions
+)>button,
+:where(
+  .header-actions,.toolbar-buttons,.row-actions,.import-actions,
+  .home-hero-actions,.catalog-original-actions,.learner-topbar-actions,
+  .course-authoring-actions,.publish-action-buttons,
+  .practice-gate-error-actions,.result-actions,
+  .user-row-actions,.certificate-row-actions
+)>a{
+  max-width:100%;
+}
+
+.catalog-card-footer{
+  flex-wrap:wrap;
+}
+
+.catalog-card-footer button{
+  flex:0 1 auto;
+}
+
+.selection-toolbar,
+.pagination-bar{
+  flex-wrap:wrap;
+}
+
+.selection-toolbar>div,
+.pagination-bar>div,
+.pagination-bar>label{
+  min-width:0;
+  max-width:100%;
+}
+
+.course-authoring-actions,
+.publish-action-buttons,
+.exam-toolbar{
+  min-width:0;
+}
+
+.modal-actions button,
+.certificate-detail-actions button,
+.result-actions button{
+  min-width:0;
+}
+
+/* --------------------------------------------------------------------------
+   Desktop intermedio 1101–1279: conserva desktop, pero evita controles tensos.
+   -------------------------------------------------------------------------- */
+@media(min-width:1101px) and (max-width:1279px){
+  .header-actions,
+  .toolbar-buttons,
+  .import-actions,
+  .catalog-card-footer,
+  .course-authoring-actions,
+  .publish-action-buttons{
+    flex-wrap:wrap;
+  }
+
+  .users-toolbar,
+  .certificate-toolbar{
+    align-items:stretch;
+  }
+
+  .user-row-actions,
+  .certificate-row-actions{
+    min-width:0;
+    flex-wrap:wrap;
+  }
+
+  .catalog-card-footer button{
+    flex:1 1 112px;
+  }
+
+  .course-authoring-actions button,
+  .publish-action-buttons button{
+    flex:1 1 145px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Compact 901–1100: objetivo táctil + distribución explícita.
+   -------------------------------------------------------------------------- */
+@media(min-width:901px) and (max-width:1100px){
+  :root{
+    --control-hit-desktop:var(--control-hit-compact);
+    --control-hit-icon:44px;
+    --control-gap:8px;
+  }
+
+  :where(
+    .primary-button,.secondary-button,.danger-button,.file-button,
+    .home-yellow-button,.home-glass-button,
+    .catalog-original-yellow,.catalog-original-glass,
+    .catalog-open-button,.catalog-certificate-button,
+    .hero-primary-button,.secondary-action,.mobile-outline-button,
+    .practice-gate-continue,.practice-gate-skip,
+    .result-primary,.result-secondary,.validation-submit,
+    .export-button,.auth-secondary
+  ){
+    min-height:44px;
+  }
+
+  .primary-button.compact,
+  .secondary-button.compact,
+  .danger-button.compact,
+  .file-button.compact{
+    min-height:42px;
+    padding-top:8px;
+    padding-bottom:8px;
+  }
+
+  .text-action{
+    min-height:42px;
+    padding-block:8px;
+  }
+
+  .catalog-card-footer{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .catalog-card-footer button{
+    width:100%;
+    min-width:0;
+  }
+
+  .catalog-card-footer button:only-child{
+    grid-column:1/-1;
+  }
+
+  .home-hero-actions,
+  .catalog-original-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,max-content));
+    align-items:stretch;
+    justify-content:start;
+    gap:9px;
+  }
+
+  .home-hero-actions button,
+  .catalog-original-actions button{
+    min-width:0;
+  }
+
+  .header-actions,
+  .toolbar-buttons,
+  .import-actions{
+    flex-wrap:wrap;
+  }
+
+  .header-actions>button,
+  .toolbar-buttons>button,
+  .import-actions>button,
+  .import-actions>.file-button{
+    flex:1 1 150px;
+    min-width:0;
+  }
+
+  .selection-toolbar,
+  .pagination-bar{
+    align-items:center;
+    row-gap:10px;
+  }
+
+  .selection-toolbar>div:last-child,
+  .pagination-bar>div:last-child{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .user-row-actions,
+  .certificate-row-actions{
+    min-width:0;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+
+  .user-row-actions>*,
+  .certificate-row-actions>*{
+    flex:0 1 auto;
+  }
+
+  .course-authoring-actions,
+  .exam-toolbar,
+  .publish-action-buttons{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+    gap:8px;
+  }
+
+  .course-authoring-actions button,
+  .exam-toolbar button,
+  .publish-action-buttons button{
+    width:100%;
+    min-width:0;
+    justify-content:center;
+  }
+
+  .modal-actions,
+  .certificate-detail-actions,
+  .result-actions,
+  .practice-gate-error-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .modal-actions button,
+  .certificate-detail-actions button,
+  .result-actions button,
+  .practice-gate-error-actions button{
+    width:100%;
+    min-width:0;
+    justify-content:center;
+  }
+
+  .practice-gate-footer{
+    gap:12px;
+  }
+
+  .practice-gate-continue{
+    min-width:180px;
+  }
+
+  .phase-actions,
+  .block-authoring-actions{
+    display:grid;
+    grid-template-columns:repeat(4,44px);
+    justify-content:end;
+    gap:6px;
+  }
+
+  .phase-actions .icon-button,
+  .block-authoring-actions .icon-button{
+    width:44px;
+    min-width:44px;
+    height:44px;
+  }
+
+  .certificate-view-switch button{
+    min-height:44px;
+  }
+
+  .catalog-filter-row button{
+    min-height:42px;
+  }
+
+  .exam-submit-bar button{
+    min-height:46px;
+  }
+}

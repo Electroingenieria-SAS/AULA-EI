@@ -12,6 +12,8 @@ for(const required of [
   'supabase/migrations/20261007193000_aula_ei_compliance_center.sql',
   'supabase/migrations/20261007194000_seed_aula_ei_legal_documents.sql',
   'supabase/migrations/20261007200000_aula_ei_compliance_admin.sql',
+  'supabase/migrations/20261007201000_aula_ei_compliance_indexes.sql',
+  'supabase/migrations/20261007202000_aula_ei_compliance_audit.sql',
   'docs/legal/storage-inventory.md',
   'docs/legal/provider-matrix.md',
   'docs/legal/retention-matrix.md',
@@ -37,6 +39,16 @@ for(const token of ['admin_list_legal_documents','admin_create_legal_document_ve
 
 const seed=await mustRead('supabase/migrations/20261007194000_seed_aula_ei_legal_documents.sql')
 if(/insert\s+into\s+public\.legal_acceptances/i.test(seed)) throw new Error('No se permiten aceptaciones legales retroactivas en el seed.')
+
+const auditSql=await mustRead('supabase/migrations/20261007202000_aula_ei_compliance_audit.sql')
+for(const token of ['audit_aula_compliance_mutation','legal.accepted','privacy.request.created','privacy.incident.created']){
+  if(!auditSql.includes(token)) throw new Error('Auditoría del Compliance Center incompleta: falta '+token)
+}
+
+const indexesSql=await mustRead('supabase/migrations/20261007201000_aula_ei_compliance_indexes.sql')
+for(const token of ['legal_documents_created_by_idx','privacy_requests_resolved_by_idx','retention_rules_approved_by_idx']){
+  if(!indexesSql.includes(token)) throw new Error('Índices del Compliance Center incompletos: falta '+token)
+}
 
 const vercel=JSON.parse(await mustRead('vercel.json'))
 const headers=JSON.stringify(vercel.headers||[])

@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import AdminMfaGate from './AdminMfaGate.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
 import MobileViewportSync from './MobileViewportSync.jsx'
+import LegalGate from './legal/LegalGate.jsx'
 import { appUrl } from './paths.js'
 import { clearDataCache } from './data-cache.js'
 import { withTimeout } from './async-utils.js'
@@ -144,11 +145,13 @@ export default function App() {
     const securedContent = route.isCertificate
       ? <CertificateApp sessionUser={session.user} />
       : <LearnerApp profile={profile} sessionUser={session.user} />
-    return <AdminMfaGate profile={profile}>
-      <Suspense fallback={<Startup title="Cargando módulo…" />}>
-        {securedContent}
-      </Suspense>
-    </AdminMfaGate>
+    return <LegalGate profile={profile} sessionUser={session.user}>
+      <AdminMfaGate profile={profile}>
+        <Suspense fallback={<Startup title="Cargando módulo…" />}>
+          {securedContent}
+        </Suspense>
+      </AdminMfaGate>
+    </LegalGate>
   }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, authError])
 
   return <>

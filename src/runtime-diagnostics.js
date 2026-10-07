@@ -1,6 +1,15 @@
 const STORAGE_KEY = 'aula-ei-runtime-diagnostics-v1'
 const MAX_EVENTS = 20
 
+function redactDiagnosticText(value, maxLength) {
+  return String(value || '')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email-redacted]')
+    .replace(/Bearer\s+[A-Za-z0-9._~-]+/gi, 'Bearer [redacted]')
+    .replace(/eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[jwt-redacted]')
+    .replace(/sb_secret_[A-Za-z0-9_-]+/g, '[secret-redacted]')
+    .slice(0, maxLength)
+}
+
 function safeRead() {
   try {
     const parsed = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]')
@@ -21,16 +30,16 @@ export function recordRuntimeDiagnostic(type, detail = {}) {
     at: new Date().toISOString(),
     type: String(type || 'runtime').slice(0, 60),
     release: String(import.meta.env.VITE_RELEASE_SHA || 'local').slice(0, 40),
-    route: String(window.location.hash || window.location.pathname || '/').slice(0, 180),
+    route: redactDiagnosticText(window.location.hash || window.location.pathname || '/', 180),
     viewport: {
       width: Math.round(window.innerWidth || 0),
       height: Math.round(window.innerHeight || 0),
       dpr: Number(window.devicePixelRatio || 1),
     },
     detail: {
-      name: String(detail?.name || '').slice(0, 120),
-      message: String(detail?.message || '').slice(0, 500),
-      source: String(detail?.source || '').slice(0, 180),
+      name: redactDiagnosticText(detail?.name, 120),
+      message: redactDiagnosticText(detail?.message, 500),
+      source: redactDiagnosticText(detail?.source, 180),
     },
   }
   const events = safeRead()

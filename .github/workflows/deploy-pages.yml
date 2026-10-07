@@ -84,3 +84,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+
+      - name: Verify live Pages deployment
+        run: |
+          url="${{ steps.deployment.outputs.page_url }}"
+          for attempt in {1..10}; do
+            if html="$(curl --fail --silent --show-error --location "$url")"; then
+              echo "$html" | grep -q "Aula EI" && exit 0
+            fi
+            sleep 6
+          done
+          echo "::error::GitHub Pages no respondió con Aula EI después del despliegue."
+          exit 1

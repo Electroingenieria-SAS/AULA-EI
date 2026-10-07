@@ -120,6 +120,15 @@ for (const required of ['node_modules/','dist/','.env','.env.*','*.key']) {
 
 const mainEntry = await readFile(path.join(root,'src/main.jsx'),'utf8')
 if (!mainEntry.includes('AppErrorBoundary')) throw new Error('La aplicación debe tener un ErrorBoundary global de producción.')
+if (!mainEntry.includes('installRuntimeDiagnostics')) throw new Error('La aplicación debe instalar diagnósticos locales de runtime.')
+
+const runtimeDiagnostics = await readFile(path.join(root,'src/runtime-diagnostics.js'),'utf8')
+for (const required of ['MAX_EVENTS = 20','VITE_RELEASE_SHA','unhandledrejection','window-error']) {
+  if (!runtimeDiagnostics.includes(required)) throw new Error('Diagnóstico de runtime incompleto: falta ' + required)
+}
+if (/fetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/.test(runtimeDiagnostics)) {
+  throw new Error('Los diagnósticos locales no deben enviar datos a servicios externos.')
+}
 
 const courseContent = await readFile(path.join(root,'player/src/course-player/CourseContentViews.jsx'),'utf8')
 if (!courseContent.includes("const originalUrl = externalUrl ? safeExternalUrl(externalUrl) : assetUrl")) {
@@ -178,4 +187,4 @@ for (const required of ['updateUserById','aula_ei_must_change_password: true','r
   if (!resetPasswordEdge.includes(required)) throw new Error('Restablecimiento administrativo inseguro o incompleto: falta ' + required)
 }
 
-console.log('Security v4 validada: MFA AAL2, URLs seguras, ErrorBoundary, secretos, contraseñas, rate limits, Edge no-store, Actions pinneadas, CodeQL/Dependency Review y deploy protegido por PR.')
+console.log('Security v4.1 validada: MFA AAL2, URLs seguras, ErrorBoundary, diagnóstico local privado, secretos, contraseñas, rate limits, Edge no-store, Actions pinneadas, CodeQL/Dependency Security y deploy protegido por PR.')

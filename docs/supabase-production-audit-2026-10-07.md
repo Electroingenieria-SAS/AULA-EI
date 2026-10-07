@@ -4,6 +4,8 @@ Proyecto auditado: `ipoidimevokogptydbvt`
 
 ## Estado verificado en vivo
 
+Migraciones live registradas durante el hardening: `20261007145446`, `20261007145515` y `20261007145659`.
+
 - Proyecto `ACTIVE_HEALTHY`.
 - RLS habilitada en las tablas núcleo de Aula EI.
 - Storage `course-assets` restringido a usuarios autenticados con reglas por matrícula/rol.

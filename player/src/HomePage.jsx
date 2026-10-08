@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, BookOpen, Briefcase, CheckCircle2, Gamepad2, GraduationCap, Layers3, LockKeyhole, Medal, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
+import { ArrowRight, BookOpen, Briefcase, CheckCircle2, Clock3, GraduationCap, Layers3, LockKeyhole, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
 import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 import { cachedQuery } from '../../src/data-cache.js'
+import { learningPriorities } from './learning-priorities.js'
 
 export default function HomePage({ profile, sessionUser }) {
   const [enrollments, setEnrollments] = useState([])
@@ -40,16 +41,27 @@ export default function HomePage({ profile, sessionUser }) {
   }, [sessionUser?.id])
 
   const firstName = useMemo(() => String(profile?.full_name || 'Colaborador').trim().split(/\s+/)[0] || 'Colaborador', [profile?.full_name])
+  const priorities = useMemo(() => learningPriorities(enrollments, certificates), [enrollments, certificates])
 
   return <main className="learner-home-page">
     <section className="home-original-hero">
       <div className="home-hero-motion" aria-hidden="true"><i /><i /><i /><i /></div>
       <div>
-        <span className="home-hero-pill"><Sparkles size={15} /> Plataforma conectada</span>
-        <h1>Aprende, participa y certifícate.</h1>
-        <p>{firstName}, completa videos, presentaciones, recursos didácticos y juegos antes de presentar el examen final.</p>
+        <span className="home-hero-pill"><Sparkles size={15} /> Tu espacio de aprendizaje</span>
+        <h1>{loading ? 'Preparando tu formación…' : priorities.next ? 'Tu siguiente paso está listo.' : 'Tu formación, al día.'}</h1>
+        <p>{loading ? 'Estamos organizando tus capacitaciones.' : priorities.next
+          ? `${firstName}, tienes ${priorities.pending} capacitación(es) pendiente(s). Continúa tu formación cuando estés listo.`
+          : `${firstName}, no tienes capacitaciones pendientes. Puedes consultar tu historial y certificados.`}</p>
+        {!loading && priorities.next && <div className="home-next-course">
+          <strong>{priorities.next.course.title}</strong>
+          <span><Clock3 size={15}/>{priorities.nextLabel}</span>
+        </div>}
         <div className="home-hero-actions">
-          <button className="home-yellow-button" onClick={() => navigateLearner('/catalog')}>Ver mis capacitaciones</button>
+          <button className="home-yellow-button" onClick={() => priorities.next
+            ? openLearnerCourse(priorities.next.course.id)
+            : navigateLearner('/catalog')}>
+            <PlayCircle size={17}/> {priorities.next ? 'Continuar siguiente capacitación' : 'Ver mis capacitaciones'}
+          </button>
           {['creador_contenido','revisor','admin','super_admin'].includes(String(profile?.role || '')) &&
             <button className="home-glass-button" onClick={() => navigateLearner('/studio')}><ShieldCheck size={18} /> Gestión Aula EI</button>}
         </div>
@@ -62,8 +74,8 @@ export default function HomePage({ profile, sessionUser }) {
     <section className={'home-metric-grid ' + (loading ? 'is-loading' : '')}>
       <article><BookOpen /><div><span>Asignadas visibles</span><strong>{loading ? '—' : enrollments.length}</strong></div></article>
       <article><GraduationCap /><div><span>Certificadas</span><strong>{loading ? '—' : certificates.length}</strong></div></article>
-      <article><Gamepad2 /><div><span>Juegos disponibles</span><strong>6+</strong></div></article>
-      <article><Medal /><div><span>Nota mínima</span><strong>80%</strong></div></article>
+      <article><BookOpen /><div><span>Por completar</span><strong>{loading ? '—' : priorities.pending}</strong></div></article>
+      <article><Clock3 /><div><span>Plazo vencido o próximos 7 días</span><strong>{loading ? '—' : priorities.dueSoon}</strong></div></article>
     </section>
 
     {trainingProfile?.position && <section className="home-training-route-card">

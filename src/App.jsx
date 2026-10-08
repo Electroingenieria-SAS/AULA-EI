@@ -34,6 +34,7 @@ export default function App() {
   const [session, setSession] = useState(null)
   const [sessionReady, setSessionReady] = useState(false)
   const [profile, setProfile] = useState(null)
+  const [profileUserId, setProfileUserId] = useState(null)
   const [profileBusy, setProfileBusy] = useState(false)
   const [authError, setAuthError] = useState('')
   const [recoveryMode, setRecoveryMode] = useState(false)
@@ -63,7 +64,7 @@ export default function App() {
       if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true)
       if (event === 'SIGNED_OUT' || !nextSession) clearDataCache()
       if (event === 'SIGNED_OUT') setIntroComplete(false)
-      if (!nextSession) setProfile(null)
+      if (!nextSession) { setProfile(null); setProfileUserId(null) }
       setAuthError('')
       setSessionReady(true)
     })
@@ -82,6 +83,7 @@ export default function App() {
 
     if (!user) {
       setProfile(null)
+      setProfileUserId(null)
       setProfileBusy(false)
       return () => { alive = false }
     }
@@ -104,11 +106,13 @@ export default function App() {
         }
         if (alive) {
           setProfile(currentProfile)
+          setProfileUserId(user.id)
           setAuthError('')
         }
       } catch (error) {
         if (alive) {
           setProfile(null)
+          setProfileUserId(null)
           setAuthError(error instanceof Error ? error.message : 'No fue posible validar tu acceso a Aula EI.')
         }
       } finally {
@@ -146,11 +150,11 @@ export default function App() {
       ? <Suspense fallback={<Startup title="Iniciando Aula EI…" />}><EntrySplash onComplete={() => setIntroComplete(true)} /></Suspense>
       : <LoginPage error={authError} preserveRoute={route.isCertificate} onRecoveryModeChange={setRecoveryMode} />
     if (profileBusy) return <Startup title="Validando tu acceso…" />
-    if (!profile) return <AccessError message={authError || 'No fue posible cargar tu perfil de Aula EI.'} />
+    if (!profile || profileUserId !== session.user.id) return <AccessError message={authError || 'No fue posible cargar tu perfil de Aula EI.'} />
     if (mustChangePassword) return <PasswordGate profile={profile} />
     const securedContent = route.isCertificate
       ? <CertificateApp sessionUser={session.user} />
-      : <LearnerApp profile={profile} sessionUser={session.user} />
+      : <LearnerApp key={session.user.id} profile={profile} sessionUser={session.user} />
     return <LegalGate profile={profile} sessionUser={session.user}>
       <AdminMfaGate profile={profile}>
         <Suspense fallback={<Startup title="Cargando módulo…" />}>
@@ -158,7 +162,7 @@ export default function App() {
         </Suspense>
       </AdminMfaGate>
     </LegalGate>
-  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError, introComplete])
+  }, [sessionReady, session?.user, profileBusy, profile, profileUserId, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError, introComplete])
 
   return <>
     <MobileViewportSync />

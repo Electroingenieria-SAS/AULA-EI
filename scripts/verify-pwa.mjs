@@ -33,7 +33,7 @@ for (const required of [
   'import.meta.env.BASE_URL',
   "updateViaCache: 'none'",
   "controllerchange",
-  "sw.js?v=5",
+  "sw.js?v=6",
 ]) {
   if (!main.includes(required)) throw new Error('Registro PWA incompleto: falta ' + required)
 }

@@ -37,8 +37,8 @@ assert.match(builder, /buildGameContent\(/)
 assert.match(builder, /<GameBlockFields/)
 assert.match(fields, /GAME_TYPES\.map/)
 assert.match(contentViews, /<LearningGame key=\{block\.id\}/)
-assert.match(page, /<LearningGame content=\{current\}/)
-assert.match(page, /En desarrollo/, 'No anunciar como jugables los módulos futuros.')
+assert.match(page, /<LearningGame key=\{String\(selectedCourseId\)/)
+assert.match(page, /Escoge una capacitación/, 'El repaso debe iniciar seleccionando una capacitación real.')
 for (const marker of ['MemoryRound','ClassificationRound','SequenceRound','DecisionRound','role="status"','Reiniciar']) {
   assert.ok(game.includes(marker), 'Motor interactivo sin función requerida: ' + marker)
 }

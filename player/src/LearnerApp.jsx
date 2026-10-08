@@ -71,7 +71,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage />
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
-    if (route.type === 'privacy') return <PrivacyCenter />
+    if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
     return <HomePage profile={profile} sessionUser={sessionUser} />
   }, [route.key, route.type, profile, sessionUser])
 

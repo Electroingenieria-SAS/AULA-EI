@@ -218,6 +218,7 @@ export function AutomationRunPanel({ setMessage }) {
   useEffect(() => { load() }, [])
 
   const run = async () => {
+    if (busy || !window.confirm('¿Ejecutar manualmente las reglas de avisos y recertificación activas? Se registrará la ejecución y el servidor evitará avisos duplicados mediante sus claves de deduplicación.')) return
     setBusy(true)
     try {
       const { data, error } = await supabase.rpc('admin_run_training_automations')

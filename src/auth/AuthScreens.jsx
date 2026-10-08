@@ -44,6 +44,8 @@ export function LoginPage({ error = '', preserveRoute = false, recoveryMode = fa
         'Supabase no respondió a tiempo. Revisa tu conexión e inténtalo nuevamente.',
       )
       if (loginError) throw loginError
+      // Only an explicit successful sign-in starts the one-time branded welcome.
+      try { window.sessionStorage.setItem('aula-ei-brand-welcome-v1', 'pending') } catch {}
       if (!preserveRoute) window.location.replace(appUrl('/'))
     } catch (loginError) {
       const raw = loginError instanceof Error ? loginError.message : 'No fue posible iniciar sesión.'

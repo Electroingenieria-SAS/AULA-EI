@@ -11,8 +11,10 @@ import { supabase } from './supabase.js'
 
 const loadCertificateApp = () => import('../certificate/src/CertificateApp.jsx')
 const loadLearnerApp = () => import('../player/src/LearnerApp.jsx')
+const loadPostLoginSplash = () => import('./branding/PostLoginSplash.jsx')
 const CertificateApp = lazy(loadCertificateApp)
 const LearnerApp = lazy(loadLearnerApp)
+const PostLoginSplash = lazy(loadPostLoginSplash)
 
 function routeInfo() {
   const hash = window.location.hash || '#/'
@@ -35,6 +37,13 @@ export default function App() {
   const [profileBusy, setProfileBusy] = useState(false)
   const [authError, setAuthError] = useState('')
   const [recoveryMode, setRecoveryMode] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try { return window.sessionStorage.getItem('aula-ei-brand-welcome-v1') === 'pending' } catch { return false }
+  })
+  useEffect(() => {
+    if (!showWelcome) return
+    try { window.sessionStorage.removeItem('aula-ei-brand-welcome-v1') } catch {}
+  }, [showWelcome])
 
   useEffect(() => {
     let alive = true
@@ -147,12 +156,14 @@ export default function App() {
       : <LearnerApp profile={profile} sessionUser={session.user} />
     return <LegalGate profile={profile} sessionUser={session.user}>
       <AdminMfaGate profile={profile}>
-        <Suspense fallback={<Startup title="Cargando módulo…" />}>
-          {securedContent}
-        </Suspense>
+        {showWelcome && !route.isCertificate
+          ? <Suspense fallback={<Startup title="Preparando tu acceso…" />}><PostLoginSplash onComplete={() => setShowWelcome(false)} /></Suspense>
+          : <Suspense fallback={<Startup title="Cargando módulo…" />}>
+              {securedContent}
+            </Suspense>}
       </AdminMfaGate>
     </LegalGate>
-  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError])
+  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError, showWelcome])
 
   return <>
     <MobileViewportSync />

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { ArrowLeft, BookOpen, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react'
+import { ArrowLeft, BookOpen, Code2, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react'
 import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
@@ -14,7 +14,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
   }, [displayName])
   const canManage = ['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))
   const isCourse = activeRoute === 'course'
-  const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'development' ? 'Mi desarrollo' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'privacy' ? 'Privacidad y legal' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
+  const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'development' ? 'Mi desarrollo' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'privacy' ? 'Privacidad y legal' : activeRoute === 'credits' ? 'Créditos' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -47,6 +47,9 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
       </nav>
 
       <div className="learner-sidebar-bottom">
+        <button type="button" className="learner-sidebar-signout" onClick={() => navigateLearner('/credits')}>
+          <Code2 size={18} /> Créditos de desarrollo
+        </button>
         <button className="learner-sidebar-signout" onClick={signOut}><LogOut size={18} /> Cerrar sesión</button>
         <div className="learner-sidebar-security"><Sparkles size={16} /><span>Contenido protegido con Supabase Auth y RLS.</span></div>
       </div>

@@ -9,6 +9,7 @@ const loadCoursePreview = () => import('./CoursePreview.jsx')
 const loadGamesPage = () => import('./GamesPage.jsx')
 const loadDevelopmentPage = () => import('./DevelopmentPage.jsx')
 const loadPrivacyCenter = () => import('./PrivacyCenter.jsx')
+const loadDeveloperCredits = () => import('./DeveloperCreditsPage.jsx')
 
 const StudioApp = lazy(loadStudioApp)
 const CatalogPage = lazy(loadCatalogPage)
@@ -17,6 +18,7 @@ const CoursePreview = lazy(loadCoursePreview)
 const GamesPage = lazy(loadGamesPage)
 const DevelopmentPage = lazy(loadDevelopmentPage)
 const PrivacyCenter = lazy(loadPrivacyCenter)
+const DeveloperCreditsPage = lazy(loadDeveloperCredits)
 
 function readRoute() {
   const hash = window.location.hash || '#/'
@@ -31,6 +33,7 @@ function readRoute() {
   if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games', courseId: '' }
   if (/^#\/studio(?:\/|$)/.test(hash)) return { key: 'studio', type: 'studio' }
   if (/^#\/privacy(?:\/|$)/.test(hash)) return { key: 'privacy', type: 'privacy' }
+  if (/^#\/credits(?:\/|$)/.test(hash)) return { key: 'credits', type: 'credits' }
   return { key: 'home', type: 'home' }
 }
 
@@ -54,6 +57,7 @@ export default function LearnerApp({ profile, sessionUser }) {
       void loadDevelopmentPage()
       void loadCoursePlayer()
       void loadPrivacyCenter()
+      void loadDeveloperCredits()
       if (['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))) {
         void loadStudioApp()
         if (['admin','super_admin'].includes(String(profile?.role || ''))) void loadCoursePreview()
@@ -77,6 +81,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'games') void loadGamesPage()
     if (route.type === 'studio') void loadStudioApp()
     if (route.type === 'privacy') void loadPrivacyCenter()
+    if (route.type === 'credits') void loadDeveloperCredits()
   }, [route.type])
 
   const content = useMemo(() => {
@@ -89,6 +94,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'games') return <GamesPage sessionUser={sessionUser} initialCourseId={route.courseId || ''}/>
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
+    if (route.type === 'credits') return <DeveloperCreditsPage />
     return <HomePage profile={profile} sessionUser={sessionUser} />
   }, [route.key, route.type, route.courseId, profile, sessionUser])
 
@@ -105,6 +111,8 @@ function RouteLoading({ route }) {
     ? 'Abriendo Gestión Aula EI…'
     : route === 'preview'
       ? 'Preparando la vista previa…'
+    : route === 'credits'
+      ? 'Abriendo créditos de desarrollo…'
     : route === 'development'
       ? 'Preparando tu desarrollo…'
     : route === 'catalog'

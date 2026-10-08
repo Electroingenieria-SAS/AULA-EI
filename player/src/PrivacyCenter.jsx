@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { BookOpen, CheckCircle2, ChevronDown, Clock3, ExternalLink, Eye, FileCheck2, RefreshCw, Send, ShieldCheck } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronDown, Clock3, Code2, ExternalLink, Eye, FileCheck2, RefreshCw, Send, ShieldCheck } from 'lucide-react'
 import { appUrl } from '../../src/paths.js'
+import { navigateLearner } from './navigation.js'
+import './styles/privacy-developer-entry.css'
 import { parseLegalMarkdown, stripLegalMarkdown } from '../../src/legal/legal-markdown.js'
 import {
   createPrivacyRequest,
@@ -142,6 +144,15 @@ export default function PrivacyCenter({ profile }) {
           </article>)}</div>}
       </section>
     </div>
+    <section className="privacy-card privacy-developer-entry" aria-label="Créditos de desarrollo">
+      <div className="privacy-card-title"><Code2 size={20}/><div>
+        <h2>Créditos y desarrollo de la plataforma</h2>
+        <p>Reconocimiento de las contribuciones de software y su identidad visual.</p>
+      </div></div>
+      <button type="button" onClick={() => navigateLearner('/credits')}>
+        Ver tarjeta interactiva de créditos <ExternalLink size={17}/>
+      </button>
+    </section>
   </section>
 }
 

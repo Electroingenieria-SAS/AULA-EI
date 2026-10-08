@@ -49,15 +49,3 @@
   .privacy-admin-preview{grid-template-columns:minmax(0,1fr)}
   .privacy-center a.privacy-preview-action{justify-self:stretch}
 }
-
-
-/* Discoverable credits at the end of privacy, accessible from mobile Legal tab. */
-.privacy-developer-entry{display:grid;gap:12px;margin-top:18px}
-.privacy-developer-entry>button{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  justify-self:start;min-height:44px;padding:11px 15px;border:1px solid #0b5ca9;
-  border-radius:12px;background:#0b5ca9;color:#fff;font-size:.77rem;
-  font-weight:900;cursor:pointer
-}
-.privacy-developer-entry>button:focus-visible{outline:3px solid #4b94d6;outline-offset:3px}
-@media(max-width:620px){.privacy-developer-entry>button{width:100%}}

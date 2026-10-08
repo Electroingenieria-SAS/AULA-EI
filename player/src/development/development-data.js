@@ -56,17 +56,24 @@ export function buildDevelopmentSnapshot(snapshot = {}, now = new Date()) {
         next: courses.find((course) => !course.completed && course.unlocked) || null,
       }
     })
+  // A required route may show an assignment before its prerequisite unlocks.
+  // Keep the assignment visible but do not advertise it as directly actionable.
+  const lockedCourseIds = new Set(paths.filter((path) => path.required).flatMap((path) =>
+    path.courses.filter((step) => !step.completed && !step.unlocked)
+      .map((step) => String(step.course_id))))
   const assignments = enrollments.map((entry) => {
     const certificate = matchCertificate(entry, certificates)
     const complete = entry.status === 'completed' || Boolean(certificate)
     const dueTime = validDate(entry.due_at)
     const overdue = !complete && dueTime !== null && dueTime < stamp
     const dueSoon = !complete && dueTime !== null && dueTime >= stamp && dueTime <= stamp + 7 * 86400000
-    return { ...entry, certificate, complete, dueTime, overdue, dueSoon }
+    return { ...entry, certificate, complete, dueTime, overdue, dueSoon,
+      routeLocked: !complete && lockedCourseIds.has(String(entry.course.id)) }
   })
   const upcoming = assignments.filter((item) => !item.complete && item.dueTime !== null)
     .sort((a,b) => a.dueTime - b.dueTime)
-  const next = upcoming[0] || assignments.find((item) => !item.complete) || null
+  const next = upcoming.find((item) => !item.routeLocked) ||
+    assignments.find((item) => !item.complete && !item.routeLocked) || null
   return {
     position: profile.position || null,
     supervisor: profile.supervisor || null,

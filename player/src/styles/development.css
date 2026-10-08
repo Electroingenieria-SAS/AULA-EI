@@ -146,3 +146,9 @@
   .development-deadline button,.development-certificates button{margin-left:auto}
 }
 @media(prefers-reduced-motion:reduce){.development-skill-track>span,.development-path-progress>i{transition:none}}
+
+/* Routes with pending prerequisites must not masquerade as actionable dates. */
+.development-deadline-locked{display:inline-flex;align-items:center;gap:6px;
+  font-size:.69rem;font-weight:850;color:#7b8796;background:#f0f2f5;
+  border:1px solid #e1e6ed;border-radius:10px;padding:9px 11px;white-space:normal}
+@media(max-width:480px){.development-deadline-locked{margin-left:auto}}

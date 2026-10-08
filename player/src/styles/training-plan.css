@@ -1,0 +1,113 @@
+/* Aula EI · Fase 7.1. Prioridades derivadas del snapshot RLS existente. */
+.training-plan-page{width:min(1480px,100%);margin:0 auto;padding:26px;box-sizing:border-box;
+  display:grid;gap:17px;color:#193e68;font-family:"Century Gothic","Segoe UI",sans-serif}
+.training-plan-hero{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(230px,.7fr);
+  align-items:center;gap:20px;overflow:hidden;border-radius:23px;padding:30px;
+  background:linear-gradient(118deg,#093768 0%,#0e5799 66%,#2479b9 100%);
+  box-shadow:0 17px 42px rgba(14,61,111,.14);color:#fff}
+.training-plan-hero-copy{min-width:0}
+.training-plan-kicker{display:inline-flex;align-items:center;gap:7px;color:#d9eeff;
+  font-size:.67rem;font-weight:900;letter-spacing:.09em}
+.training-plan-hero h1{margin:13px 0;font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.2;color:#fff}
+.training-plan-hero p{max-width:680px;margin:0;font-size:.82rem;line-height:1.68;color:#e0effc}
+.training-plan-hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:21px}
+.training-plan-hero-actions button,.training-plan-next button,.training-plan-open,
+.training-plan-board-header button,.training-plan-state button,.training-plan-empty button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;
+  border-radius:11px;padding:10px 15px;font:inherit;font-size:.75rem;font-weight:900;cursor:pointer}
+.training-plan-primary{border:1px solid #ffd654;background:#ffd654;color:#173b67}
+.training-plan-secondary{border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.1);color:#fff}
+.training-plan-hero-score{min-width:0;display:grid;gap:9px;padding:23px;
+  border:1px solid rgba(255,255,255,.19);border-radius:17px;background:rgba(255,255,255,.11)}
+.training-plan-hero-score small{color:#d8eafa;font-size:.67rem;letter-spacing:.08em;font-weight:850}
+.training-plan-hero-score strong{font-size:clamp(2.25rem,4vw,3.3rem);line-height:1;color:#fff}
+.training-plan-hero-score span{font-size:.75rem;color:#e2f0fd;line-height:1.45}
+.training-plan-hero-score>div{height:8px;border-radius:999px;background:rgba(255,255,255,.21);overflow:hidden}
+.training-plan-hero-score i{display:block;height:100%;border-radius:inherit;background:#ffda61}
+.training-plan-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.training-plan-stats article{min-width:0;display:flex;gap:12px;align-items:center;padding:16px;
+  border:1px solid #dce8f3;border-radius:16px;background:#fff;
+  box-shadow:0 5px 18px rgba(14,68,117,.045)}
+.training-plan-stats svg{flex:none;color:#176eac}
+.training-plan-stats article>div{min-width:0;display:grid;gap:6px}
+.training-plan-stats span{font-size:.69rem;color:#65809a;line-height:1.3}
+.training-plan-stats strong{color:#164875;font-size:1.4rem;font-variant-numeric:tabular-nums}
+.training-plan-next{min-width:0;display:flex;gap:15px;align-items:center;padding:17px 20px;
+  border:1px solid #bcdcef;border-radius:17px;background:linear-gradient(105deg,#e9f5ff,#fff);
+  box-shadow:0 7px 24px rgba(14,71,127,.065)}
+.training-plan-next-icon{flex:0 0 48px;width:48px;height:48px;display:grid;place-items:center;
+  border-radius:15px;background:#176cad;color:#fff}
+.training-plan-next>div{flex:1;min-width:0;display:grid;gap:5px}
+.training-plan-next small,.training-plan-board-header small{font-size:.65rem;font-weight:900;letter-spacing:.08em;color:#4182b1}
+.training-plan-next strong{font-size:.96rem;color:#164a77;overflow-wrap:anywhere}
+.training-plan-next p{font-size:.74rem;color:#607f98;margin:0;line-height:1.5}
+.training-plan-next button,.training-plan-open{border:1px solid #0e67aa;background:#116bab;color:#fff;flex:none}
+.training-plan-board{min-width:0;overflow:hidden;border:1px solid #dce8f3;border-radius:19px;
+  background:#fff;box-shadow:0 8px 26px rgba(13,64,109,.045)}
+.training-plan-board-header{display:flex;align-items:center;justify-content:space-between;gap:15px;
+  padding:21px 22px;border-bottom:1px solid #e2edf4}
+.training-plan-board-header>div{min-width:0}
+.training-plan-board-header h2{font-size:1.17rem;margin:6px 0;color:#174979}
+.training-plan-board-header p{max-width:690px;font-size:.72rem;color:#647f99;margin:0;line-height:1.55}
+.training-plan-board-header button,.training-plan-empty button{background:#ecf6ff;color:#1764a1;border:1px solid #c9dff1}
+.training-plan-board-header button:disabled{opacity:.6;cursor:default}
+.training-plan-filters{display:flex;flex-wrap:wrap;gap:7px;padding:13px 18px;
+  border-bottom:1px solid #e6eef6;background:#f9fcff}
+.training-plan-filters button{min-height:40px;padding:9px 13px;border:1px solid #dae6f1;
+  border-radius:999px;background:#fff;color:#53718d;font-size:.7rem;font-weight:850;cursor:pointer}
+.training-plan-filters button.is-active{border-color:#146eb2;background:#146eb2;color:#fff}
+.training-plan-list{display:grid;padding:8px 18px}
+.training-plan-item{display:flex;align-items:center;gap:14px;min-width:0;padding:16px 4px;
+  border-bottom:1px solid #eaf0f6}
+.training-plan-item:last-child{border-bottom:0}
+.training-plan-item-icon{display:grid;place-items:center;flex:0 0 45px;width:45px;height:45px;
+  border-radius:13px;background:#eaf4fe;color:#1670ac}
+.training-plan-item.is-overdue .training-plan-item-icon{background:#fff0ed;color:#b54837}
+.training-plan-item.is-locked .training-plan-item-icon{background:#f0f2f5;color:#718094}
+.training-plan-item.is-complete .training-plan-item-icon{background:#e8f8ee;color:#218451}
+.training-plan-item-body{min-width:0;flex:1;display:grid;gap:6px}
+.training-plan-status{justify-self:start;font-size:.61rem;font-weight:900;padding:5px 9px;
+  border-radius:999px;background:#eaf4ff;color:#13669f}
+.training-plan-status.is-overdue{background:#ffe8e4;color:#a33d30}
+.training-plan-status.is-due{background:#fff3d9;color:#886017}
+.training-plan-status.is-locked{background:#eff1f5;color:#68778a}
+.training-plan-status.is-complete{background:#e7f7ed;color:#277b4d}
+.training-plan-item h3{margin:0;color:#174775;font-size:.88rem;line-height:1.4;overflow-wrap:anywhere}
+.training-plan-item p{margin:0;color:#6b8197;font-size:.72rem;line-height:1.5}
+.training-plan-meta{display:flex;flex-wrap:wrap;gap:6px 15px;margin-top:2px}
+.training-plan-meta span{display:inline-flex;gap:5px;align-items:center;
+  min-width:0;font-size:.66rem;color:#647f97;overflow-wrap:anywhere}
+.training-plan-unavailable{display:inline-flex;gap:6px;align-items:center;flex:none;
+  font-size:.73rem;color:#73859a;font-weight:800}
+.training-plan-state,.training-plan-empty{display:grid;justify-items:center;gap:12px;padding:55px 15px;text-align:center}
+.training-plan-state{border:1px solid #dae8f4;border-radius:18px;background:#fff}
+.training-plan-state h1,.training-plan-empty strong{font-size:1.05rem;margin:0;color:#1b527d}
+.training-plan-state p,.training-plan-empty p{font-size:.78rem;margin:0;line-height:1.6;color:#6c8299}
+.training-plan-warning{padding:11px 14px;border:1px solid #ffe1ac;border-radius:12px;background:#fff9e9;color:#8c6519;font-size:.75rem}
+.training-plan-disclaimer{display:flex;gap:8px;align-items:flex-start;margin:0;padding:3px 2px;
+  color:#687f94;font-size:.69rem;line-height:1.55}
+.training-plan-disclaimer svg{flex:none}
+.training-plan-page button:focus-visible{outline:3px solid #499fdf;outline-offset:3px}
+@media(max-width:1100px){.training-plan-hero{grid-template-columns:minmax(0,1fr)}
+  .training-plan-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.training-plan-page{padding:14px 11px 95px;gap:13px}
+  .training-plan-hero{padding:21px}
+  .training-plan-hero-score{padding:16px}
+  .training-plan-board-header{padding:17px;align-items:flex-start;flex-wrap:wrap}
+  .training-plan-board-header button{margin-left:auto}
+  .training-plan-next{align-items:flex-start;flex-wrap:wrap;padding:15px}
+  .training-plan-next button{width:100%}}
+@media(max-width:480px){
+  .training-plan-hero-actions button{width:100%}
+  .training-plan-next-icon{width:40px;height:40px;flex-basis:40px}
+  .training-plan-stats{gap:8px}
+  .training-plan-stats article{align-items:flex-start;flex-direction:column;padding:12px}
+  .training-plan-filters{gap:6px;padding:12px}
+  .training-plan-filters button{font-size:.68rem;padding:8px 10px}
+  .training-plan-list{padding:4px 12px}
+  .training-plan-item{align-items:flex-start;flex-wrap:wrap;gap:10px}
+  .training-plan-item-icon{flex:0 0 37px;width:37px;height:37px}
+  .training-plan-item-body{flex-basis:calc(100% - 50px)}
+  .training-plan-open,.training-plan-unavailable{margin-left:auto}
+}
+@media(prefers-reduced-motion:reduce){.training-plan-page *{transition:none!important}}

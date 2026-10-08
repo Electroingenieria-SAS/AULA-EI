@@ -94,7 +94,7 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
   // On desktop it belongs to the course grid alongside the media stage.
   return compactRoute
     ? createPortal(<>
-        <button type="button" className="outline-backdrop" aria-label="Cerrar ruta" onClick={close} />
+        <button type="button" className="course-route-backdrop" aria-label="Cerrar ruta" onClick={close} />
         {panel}
       </>, document.body)
     : panel

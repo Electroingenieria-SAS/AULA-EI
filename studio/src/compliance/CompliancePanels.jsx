@@ -5,6 +5,7 @@ import {
   Search, Settings2, ShieldCheck, Sparkles, Target, UserCheck, Users, X,
 } from 'lucide-react'
 import { complianceCsv } from './analytics-model.js'
+import ComplianceFollowup from './ComplianceFollowup.jsx'
 import '../styles/compliance-report.css'
 
 const STATE_LABELS = {
@@ -324,6 +325,11 @@ export function CompliancePanel({ rows, query, setQuery, snapshot, statusFilter,
         <span className="danger"><AlertTriangle size={16} /> {snapshot.overdue || 0} vencidos</span>
       </div>
     </section>
+
+    <ComplianceFollowup rows={rows} onFocus={(identity) => {
+      setStatusFilter('all')
+      setQuery(identity)
+    }} />
 
     <div className="compliance-matrix-controls">
       <label className="search-field compliance-matrix-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar persona, cargo, ruta o capacitación…" /></label>

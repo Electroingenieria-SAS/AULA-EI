@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "application": "AULA-EI",
+  "assessed_at": "2026-10-08",
+  "certification_status": "PENDIENTE",
+  "note": "Sin testimonio firmado ni cuentas de prueba no se declara certificación de producción.",
+  "controls": {
+    "admin-auth-leaked-password-protection": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "La protección nativa exige Supabase Pro según documentación; sin cambio de plan autorizado."
+    },
+    "privileged-rpc-authenticated-matrix": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "33 RPC con definer: revisión estática metadata iniciada; falta prueba funcional por roles sin acceso cruzado."
+    },
+    "learner-authenticated-acceptance": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "Pruebas reales de asignaciones, bloqueos, juegos, entrenadores y certificados."
+    },
+    "creator-reviewer-authenticated-acceptance": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "Flujos seguros de autoría, revisión, publicación y límites de rol."
+    },
+    "admin-superadmin-authenticated-acceptance": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "MFA AAL2, usuarios, reportes, privacidad y roles, sin datos reales mutados."
+    },
+    "responsive-authenticated-acceptance": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "320/360/390/430/768/1024/1280/1440 px, PC/iPhone/Android; evidencia visual con sesión autorizada."
+    },
+    "database-offsite-backup": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "Validación de copia cifrada fuera de la plataforma, sin PII en Git."
+    },
+    "storage-assets-backup": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "Copia y manifiesto de objetos privados course-assets separados de PostgreSQL."
+    },
+    "isolated-restore-drill": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "Restauración local o en laboratorio, RPO/RTO y validación de permisos."
+    },
+    "formal-acceptance": {
+      "status": "PENDIENTE",
+      "evidence": "",
+      "notes": "Acta aprobada por el responsable institucional tras cerrar hallazgos."
+    }
+  }
+}

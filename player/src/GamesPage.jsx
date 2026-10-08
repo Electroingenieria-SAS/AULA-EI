@@ -124,11 +124,17 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
       <div className="games-hero-metric"><strong>{loading ? '…' : enrollments.length}</strong><span>Capacitaciones para elegir</span></div>
     </section>
 
-    <div className="games-phase6-entry">
-      <button type="button" className="game-check-action" onClick={() => navigateLearner('/coach')}>
-        <BrainCircuit size={17}/> Probar mi entrenador adaptativo <ArrowRight size={16}/>
+    <section className="games-coach-cta" aria-label="Continuar aprendiendo con Mi entrenador">
+      <span className="games-coach-cta-icon" aria-hidden="true"><BrainCircuit size={27}/></span>
+      <div className="games-coach-cta-copy">
+        <small>NUEVA EXPERIENCIA · AULA EI INTELIGENTE</small>
+        <strong>Tu entrenador adaptativo</strong>
+        <p>Repite los temas que más te cuestan, practica a tu ritmo y descubre tus siguientes retos.</p>
+      </div>
+      <button type="button" onClick={() => navigateLearner('/coach')}>
+        Abrir entrenador <ArrowRight size={18} aria-hidden="true"/>
       </button>
-    </div>
+    </section>
     <section className="games-course-selector" aria-label="Escoge la capacitación para repasar">
       <div className="games-selector-heading">
         <span>PASO 1 · TU CAPACITACIÓN</span>
@@ -163,7 +169,7 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
             ? 'Actividades formadas a partir de contenido que ya estudiaste, sin alterar tu progreso ni la nota del examen.'
             : 'Aún no hay suficiente contenido completado para preparar estas dinámicas con respuestas verificables.'}</p>
         </div>
-        <span className="games-round-count">{totalRounds} ronda(s) preparadas</span>
+        <span className="games-round-count"><Layers3 size={16} aria-hidden="true"/> {totalRounds} {totalRounds===1?'ronda preparada':'rondas preparadas'}</span>
       </div>
 
       <div className="games-lab">

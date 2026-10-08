@@ -232,3 +232,15 @@ html.legal-consent-open,body.legal-consent-open{overflow:hidden!important}
   .legal-reader-colophon{padding:6mm 0;break-inside:avoid}
   .legal-document, .legal-document-copy{overflow:visible!important}
 }
+
+/* Admin review uses the exact gate markup without storing an acceptance. */
+.legal-preview-notice{
+  display:flex;align-items:flex-start;gap:12px;
+  margin:0 0 19px;padding:15px 17px;border:1px solid #bdd8f3;border-radius:14px;
+  background:#eaf5ff;color:#28547d
+}
+.legal-preview-notice>svg{flex:0 0 auto;color:#125da4}
+.legal-preview-notice>div{display:grid;gap:5px}
+.legal-preview-notice strong{color:#123f70;font-size:.82rem}
+.legal-preview-notice span{font-size:.74rem;line-height:1.6}
+@media(max-width:560px){.legal-preview-notice{padding:12px;gap:9px}}

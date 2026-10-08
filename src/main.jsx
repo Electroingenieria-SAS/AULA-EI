@@ -64,13 +64,13 @@ void bootstrap()
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const workerUrl = new URL('sw.js?v=6', window.location.origin + import.meta.env.BASE_URL).href
+    const workerUrl = new URL('sw.js?v=7', window.location.origin + import.meta.env.BASE_URL).href
     let refreshing = false
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing || sessionStorage.getItem('aula-ei-pwa-refresh-v6') === '1') return
+      if (refreshing || sessionStorage.getItem('aula-ei-pwa-refresh-v7') === '1') return
       refreshing = true
-      sessionStorage.setItem('aula-ei-pwa-refresh-v6', '1')
+      sessionStorage.setItem('aula-ei-pwa-refresh-v7', '1')
       window.location.reload()
     })
 

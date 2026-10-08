@@ -58,17 +58,13 @@ export default function LearnerApp({ profile, sessionUser }) {
 
   useEffect(() => {
     const warm = () => {
+      // Keep offline/limited-bandwidth devices responsive. Deep sections load
+      // on their actual route instead of consuming requests after every login.
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+      if (connection?.saveData || /(?:^|-)2g/.test(String(connection?.effectiveType || ''))) return
       void loadCatalogPage()
-      void loadGamesPage()
       void loadDevelopmentPage()
-      void loadIntelligencePage()
-      void loadCoursePlayer()
-      void loadPrivacyCenter()
-      void loadDeveloperCredits()
-      if (['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))) {
-        void loadStudioApp()
-        if (['admin','super_admin'].includes(String(profile?.role || ''))) void loadCoursePreview()
-      }
+      void loadTrainingPlanPage()
     }
 
     if ('requestIdleCallback' in window) {

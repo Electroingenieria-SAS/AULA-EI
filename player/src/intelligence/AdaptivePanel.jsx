@@ -6,10 +6,11 @@ import { rankedReviewRounds } from './intelligence-model.js'
 export default function AdaptivePanel({ groups, courseId, practice, onResult }) {
   const [index, setIndex] = useState(0)
   const [completedThisRound, setCompletedThisRound] = useState(false)
+  const [pinnedId, setPinnedId] = useState(null)
   const rounds = useMemo(() => rankedReviewRounds(groups, practice), [groups, practice])
-  const current = rounds[index % rounds.length]
-  useEffect(() => { setIndex(0); setCompletedThisRound(false) }, [courseId])
-  const next = () => { setIndex((value) => value + 1); setCompletedThisRound(false) }
+  const current = rounds.find((item) => item.id === pinnedId) || rounds[index % rounds.length]
+  useEffect(() => { setIndex(0); setCompletedThisRound(false); setPinnedId(null) }, [courseId])
+  const next = () => { setIndex((value) => value + 1); setCompletedThisRound(false); setPinnedId(null) }
   return <section className="intelligence-panel" aria-labelledby="adaptive-title">
     <header className="intelligence-panel-heading"><span><BrainCircuit size={23}/></span>
       <div><small>02 · REPASO PERSONALIZADO</small><h2 id="adaptive-title">Entrenamiento adaptativo</h2>
@@ -24,6 +25,7 @@ export default function AdaptivePanel({ groups, courseId, practice, onResult }) 
       <LearningGame key={courseId + ':' + current.id + ':' + index}
         content={current.content} title={current.title} onResult={(result) => {
           if (completedThisRound || !result.success) return
+          setPinnedId(current.id)
           setCompletedThisRound(true)
           onResult?.(current.id,result)
         }}/>

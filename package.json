@@ -7,7 +7,7 @@
   },
   "scripts": {
     "check:architecture": "node scripts/verify-architecture.mjs",
-    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run check:legal && npm run test:legal-runtime && npm run test:course-navigation && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
+    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run check:legal && npm run test:legal-runtime && npm run test:course-navigation && npm run test:learning-experience && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
     "check:security": "node scripts/verify-security.mjs",
     "check:performance": "node scripts/verify-performance.mjs",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
@@ -21,7 +21,8 @@
     "check:database": "node scripts/verify-database-contract.mjs",
     "check:legal": "node scripts/verify-legal-compliance.mjs",
     "test:legal-runtime": "node scripts/test-legal-helpers.mjs",
-    "test:course-navigation": "node scripts/test-course-navigation.mjs"
+    "test:course-navigation": "node scripts/test-course-navigation.mjs",
+    "test:learning-experience": "node scripts/test-learning-experience.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

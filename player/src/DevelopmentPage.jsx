@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, BadgeCheck, BookOpen, CalendarClock, CheckCircle2, RefreshCw, Target, TrendingUp } from 'lucide-react'
 import { supabase } from './supabase.js'
+import './styles/development.css'
 import { cachedQuery } from '../../src/data-cache.js'
 import { navigateLearner, openLearnerCourse } from './navigation.js'
 import { buildDevelopmentSnapshot } from './development/development-data.js'

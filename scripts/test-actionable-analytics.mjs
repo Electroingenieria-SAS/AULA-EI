@@ -62,14 +62,29 @@ assert.match(workbench, /admin_question_analytics/)
 assert.match(workbench, /admin_content_block_analytics/)
 assert.match(workbench, /minimumSample/)
 assert.match(workbench, /Exportar informe CSV/)
-assert.match(workbench, /No hay hallazgos/)
+assert.match(workbench, /Sin alertas prioritarias para estos filtros/)
 assert.match(workbench, /Sin asignaciones/)
 assert.match(workbench, /Sin intentos/)
+assert.match(workbench, /Number\(row\.completion_percent\) < 100/,
+  'Los bloques completos no deben figurar como contenidos problemáticos.')
+assert.match(workbench, /Los bloques analizados alcanzan el 100 % de cierre/,
+  'Los resultados sin fricción deben mostrar un estado positivo.')
+assert.match(workbench, /function PercentCell/,
+  'Los porcentajes deben representarse con barras y valores accesibles.')
+assert.match(workbench, /analytics-evidence-track/,
+  'Los listados de evidencia deben tener indicadores de magnitud.')
+assert.match(workbench, /analytics-table-scroll.*role="region"/,
+  'La tabla desplazable debe tener región accesible.')
+assert.match(style, /analytics-evidence-list/)
+assert.match(style, /analytics-percent-track/)
+assert.match(style, /position:sticky;top:0/, 'La tabla debe conservar el encabezado durante el desplazamiento.')
+assert.match(style, /@media\(max-width:1000px\)/)
+assert.match(style, /@media\(max-width:800px\)/)
 assert.match(center, /complianceStatus === 'all' \|\| row.compliance_state === complianceStatus/)
 assert.match(panels, /window.confirm\('Este archivo contiene datos personales/)
 assert.match(panels, /complianceCsv\(rows\)/)
 assert.match(panels, /rows.length/)
-assert.match(style, /@media\(max-width:490px\)/)
+assert.match(style, /@media\(max-width:520px\)/)
 assert.match(style, /:focus-visible/)
 assert.doesNotMatch(entry, /analytics-workbench.css/, 'Analytics style cannot inflate the initial bundle')
 for (const forbidden of [/\.from\('exam_attempts'\)/,/\.from\('profiles'\)/,/\.update\(/,/\.upsert\(/,/\.insert\(/]) {

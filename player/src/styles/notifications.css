@@ -48,3 +48,29 @@
 
 /* The bell belongs to the in-flow desktop header and the mobile appbar.
    Course headers use their dedicated in-flow layout in shell.css. */
+
+
+/* Fase 7.2 — Prioridades derivadas de avisos existentes. No se crea un segundo centro. */
+.training-notification-panel{display:flex;flex-direction:column;max-height:min(620px,calc(100dvh - 40px))}
+.training-notification-list{flex:1;min-height:0;overflow-y:auto;max-height:none}
+.training-notification-filters{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;
+  border-bottom:1px solid #e6eff6;background:#f9fcff}
+.training-notification-filters button{min-height:37px;display:inline-flex;align-items:center;gap:5px;
+  padding:7px 10px;border:1px solid #dbe9f5;border-radius:999px;background:white;
+  color:#4f6e8f;font:inherit;font-size:.69rem;font-weight:850;cursor:pointer}
+.training-notification-filters button.is-selected{border-color:#236fb0;background:#236fb0;color:white}
+.training-notification-filters button b{font-size:.66rem;font-variant-numeric:tabular-nums}
+.training-notification-item.is-priority{border:1px solid rgba(237,173,78,.4);background:#fffaf2}
+.training-notification-item.is-priority.unread{background:#fff8e9}
+.training-notification-copy .training-notification-urgency{justify-self:start;align-self:start;
+  display:inline-flex;padding:4px 7px;border-radius:7px;background:#ffe4bb;
+  color:#875414;font-size:.59rem;font-weight:900;letter-spacing:.045em}
+.training-notification-footer{padding:11px 14px;border-top:1px solid #e3edf6;background:#f9fcff}
+.training-notification-footer button{width:100%;display:flex;align-items:center;justify-content:center;
+  gap:9px;min-height:43px;border:1px solid #c6dff2;border-radius:12px;background:#eaf5ff;
+  color:#155c9c;font:inherit;font-size:.75rem;font-weight:900;cursor:pointer}
+.training-notification-filters button:focus-visible,.training-notification-footer button:focus-visible{
+  outline:3px solid #4897d7;outline-offset:2px}
+@media(max-width:410px){.training-notification-filters{gap:5px;padding:9px}
+  .training-notification-filters button{padding:7px 8px;font-size:.65rem}}
+@media(prefers-reduced-motion:reduce){.training-notification-item{transition:none!important;transform:none!important}}

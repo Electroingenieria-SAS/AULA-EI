@@ -12,6 +12,7 @@ const mobileApp = await read('src/mobile-app.css')
 const responsiveFoundation = await read('src/responsive-foundation.css')
 const shell = await read('player/src/LearnerShell.jsx')
 const gallery = await read('player/src/course-player/ImageGallery.jsx')
+const galleryMedia = await read('player/src/course-player/GalleryMediaContent.jsx')
 const galleryStyles = await read('player/src/styles/gallery.css')
 const immersiveStyles = await read('player/src/styles/immersive.css')
 const course = [
@@ -145,8 +146,8 @@ for (const required of [
 if (!shell.includes('mobileHaptic')) {
   throw new Error('La navegación móvil perdió feedback táctil.')
 }
-if (!course.includes('mobile-outline-button') || !course.includes('learner-stage-nav')) {
-  throw new Error('El reproductor perdió controles específicos de móvil.')
+if (!course.includes('course-route-trigger') || !course.includes('course-flow-nav')) {
+  throw new Error('El reproductor perdió la navegación compacta compartida entre PC y móvil.')
 }
 for (const required of [
   'createPortal(viewer, document.body)',
@@ -165,16 +166,16 @@ for (const required of [
   'immersive-video-frame',
   'immersive-presentation-frame',
 ]) {
-  if (!gallery.includes(required)) throw new Error('Course Immersive Viewer v8 incompleto: falta ' + required)
+  if (!(gallery + galleryMedia).includes(required)) throw new Error('Course Immersive Viewer incompleto: falta ' + required)
 }
 for (const required of [
   'immersive-media-preview',
   'immersive-image-preview-canvas',
   'openImmersive({ fullscreen: true })',
-  'mediaViewerOpen && visualMedia',
-  'mediaType={block.type}',
-  'previous={previous}',
-  'next={next}',
+  'useCourseAsset(currentBlock)',
+  'practiceNode={practiceGateOpen',
+  'course-route-drawer',
+  'course-insights',
 ]) {
   if (!course.includes(required)) throw new Error('Arquitectura inmersiva del CoursePlayer incompleta: falta ' + required)
 }
@@ -200,8 +201,6 @@ for (const required of [
   '.immersive-media-preview',
   '.immersive-video-frame',
   '.immersive-presentation-frame',
-  'body.aula-media-viewer-open .practice-gate-backdrop',
-  'z-index:5200!important',
   ':fullscreen .gallery-viewer-v7',
 ]) {
   if (!immersiveStyles.includes(required)) throw new Error('Visual inmersivo de escritorio incompleto: falta ' + required)
@@ -209,8 +208,8 @@ for (const required of [
 if (!galleryStyles.includes('transform:\n    translate3d(var(--gallery-x,0px),var(--gallery-y,0px),0)\n    scale(var(--gallery-scale,1))!important')) {
   throw new Error('La galería debe imponer translate + scale sobre las reglas móviles heredadas.')
 }
-if (!course.includes('createPortal(modal, document.body)')) {
-  throw new Error('La pregunta rápida debe poder superponerse al visor inmersivo mediante portal.')
+if (!course.includes('practiceNode={practiceGateOpen') || !galleryStyles.includes('.gallery-question-stage')) {
+  throw new Error('La pregunta rápida debe integrarse como paso dentro del mismo visor.')
 }
 if (!assignments.includes('MOBILE_ASSIGNMENT_COLUMN_LABELS') || !assignments.includes('data-label={MOBILE_ASSIGNMENT_COLUMN_LABELS')) {
   throw new Error('Asignaciones no puede degradar su tabla a tarjetas móviles.')

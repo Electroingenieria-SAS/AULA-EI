@@ -43,6 +43,7 @@ for viewport in "${VIEWPORTS[@]}"; do
   "$CHROME"     --headless=new     --no-sandbox     --disable-gpu     --disable-dev-shm-usage     --window-size="$viewport"     --virtual-time-budget=5000     --dump-dom     "$BASE_URL" >"$dom"
 
   grep -q "Aula EI" "$dom"
+  grep -q 'name="aula-ei-release"' "$dom"
   grep -Eq "Iniciar sesión|Acceso seguro|Correo" "$dom"
 
   # Confirm the actual login form rendered after the public intro, not just a

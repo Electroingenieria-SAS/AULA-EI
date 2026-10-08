@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   BookOpen, BrainCircuit, Check, CheckCircle2, ChevronRight, CircleAlert, ExternalLink, File, FileAudio, FileText, Gamepad2, GraduationCap, Image as ImageIcon, Link2, Loader2, LockKeyhole, Maximize2, PlayCircle, Presentation, ShieldCheck, Video, X,
 } from 'lucide-react'
@@ -10,6 +11,20 @@ import '../styles/immersive.css'
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
   const drawerRef = useRef(null)
   const closeRef = useRef(null)
+  const [compactRoute, setCompactRoute] = useState(() => window.matchMedia('(max-width: 900px)').matches)
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 900px)')
+    const sync = () => setCompactRoute(query.matches)
+    query.addEventListener('change', sync)
+    return () => query.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
+    if (!compactRoute) return undefined
+    document.body.classList.add('course-route-open')
+    return () => document.body.classList.remove('course-route-open')
+  }, [compactRoute])
 
   useEffect(() => {
     const previousFocus = document.activeElement
@@ -19,7 +34,7 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
         event.preventDefault()
         close()
       }
-      if (event.key !== 'Tab') return
+      if (event.key !== 'Tab' || !compactRoute) return
       const options = Array.from(drawerRef.current?.querySelectorAll('button:not(:disabled)') || [])
       if (!options.length) return
       const first = options[0]
@@ -37,11 +52,9 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
       document.removeEventListener('keydown', onKeyDown)
       if (previousFocus?.isConnected) previousFocus.focus()
     }
-  }, [])
+  }, [compactRoute])
 
-  return <>
-    {open && <button className="outline-backdrop" aria-label="Cerrar ruta" onClick={close} />}
-    <aside ref={drawerRef} className="course-route-drawer" role="dialog" aria-modal="true" aria-label="Ruta de capacitación">
+  const panel = <aside id="course-route-navigation" ref={drawerRef} className="course-route-drawer" role={compactRoute ? 'dialog' : 'complementary'} aria-modal={compactRoute ? true : undefined} aria-label="Ruta de capacitación">
       <div className="outline-header">
         <div><span>Tu ruta</span><strong>Contenido de la capacitación</strong></div>
         <button ref={closeRef} type="button" className="outline-close" aria-label="Cerrar ruta" onClick={close}><X size={18} /></button>
@@ -76,7 +89,15 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
         </button>
       </div>
     </aside>
-  </>
+
+  // A narrow-screen route is portaled outside the app-shell stacking context.
+  // On desktop it belongs to the course grid alongside the media stage.
+  return compactRoute
+    ? createPortal(<>
+        <button type="button" className="course-route-backdrop" aria-label="Cerrar ruta" onClick={close} />
+        {panel}
+      </>, document.body)
+    : panel
 }
 
 // Media URLs have one owner for the player and fullscreen gallery.

@@ -430,7 +430,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
     {message && <div className="learner-inline-message"><CircleAlert size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={15} /></button></div>}
 
-    <div className="course-workspace">
+    <div className={'course-workspace' + (outlineOpen ? ' route-open' : '')}>
       {outlineOpen && <CourseOutline
         course={course}
         allBlocks={allBlocks}
@@ -453,7 +453,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
             {currentBlock && <span>{currentIndex + 1} de {allBlocks.length}</span>}
           </div>
           {currentBlock && <div className="stage-context-progress"><span style={{ width: allBlocks.length ? ((currentIndex + 1) / allBlocks.length) * 100 + '%' : '0%' }} /></div>}
-          <button type="button" className="course-route-trigger" onClick={() => setOutlineOpen(true)}><Menu size={17} /> Ver ruta</button>
+          <button type="button" className="course-route-trigger" aria-expanded={outlineOpen} aria-controls={outlineOpen ? 'course-route-navigation' : undefined} onClick={() => setOutlineOpen((value) => !value)}><Menu size={17} /> {outlineOpen ? 'Ocultar ruta' : 'Ver ruta'}</button>
         </div>
 
         <div className="course-stage-card" key={examQuestions ? 'exam' : examResult ? 'result' : currentBlockId || 'empty'}>

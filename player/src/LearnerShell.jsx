@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { BookOpen, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowLeft, BookOpen, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles } from 'lucide-react'
 import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
@@ -13,6 +13,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     return (parts.slice(0, 2).map((part) => part[0]).join('') || 'EI').toUpperCase()
   }, [displayName])
   const canManage = ['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))
+  const isCourse = activeRoute === 'course'
   const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'privacy' ? 'Privacidad y legal' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
 
   const signOut = async () => {
@@ -21,7 +22,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
   }
 
   return <div
-    className="learner-app-shell"
+    className={isCourse ? 'learner-app-shell learner-course-shell' : 'learner-app-shell'}
     style={{ '--aula-photo-image': `url("${assetUrl('brand/fondo.jpg')}")` }}
   >
     <aside className="learner-global-sidebar">
@@ -50,11 +51,17 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
       </div>
     </aside>
 
-    <header className="learner-mobile-appbar" aria-label="Cabecera de Aula EI">
-      <button className="learner-mobile-brand" type="button" onClick={() => navigateLearner('/')} aria-label="Ir al inicio de Aula EI">
+    <header className="learner-mobile-appbar" aria-label={isCourse ? 'Cabecera de capacitación' : 'Cabecera de Aula EI'}>
+      {isCourse ? <>
+        <button className="learner-course-back" type="button" onClick={() => navigateLearner('/catalog')} aria-label="Volver a mis capacitaciones">
+          <ArrowLeft size={19} aria-hidden="true" />
+          <span>Mis capacitaciones</span>
+        </button>
+        <div className="learner-course-heading"><small>Aula EI</small><strong>Capacitación</strong></div>
+      </> : <button className="learner-mobile-brand" type="button" onClick={() => navigateLearner('/')} aria-label="Ir al inicio de Aula EI">
         <img src={assetUrl('brand/logo-aula-ei.png')} alt="" />
         <span><small>Aula EI</small><strong>{mobileTitle}</strong></span>
-      </button>
+      </button>}
       <NotificationCenter profile={profile} />
     </header>
 

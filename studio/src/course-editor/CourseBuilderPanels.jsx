@@ -4,6 +4,8 @@ import {
 } from 'lucide-react'
 import { getError, supabase, uploadCourseAsset } from '../shared.js'
 import { clampScore, exampleForType, statusLabel } from './course-utils.js'
+import { buildGameContent, gameLines } from '../../../player/src/games/game-data.js'
+import GameBlockFields from './GameBlockFields.jsx'
 
 const EMPTY_BLOCK = {
   type: 'text',
@@ -18,7 +20,9 @@ const EMPTY_BLOCK = {
   optionC: '',
   optionD: '',
   correctIndex: 0,
-  gameType: 'multiple_choice',
+  gameType: 'memory',
+  gameLines: '',
+  gamePrompt: '',
   instructions: '',
   status: 'published',
 }
@@ -237,7 +241,9 @@ export function BlockEditor({ courseId, phaseId, nextOrder, existing, done, setM
     optionC: source.options?.[2] || '',
     optionD: source.options?.[3] || '',
     correctIndex: Number(source.correctIndex || 0),
-    gameType: source.gameType || 'multiple_choice',
+    gameType: ['memory','classification','sequence','decision'].includes(source.gameType) ? source.gameType : 'memory',
+    gameLines: gameLines(source),
+    gamePrompt: source.prompt || '',
     instructions: source.instructions || '',
     status: existing?.status || 'published',
   })
@@ -264,7 +270,7 @@ export function BlockEditor({ courseId, phaseId, nextOrder, existing, done, setM
         if (form.correctIndex >= options.length) throw new Error('Selecciona una respuesta correcta válida.')
         content = { prompt: form.prompt.trim(), options, correctIndex: form.correctIndex }
       } else if (form.type === 'game') {
-        content = { gameType: form.gameType.trim(), instructions: form.instructions.trim() }
+        content = buildGameContent({ gameType: form.gameType, instructions: form.instructions, lines: form.gameLines, prompt: form.gamePrompt })
       }
 
       if (fileTypes.includes(form.type) && !file && !form.url.trim() && !existing?.asset_path) {
@@ -368,16 +374,7 @@ export function BlockEditor({ courseId, phaseId, nextOrder, existing, done, setM
         </div>
       )}
 
-      {form.type === 'game' && (
-        <div className="game-builder-grid">
-          <label>Tipo de juego
-            <input value={form.gameType} onChange={(event) => setForm({ ...form, gameType: event.target.value })} placeholder="multiple_choice" />
-          </label>
-          <label>Instrucciones
-            <textarea rows="5" value={form.instructions} onChange={(event) => setForm({ ...form, instructions: event.target.value })} placeholder="Explica qué debe hacer la persona y cuándo se considera completado." />
-          </label>
-        </div>
-      )}
+      {form.type === 'game' && <GameBlockFields form={form} setForm={setForm} />}
 
       <div className="block-options-row">
         <label className="toggle-option">

@@ -101,7 +101,7 @@ html.legal-consent-open,body.legal-consent-open{overflow:hidden!important}
 .legal-document-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:17px}
 .legal-document-meta>span{display:inline-flex;align-items:center;min-height:26px;padding:5px 9px;border:1px solid #d7e6f5;border-radius:7px;background:#fff;font-size:.63rem;letter-spacing:.03em;font-weight:800;color:#446c91}
 .legal-document-meta .legal-document-kicker{background:#e6f2fe;color:#12549b;letter-spacing:.07em;text-transform:uppercase}
-.legal-document-header h3{margin:0 0 12px;color:#0f396c;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.18;letter-spacing:-.03em}
+.legal-document-header :is(h1,h3){margin:0 0 12px;color:#0f396c;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.18;letter-spacing:-.03em}
 .legal-document-header p{margin:0;color:#6c859d;font-size:.75rem;line-height:1.55}
 .legal-document-copy{overflow:visible;background:#fff}
 .legal-document-intro{display:grid;gap:4px;margin:25px 36px 0;padding:13px 17px;border:1px solid #d8e7f6;border-left:4px solid #e1af2e;border-radius:10px;background:#f7faff}
@@ -204,7 +204,7 @@ html.legal-consent-open,body.legal-consent-open{overflow:hidden!important}
   .legal-reader-letterhead>div span{font-size:.58rem}
   .legal-reader-letterhead>div strong{font-size:.62rem}
   .legal-document-header{padding:23px 18px 18px}
-  .legal-document-header h3{font-size:1.45rem}
+  .legal-document-header :is(h1,h3){font-size:1.45rem}
   .legal-document-intro{margin:18px 17px 0}
   .legal-document-body{padding:22px 18px}
   .legal-document-body p{font-size:.81rem}

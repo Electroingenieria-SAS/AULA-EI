@@ -3,11 +3,11 @@ import { ReadingContent } from './CoursePlayerViews.jsx'
 
 /** Stateless slide content. ImageGallery owns gestures and navigation. */
 export default function GalleryMediaContent({
-  mediaType, src, alt, description, fallbackText, isExternalEmbed,
+  mediaType, src, assetError, alt, description, fallbackText, isExternalEmbed,
   imageRef, view, onImageLoad, showHint,
 }) {
   return <>
-      {mediaType === 'image' && !src && <div className="gallery-media-loading" role="status">Preparando imagen…</div>}
+      {mediaType === 'image' && !src && <div className="gallery-media-loading" role="status">{assetError || 'Preparando imagen…'}</div>}
       {mediaType === 'image' && src && <img
         ref={imageRef}
         src={src}
@@ -22,14 +22,14 @@ export default function GalleryMediaContent({
         }}
       />}
 
-      {mediaType === 'video' && !src && <div className="gallery-media-loading" role="status">Preparando video…</div>}
+      {mediaType === 'video' && !src && <div className="gallery-media-loading" role="status">{assetError || 'Preparando video…'}</div>}
       {mediaType === 'video' && src && <div className="immersive-video-frame">
         {isExternalEmbed
           ? <iframe src={src} title={alt} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
           : <video src={src} controls autoPlay playsInline />}
       </div>}
 
-      {mediaType === 'presentation' && !src && <div className="gallery-media-loading" role="status">Preparando presentación…</div>}
+      {mediaType === 'presentation' && !src && <div className="gallery-media-loading" role="status">{assetError || 'Preparando presentación…'}</div>}
       {mediaType === 'presentation' && src && <div className="immersive-presentation-frame">
         <iframe src={src} title={alt} allowFullScreen />
       </div>}

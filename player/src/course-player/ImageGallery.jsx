@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, ExternalLink, Images, Maximize2, Minimize2, RotateCcw, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import { exitBrowserFullscreen, runViewerNavigation } from './immersive-navigation.js'
-import { ReadingContent } from './CoursePlayerViews.jsx'
+import GalleryMediaContent from './GalleryMediaContent.jsx'
 import '../styles/gallery.css'
 
 export default function ImageGallery({ src, alt, description = '', originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false, fallbackText = '', practiceStep = false, practiceNode = null }) {
@@ -382,42 +382,18 @@ export default function ImageGallery({ src, alt, description = '', originalUrl, 
       onContextMenu={(event) => event.preventDefault()}
     >
       {practiceStep ? <div className="gallery-question-stage">{practiceNode}</div> : <>
-      {mediaType === 'image' && !src && <div className="gallery-media-loading" role="status">Preparando imagen…</div>}
-      {mediaType === 'image' && src && <img
-        ref={imageRef}
+      <GalleryMediaContent
+        mediaType={mediaType}
         src={src}
         alt={alt}
-        draggable="false"
-        decoding="async"
-        onLoad={() => applyView(viewRef.current)}
-        style={{
-          '--gallery-x': view.x + 'px',
-          '--gallery-y': view.y + 'px',
-          '--gallery-scale': String(view.scale),
-        }}
-      />}
-
-      {mediaType === 'video' && !src && <div className="gallery-media-loading" role="status">Preparando video…</div>}
-      {mediaType === 'video' && src && <div className="immersive-video-frame">
-        {isExternalEmbed
-          ? <iframe src={src} title={alt} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
-          : <video src={src} controls autoPlay playsInline />}
-      </div>}
-
-      {mediaType === 'presentation' && !src && <div className="gallery-media-loading" role="status">Preparando presentación…</div>}
-      {mediaType === 'presentation' && src && <div className="immersive-presentation-frame">
-        <iframe src={src} title={alt} allowFullScreen />
-      </div>}
-
-      {!['image', 'video', 'presentation'].includes(mediaType) && <div className="gallery-other-content">
-        <h2>{alt}</h2>
-        {description && <p>{description}</p>}
-        {mediaType === 'text' ? <ReadingContent value={fallbackText} /> : <p>Este paso requiere interacción en el reproductor normal. Puedes volver usando Cerrar visor.</p>}
-      </div>}
-      {showHint && mediaType === 'image' && <div className="gallery-gesture-hint" role="status">
-        <strong>Pellizca para ampliar</strong>
-        <span>Arrastra para recorrer · doble toque para zoom · desliza a los lados para avanzar.</span>
-      </div>}
+        description={description}
+        fallbackText={fallbackText}
+        isExternalEmbed={isExternalEmbed}
+        imageRef={imageRef}
+        view={view}
+        onImageLoad={() => applyView(viewRef.current)}
+        showHint={showHint}
+      />
       </>}
     </div>
 

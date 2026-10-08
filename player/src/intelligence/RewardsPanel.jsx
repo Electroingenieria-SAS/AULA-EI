@@ -1,8 +1,9 @@
-import React from 'react'
-import { Award, CheckCircle2, LockKeyhole, Sparkles, Trophy } from 'lucide-react'
+import React, { useState } from 'react'
+import { Award, CheckCircle2, LockKeyhole, RotateCcw, Sparkles, Trophy } from 'lucide-react'
 import { deriveBadges } from './intelligence-model.js'
 
-export default function RewardsPanel({ development, practice }) {
+export default function RewardsPanel({ development, practice, onClearHistory }) {
+  const [notice, setNotice] = useState('')
   const badges = deriveBadges(development,practice)
   const unlocked = badges.filter((badge) => badge.achieved).length
   return <section className="intelligence-panel" aria-labelledby="rewards-title">
@@ -25,6 +26,15 @@ export default function RewardsPanel({ development, practice }) {
         </article>)}
       </div>
       <p className="intelligence-disclaimer">Estas insignias no son certificados ni constancias laborales. Los avances de juegos se guardan localmente y pueden perderse al borrar datos del navegador.</p>
+      <div className="intelligence-privacy-controls">
+        <span>Los contadores de práctica pertenecen a este dispositivo. Las capacitaciones oficiales y los certificados no se borran.</span>
+        <button type="button" onClick={() => {
+          if (!window.confirm('¿Borrar tus resultados de juegos guardados en este navegador? No se modificarán capacitaciones, notas ni certificados.')) return
+          const cleared = onClearHistory?.()
+          setNotice(cleared ? 'Historial de práctica eliminado de este navegador.' : 'No se pudo borrar el historial local. Comprueba los permisos del navegador.')
+        }}><RotateCcw size={16}/> Borrar mis prácticas locales</button>
+      </div>
+      {notice && <p className="intelligence-privacy-notice" role="status">{notice}</p>}
     </div>
   </section>
 }

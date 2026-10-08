@@ -152,7 +152,7 @@ export default function App() {
         </Suspense>
       </AdminMfaGate>
     </LegalGate>
-  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, authError])
+  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError])
 
   return <>
     <MobileViewportSync />

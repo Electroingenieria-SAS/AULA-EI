@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 const read = (file) => readFile(new URL('../'+file,import.meta.url),'utf8')
-const [games,game,gameStyles,shell,mobile,notice,coach,coachStyles,tutor,rewards,routes,adaptive,main] = await Promise.all([
+const [games,game,gameStyles,shell,mobile,foundation,notice,coach,coachStyles,tutor,rewards,routes,adaptive,main] = await Promise.all([
   read('player/src/GamesPage.jsx'),read('player/src/games/LearningGame.jsx'),
   read('player/src/styles/games.css'),read('player/src/LearnerShell.jsx'),
-  read('src/mobile-app.css'),read('player/src/styles/notifications.css'),
+  read('src/mobile-app.css'),read('src/responsive-foundation.css'),read('player/src/styles/notifications.css'),
   read('player/src/IntelligencePage.jsx'),read('player/src/styles/intelligence.css'),
   read('player/src/intelligence/TutorPanel.jsx'),read('player/src/intelligence/RewardsPanel.jsx'),
   read('player/src/intelligence/RoutesPanel.jsx'),read('player/src/intelligence/AdaptivePanel.jsx'),
@@ -28,15 +28,16 @@ assert.match(game,/className="game-result-track" role="progressbar"/)
 assert.match(game,/aria-valuenow=\{count\}/)
 assert.match(game,/import '\.\.\/styles\/games\.css'/)
 assert.doesNotMatch(main,/styles\/games\.css/, 'The game CSS must be fetched lazily.')
-assert.match(mobile,/@media\(min-width:901px\)\{/)
-assert.match(mobile,/learner-app-shell:not\(\.learner-course-shell\)>\.learner-mobile-appbar\{/)
-assert.match(mobile,/display:flex;[\s\S]*?margin-left:var\(--aula-sidebar-width\)/)
-assert.match(mobile,/\.training-notification-center\{[\s\S]*?position:relative;top:auto;right:auto;left:auto/)
-assert.doesNotMatch(mobile,/\.learner-mobile-appbar \.training-notification-center\{\s*position:fixed/,
-  'The desktop notification trigger must never float above dashboard KPIs.')
+assert.match(main,/import '\\.\\/responsive-foundation\\.css'/,'Desktop foundation must be eagerly loaded.')
+assert.match(foundation,/@media\\(min-width:1101px\\)\\{/)
+assert.match(foundation,/learner-app-shell:not\\(\\.learner-course-shell\\)>\\.learner-mobile-appbar\\{[\\s\\S]*?display:flex;[\\s\\S]*?margin-left:var\\(--aula-sidebar-width\\)/)
+assert.match(foundation,/\\.training-notification-center\\{[\\s\\S]*?position:relative!important;top:auto!important;right:auto!important/)
+assert.doesNotMatch(foundation,/\\.training-notification-center\\{\\s*position:fixed!important/,
+  'Desktop notification cannot use the old fixed overlay.')
+assert.doesNotMatch(mobile,/\\/\\* Desktop appbar is part of the page flow/,
+  'Desktop styles must not live in lazy mobile-only CSS.')
 assert.match(shell,/learner-desktop-header-label/)
-assert.match(mobile,/\.learner-desktop-header-label\{display:none\}/)
-assert.match(notice,/in-flow desktop header/)
+assert.match(foundation,/\\.learner-desktop-header-label\\{display:none\\}/)
 assert.match(coachStyles,/\.intelligence-tabs button\.is-active:after/)
 assert.match(coachStyles,/\.intelligence-rewards-crest/)
 assert.match(coachStyles,/\.intelligence-round-progress/)

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { buildDevelopmentSnapshot } from '../player/src/development/development-data.js'
 import { generateCourseReviewGames } from '../player/src/games/course-game-generator.js'
 import { knowledgeCards, answerFromCourse, deriveBadges, rankedReviewRounds,
-  recordPractice, readPractice, recommendedLearning } from '../player/src/intelligence/intelligence-model.js'
+  clearPractice, recordPractice, readPractice, recommendedLearning } from '../player/src/intelligence/intelligence-model.js'
 
 const block = (id,title,description,type='text',status='published') =>
   ({ id, title,description,type,status,sort_order:Number(id.replace(/\D/g,'')) || 0 })
@@ -33,7 +33,7 @@ assert.equal(answerFromCourse('Protección personal',[{id:'b1',title:'Protecció
 const groups=generateCourseReviewGames(course,completed)
 assert.ok(groups.some(g=>g.rounds.length))
 const store = new Map()
-const mock={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)}
+const mock={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)}
 const user='test-user',id='course-a'
 let practice=recordPractice(user,id,'memory-0',true,3,mock)
 assert.equal(practice.courses[id].rounds['memory-0'].attempts,1)
@@ -42,10 +42,18 @@ assert.equal(practice.courses[id].rounds['memory-0'].mistakes,3)
 practice=recordPractice(user,id,'memory-0',true,1,mock)
 assert.equal(practice.courses[id].rounds['memory-0'].solved,2)
 assert.equal(practice.courses[id].rounds['memory-0'].mistakes,4)
+assert.equal(practice.courses[id].rounds['memory-0'].streak,0)
+assert.equal(practice.courses[id].rounds['memory-0'].lastMistakes,1)
 assert.deepEqual(readPractice('other-user',mock),{courses:{}})
 assert.equal([...store.values()][0].includes('Protección personal'),false, 'No se almacena el texto de los ejercicios.')
 const sorted=rankedReviewRounds(groups,practice.courses[id])
 assert.equal(sorted[0].id,'memory-0','Los ejercicios difíciles deben tener prioridad.')
+recordPractice(user,id,'memory-0',true,0,mock)
+practice=recordPractice(user,id,'memory-0',true,0,mock)
+assert.equal(practice.courses[id].rounds['memory-0'].streak,2, 'Mastery streak lowers urgency.')
+assert.equal(practice.courses[id].rounds['memory-0'].lastMistakes,0)
+assert.equal(clearPractice('other-user',mock),true)
+assert.ok(readPractice(user,mock).courses[id], 'Deleting another user must not remove this user\'s practice.')
 const develop=buildDevelopmentSnapshot({
   training_profile:{competencies:[{id:'c1',name:'Seguridad',required_level:3,achieved_level:1}],
     paths:[{id:'p1',name:'Ruta de calidad',required:true,progress_percent:30,
@@ -57,6 +65,15 @@ const suggestions=recommendedLearning(develop)
 assert.equal(suggestions.length,1)
 assert.equal(suggestions[0].courseId,'course-a')
 assert.ok(!suggestions.some(x=>x.courseId==='locked'),'Nunca recomendar contenidos bloqueados.')
+assert.equal(suggestions[0].kind,'overdue','Actual deadlines override lower-priority path suggestions.')
+const lockedAssignment=buildDevelopmentSnapshot({
+  training_profile:{paths:[{id:'restricted',name:'Ruta obligatoria',required:true,progress_percent:0,
+    courses:[{course_id:'blocked',title:'Segunda etapa',unlocked:false,completed:false,required:true,sort_order:2}]}]},
+  enrollments:[{id:'blocked-enrollment',status:'assigned',due_at:'2026-10-01T12:00:00Z',
+    course:{id:'blocked',title:'Segunda etapa'}}],
+},new Date('2026-10-09T12:00:00Z'))
+assert.equal(recommendedLearning(lockedAssignment).length,0,
+  'An individually assigned overdue course must not bypass the required path lock.')
 assert.equal(develop.competencies[0].gap,2)
 const badges=deriveBadges({completedCount:1},practice)
 assert.equal(badges.find(x=>x.id==='first-training').achieved,true)
@@ -78,6 +95,8 @@ const [page,app,shell,home,games,game,adaptive,tutor,rewards,paths,style,initial
 assert.match(page,/get_my_home_snapshot/)
 assert.match(page,/get_my_catalog_snapshot/)
 assert.match(page,/get_my_course_route_access/)
+assert.match(page,/gate\.data\?\.allowed !== true/)
+assert.match(games,/access\.data\?\.allowed !== true/)
 assert.match(page,/supabase\.from\('courses'\)/)
 assert.match(page,/catalog\?\.progress/)
 assert.match(page,/onPracticeResult/)
@@ -89,14 +108,23 @@ assert.match(home,/Entrenador inteligente de Aula EI/)
 assert.match(games,/recordPractice\(/)
 assert.match(game,/onResult/)
 assert.match(adaptive,/rankedReviewRounds/)
-assert.match(adaptive,/setPinnedId/)
+assert.match(adaptive,/setActiveId/)
+assert.match(adaptive,/rounds\[\(position \+ 1\) % rounds\.length\]/)
+assert.match(page,/Actualizar mi progreso/)
+assert.match(page,/force:revision>0/)
+assert.match(rewards,/Borrar mis prácticas locales/)
+assert.match(page,/onClearHistory=\{clearHistory\}/)
 assert.match(tutor,/answerFromCourse/)
 assert.match(rewards,/deriveBadges/)
 assert.match(paths,/recommendedLearning/)
 assert.match(style,/@media\(max-width:480px\)/)
 assert.match(style,/:focus-visible/)
+assert.match(style,/intelligence-privacy-controls/)
+assert.match(style,/intelligence-toolbar/)
 assert.doesNotMatch(initial,/styles\/intelligence\.css/,'La nueva vista no debe cargar estilos en el arranque.')
 for(const component of [page,adaptive,tutor,rewards,paths]) {
   assert.doesNotMatch(component,/\.insert\(|\.upsert\(|\.update\(|\.delete\(|from\('exam_attempts'\)|from\('question_options'\)/)
 }
-console.log('Fase 6: tutor contextual, recomendaciones, práctica adaptativa, insignias, RLS y responsive: OK.')
+assert.equal(clearPractice(user,mock),true)
+assert.deepEqual(readPractice(user,mock),{courses:{}},'Local reset must erase only this learner\'s saved statistics.')
+console.log('Fase 6.1: fail-closed permissions, locked routes, adaptive mastery, refresh and private local-reset: OK.')

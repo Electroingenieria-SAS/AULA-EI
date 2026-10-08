@@ -6,24 +6,37 @@
 
 .learner-mobile-appbar{display:contents}
 .learner-mobile-brand{display:none}
+.learner-desktop-header-label{display:none}
 
+/* Desktop appbar is part of the page flow, never a floating overlay on KPI chips. */
 @media(min-width:901px){
-  .learner-mobile-appbar .training-notification-center{
-    position:fixed;
-    right:20px;
-    top:18px;
-    width:auto;
-    margin:0;
-    z-index:180;
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar{
+    display:flex;
+    position:relative;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    box-sizing:border-box;
+    min-height:68px;
+    width:calc(100% - var(--aula-sidebar-width));
+    margin-left:var(--aula-sidebar-width);
+    padding:12px clamp(18px,2.4vw,36px);
+    background:rgba(255,255,255,.92);
+    border-bottom:1px solid #dce7f2;
+    box-shadow:0 4px 22px rgba(19,52,88,.045);
+    z-index:95;
   }
-  .learner-mobile-appbar .training-notification-trigger{
-    width:auto;
-    min-width:150px;
+  .learner-desktop-header-label{display:flex;align-items:center;gap:12px;min-width:0;color:#68839e;font-size:.67rem;font-weight:850;letter-spacing:.07em}
+  .learner-desktop-header-label strong{font-size:.87rem;letter-spacing:0;color:#194a7a}
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .training-notification-center{
+    position:relative;top:auto;right:auto;left:auto;z-index:3;
+    flex:0 0 auto;width:auto;margin:0;
   }
-  .learner-mobile-appbar .training-notification-panel{
-    left:auto;
-    right:0;
-    top:52px;
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .training-notification-trigger{
+    width:auto;min-width:160px;max-width:100%;
+  }
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .training-notification-panel{
+    left:auto;right:0;top:calc(100% + 9px);
   }
 }
 

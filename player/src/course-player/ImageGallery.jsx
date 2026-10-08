@@ -7,7 +7,7 @@ import { exitBrowserFullscreen, runViewerNavigation } from './immersive-navigati
 import GalleryMediaContent from './GalleryMediaContent.jsx'
 import '../styles/gallery.css'
 
-export default function ImageGallery({ src, alt, description = '', originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false, fallbackText = '', practiceStep = false, practiceNode = null }) {
+export default function ImageGallery({ src, assetError = '', alt, description = '', originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false, fallbackText = '', practiceStep = false, practiceNode = null }) {
   const viewerRef = useRef(null)
   const stageRef = useRef(null)
   const imageRef = useRef(null)
@@ -385,6 +385,7 @@ export default function ImageGallery({ src, alt, description = '', originalUrl, 
       <GalleryMediaContent
         mediaType={mediaType}
         src={src}
+        assetError={assetError}
         alt={alt}
         description={description}
         fallbackText={fallbackText}

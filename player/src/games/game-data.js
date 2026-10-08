@@ -48,6 +48,13 @@ export function buildGameContent({ gameType, instructions, lines, prompt }) {
   return { ...base, prompt: String(prompt).trim(), options: normalized, correctIndex }
 }
 
+/** Selecciona una dinámica jugable, sin abrir contenido no autorizado. */
+export function firstPlayableGroup(groups, preferredType = 'memory') {
+  const entries = Array.isArray(groups) ? groups : []
+  return entries.find((item) => item?.type === preferredType && item?.rounds?.length > 0)
+    || entries.find((item) => item?.rounds?.length > 0) || null
+}
+
 export function gameIsPlayable(content = {}) {
   const t = content.gameType
   if (t === 'memory') return Array.isArray(content.pairs) && content.pairs.length >= 2

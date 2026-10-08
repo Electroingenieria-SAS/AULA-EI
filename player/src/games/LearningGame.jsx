@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, CheckCircle2, RotateCcw, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUp, CheckCircle2, Lightbulb, RotateCcw, Sparkles } from 'lucide-react'
+import '../styles/games.css'
 import { gameIsPlayable } from './game-data.js'
 
 function MemoryRound({ content, onResult }) {
@@ -138,9 +139,20 @@ function DecisionRound({ content, onResult }) {
 }
 
 function GameResult({ complete, count, total }) {
-  return <p className={complete ? 'game-result is-complete' : 'game-result'} role="status">
-    {complete ? <><CheckCircle2 size={17}/> ¡Actividad completada! Puedes continuar con el curso.</> : `${count} de ${total} aciertos.`}
-  </p>
+  const percentage = total ? Math.round(100 * count / total) : 0
+  return <div className={complete ? 'game-result is-complete' : 'game-result'} role="status">
+    <div className="game-result-copy">
+      <span className="game-result-icon"><CheckCircle2 size={19} aria-hidden="true"/></span>
+      <span><strong>{complete ? '¡Actividad completada!' : 'Tu progreso en esta actividad'}</strong>
+        <small>{complete ? 'Relacionaste todos los elementos correctamente.' : count+' de '+total+' relaciones acertadas'}</small>
+      </span>
+      <b>{percentage}%</b>
+    </div>
+    <div className="game-result-track" role="progressbar" aria-label="Progreso del juego"
+      aria-valuemin={0} aria-valuemax={total} aria-valuenow={count}>
+      <i style={{ width:percentage+'%' }}/>
+    </div>
+  </div>
 }
 
 export default function LearningGame({ content, title, onResult }) {
@@ -155,7 +167,9 @@ export default function LearningGame({ content, title, onResult }) {
       <div><span><Sparkles size={15}/> Práctica interactiva</span><h3>{title || 'Actividad didáctica'}</h3></div>
       <button type="button" onClick={() => setRound((count) => count + 1)}><RotateCcw size={16}/> Reiniciar</button>
     </header>
-    {content.instructions && <p className="learning-game-instructions">{content.instructions}</p>}
+    {content.instructions && <div className="learning-game-instructions">
+      <Lightbulb size={18} aria-hidden="true"/><p>{content.instructions}</p>
+    </div>}
     <div key={round} className="learning-game-round">
       {content.gameType === 'memory' && <MemoryRound content={content} onResult={onResult}/>}
       {content.gameType === 'classification' && <ClassificationRound content={content} onResult={onResult}/>}

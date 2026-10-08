@@ -4,13 +4,18 @@ import LearningGame from '../games/LearningGame.jsx'
 import { rankedReviewRounds } from './intelligence-model.js'
 
 export default function AdaptivePanel({ groups, courseId, practice, onResult }) {
-  const [index, setIndex] = useState(0)
+  const [run, setRun] = useState(0)
   const [completedThisRound, setCompletedThisRound] = useState(false)
-  const [pinnedId, setPinnedId] = useState(null)
+  const [activeId, setActiveId] = useState(null)
   const rounds = useMemo(() => rankedReviewRounds(groups, practice), [groups, practice])
-  const current = rounds.find((item) => item.id === pinnedId) || rounds[index % rounds.length]
-  useEffect(() => { setIndex(0); setCompletedThisRound(false); setPinnedId(null) }, [courseId])
-  const next = () => { setIndex((value) => value + 1); setCompletedThisRound(false); setPinnedId(null) }
+  const current = rounds.find((item) => item.id === activeId) || rounds[0]
+  const position = Math.max(0, rounds.findIndex((item) => item.id === current?.id))
+  useEffect(() => { setRun(0); setCompletedThisRound(false); setActiveId(null) }, [courseId])
+  const next = () => {
+    setActiveId(rounds.length ? rounds[(position + 1) % rounds.length].id : null)
+    setRun((value) => value + 1)
+    setCompletedThisRound(false)
+  }
   return <section className="intelligence-panel" aria-labelledby="adaptive-title">
     <header className="intelligence-panel-heading"><span><BrainCircuit size={23}/></span>
       <div><small>02 · REPASO PERSONALIZADO</small><h2 id="adaptive-title">Entrenamiento adaptativo</h2>
@@ -18,14 +23,14 @@ export default function AdaptivePanel({ groups, courseId, practice, onResult }) 
     </header>
     {current ? <div className="intelligence-adaptive-content">
       <div className="intelligence-training-status">
-        <div><small>RECOMENDACIÓN ACTUAL · {Math.min(index+1,rounds.length)} DE {rounds.length}</small>
+        <div><small>RECOMENDACIÓN ACTUAL · {Math.min(position+1,rounds.length)} DE {rounds.length}</small>
           <strong>{current.title}</strong><span>{current.practice?.mistakes ? 'Tema para reforzar · ' + current.practice.mistakes + ' errores registrados' : 'Tema disponible para practicar'}</span></div>
         <button type="button" onClick={next}><RefreshCw size={17}/> Cambiar ronda</button>
       </div>
-      <LearningGame key={courseId + ':' + current.id + ':' + index}
+      <LearningGame key={courseId + ':' + current.id + ':' + run}
         content={current.content} title={current.title} onResult={(result) => {
           if (completedThisRound || !result.success) return
-          setPinnedId(current.id)
+          setActiveId(current.id)
           setCompletedThisRound(true)
           onResult?.(current.id,result)
         }}/>

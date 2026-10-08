@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, BookOpenCheck, BrainCircuit, CheckCircle2, ChevronRight, Layers3, ListOrdered, RefreshCw, Shapes, Sparkles, ShieldCheck } from 'lucide-react'
 import LearningGame from './games/LearningGame.jsx'
 import { generateCourseReviewGames } from './games/course-game-generator.js'
+import { recordPractice } from './intelligence/intelligence-model.js'
 import { navigateLearner, openLearnerCourse } from './navigation.js'
 import { supabase } from './supabase.js'
 import { cachedQuery } from '../../src/data-cache.js'
@@ -122,6 +123,11 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
       <div className="games-hero-metric"><strong>{loading ? '…' : enrollments.length}</strong><span>Capacitaciones para elegir</span></div>
     </section>
 
+    <div className="games-phase6-entry">
+      <button type="button" className="game-check-action" onClick={() => navigateLearner('/coach')}>
+        <BrainCircuit size={17}/> Probar mi entrenador adaptativo <ArrowRight size={16}/>
+      </button>
+    </div>
     <section className="games-course-selector" aria-label="Escoge la capacitación para repasar">
       <div className="games-selector-heading">
         <span>PASO 1 · TU CAPACITACIÓN</span>
@@ -180,7 +186,8 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
                 <RefreshCw size={16}/> Otra ronda <ChevronRight size={15}/>
               </button>}
             </div>
-            <LearningGame key={String(selectedCourseId) + ':' + gameType + ':' + activeRound.id} content={activeRound.content} title={activeRound.title}/>
+            <LearningGame key={String(selectedCourseId) + ':' + gameType + ':' + activeRound.id} content={activeRound.content} title={activeRound.title}
+              onResult={(result) => { if (result.success) recordPractice(sessionUser?.id, selectedCourseId, activeRound.id, true, result.mistakes) }}/>
           </> : <div className="games-empty-type">
             <BookOpenCheck size={30}/><h3>Todavía no hay ejercicios de este tipo</h3>
             <p>Completa más temas del curso o selecciona otra dinámica. No generamos respuestas inventadas ni utilizamos preguntas reservadas del examen.</p>

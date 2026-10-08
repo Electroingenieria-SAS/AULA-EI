@@ -526,7 +526,7 @@ body.aula-media-viewer-open :where(
 }
 
 /* A checkpoint is a step inside the gallery, never a second fullscreen layer. */
-.gallery-stage.gallery-step-question{
+.gallery-stage.lightbox-canvas.touch-zoom-canvas.gallery-step-question{
   display:block!important;overflow-y:auto!important;overflow-x:hidden!important;
   touch-action:pan-y!important;cursor:default!important;overscroll-behavior:contain!important;
   background:linear-gradient(145deg,#071529,#102b4d)!important;

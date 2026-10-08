@@ -44,11 +44,16 @@ export default function LegalGate({ profile, sessionUser, children }) {
   const readerMatch = window.location.hash.match(/^#\/legal\/read\/([^/?#]+)/)
   const readerId = readerMatch ? readerMatch[1] : null
   const readerDocument = readerId ? requirements.find((item) => String(item.versionId) === readerId) : null
-  const confirmedCount = pending.filter((item) => checked[item.versionId] === true).length
-  const allChecked = pending.length > 0 && pending.every((item) => checked[item.versionId] === true)
+  const previewRequested = /^#\/legal\/preview(?:\/|$)/.test(window.location.hash)
+  const isAdministrator = ['admin', 'super_admin'].includes(String(profile?.role || ''))
+  // Preview is only available after the real user has completed their mandatory acceptances.
+  const isPreview = previewRequested && isAdministrator && pending.length === 0
+  const shownDocuments = isPreview ? requirements : pending
+  const confirmedCount = shownDocuments.filter((item) => checked[item.versionId] === true).length
+  const allChecked = shownDocuments.length > 0 && shownDocuments.every((item) => checked[item.versionId] === true)
 
   useEffect(() => {
-    if (pending.length > 0 && !readerId) {
+    if ((pending.length > 0 || isPreview) && !readerId) {
       document.documentElement.classList.add('legal-consent-open')
       document.body.classList.add('legal-consent-open')
     } else {
@@ -59,7 +64,7 @@ export default function LegalGate({ profile, sessionUser, children }) {
       document.documentElement.classList.remove('legal-consent-open')
       document.body.classList.remove('legal-consent-open')
     }
-  }, [pending.length, readerId])
+  }, [pending.length, isPreview, readerId])
 
   const toggle = (versionId, value) => {
     setChecked((current) => ({ ...current, [versionId]: value }))
@@ -124,7 +129,16 @@ export default function LegalGate({ profile, sessionUser, children }) {
         </div>
   }
 
-  if (pending.length === 0) return children
+  if (previewRequested && !isAdministrator) {
+    return <div className="legal-consent-overlay legal-consent-state" role="alert">
+      <ShieldCheck size={34} />
+      <h1>Vista reservada para administración</h1>
+      <p>Esta demostración solo está disponible para administradores de Aula EI.</p>
+      <a className="legal-reader-back" href={appUrl('/privacy')}>Volver a Privacidad y legal</a>
+    </div>
+  }
+
+  if (pending.length === 0 && !isPreview) return children
 
   return <div className="legal-consent-overlay" role="dialog" aria-modal="true" aria-labelledby="legal-consent-title">
     <section className="legal-consent-modal">
@@ -132,55 +146,71 @@ export default function LegalGate({ profile, sessionUser, children }) {
         <div className="legal-consent-brand">
           <img src={assetUrl('brand/logo-aula-ei.png')} alt="Aula EI" />
           <div>
-            <span><ShieldCheck size={15} /> Bienvenido a Aula EI</span>
+            <span><ShieldCheck size={15} /> {isPreview ? 'Vista de prueba administrativa' : 'Bienvenido a Aula EI'}</span>
             <h1 id="legal-consent-title">Tus documentos vigentes</h1>
             <p>Antes de ingresar, consulta las versiones que corresponden a tu cuenta. Puedes desplegar cada ficha y abrir el documento completo en otra pestaña.</p>
           </div>
         </div>
-        <button type="button" className="legal-signout" onClick={signOut}><LogOut size={16} /> Cerrar sesión</button>
+        {isPreview
+          ? <a className="legal-signout" href={appUrl('/privacy')}>Cerrar vista previa</a>
+          : <button type="button" className="legal-signout" onClick={signOut}><LogOut size={16} /> Cerrar sesión</button>}
       </header>
 
       <section className="legal-consent-layout" aria-label="Documentos para revisar">
+        {isPreview && <div className="legal-preview-notice" role="status">
+          <ShieldCheck size={19} />
+          <div><strong>Simulación de primer ingreso</strong>
+            <span>Esta es la pantalla que verá un usuario nuevo. Puedes abrir documentos y marcar casillas de prueba. No se guardará ninguna aceptación ni se modificarán tus registros.</span>
+          </div>
+        </div>}
         <div className="legal-consent-overview">
           <div>
             <span className="legal-consent-eyebrow">Lectura y aceptación</span>
             <h2>Una revisión sencilla, documento por documento</h2>
             <p>Abre «Leer documento completo» para revisar la versión oficial. Después confirma cada documento y continúa a tu capacitación.</p>
           </div>
-          <div className="legal-gate-progress" aria-label={confirmedCount + ' de ' + pending.length + ' documentos confirmados'}>
+          <div className="legal-gate-progress" aria-label={confirmedCount + ' de ' + shownDocuments.length + ' documentos confirmados'}>
             <FileText size={20} />
-            <strong>{confirmedCount} / {pending.length}</strong>
+            <strong>{confirmedCount} / {shownDocuments.length}</strong>
             <span>confirmados</span>
           </div>
         </div>
         <div className="legal-consent-documents">
-          {pending.map((item, index) => <LegalRequirementCard
+          {shownDocuments.map((item, index) => <LegalRequirementCard
             key={item.versionId}
             requirement={item}
             index={index}
             checked={checked[item.versionId] === true}
             reviewed={reviewed[item.versionId] === true}
             busy={busy}
+            preview={isPreview}
             markReviewed={(versionId) => setReviewed((current) => ({ ...current, [versionId]: true }))}
             toggle={toggle}
           />)}
         </div>
         <p className="legal-receipt-note">
           <ShieldCheck size={17} />
-          Tu aceptación se registra de forma individual en Supabase con la versión, fecha y huella SHA-256. La lectura en una nueva pestaña no se registra como una aceptación.
+          {isPreview
+            ? 'Modo de prueba: las selecciones solo se muestran en esta pantalla y no se envían a Supabase.'
+            : 'Tu aceptación se registra de forma individual en Supabase con la versión, fecha y huella SHA-256. La lectura en una nueva pestaña no se registra como una aceptación.'}
         </p>
       </section>
 
       <footer className="legal-consent-footer">
         <div>
-          <strong>{confirmedCount} de {pending.length} documentos confirmados</strong>
-          <span>Solo podrás continuar cuando hayas confirmado las versiones pendientes.</span>
+          <strong>{confirmedCount} de {shownDocuments.length} documentos {isPreview ? 'simulados' : 'confirmados'}</strong>
+          <span>{isPreview ? 'Ensaya el recorrido sin alterar ninguna evidencia.' : 'Solo podrás continuar cuando hayas confirmado las versiones pendientes.'}</span>
         </div>
         {error && <div className="legal-error" role="alert">{error}</div>}
-        <button className="legal-accept-button" disabled={!allChecked || busy} onClick={submitAcceptance}>
-          <CheckCircle2 size={18} />
-          {busy ? 'Guardando tus confirmaciones…' : 'Confirmar y entrar a Aula EI'}
-        </button>
+        {isPreview
+          ? <button type="button" className="legal-accept-button" disabled={!allChecked}
+              onClick={() => { setChecked({}); setReviewed({}); window.location.assign(appUrl('/privacy')) }}>
+              <CheckCircle2 size={18} /> Simular ingreso (sin guardar)
+            </button>
+          : <button className="legal-accept-button" disabled={!allChecked || busy} onClick={submitAcceptance}>
+              <CheckCircle2 size={18} />
+              {busy ? 'Guardando tus confirmaciones…' : 'Confirmar y entrar a Aula EI'}
+            </button>}
       </footer>
     </section>
   </div>

@@ -11,7 +11,7 @@ function excerptOf(content) {
 }
 
 /** Native disclosure, one signed version, one independent acknowledgement. */
-export default function LegalRequirementCard({ requirement, index, checked, reviewed, busy, markReviewed, toggle }) {
+export default function LegalRequirementCard({ requirement, index, checked, reviewed, busy, markReviewed, toggle, preview = false }) {
   const url = appUrl('/legal/read/' + encodeURIComponent(requirement.versionId))
   const excerpt = excerptOf(requirement.content)
   return <article className={checked ? 'legal-policy-card is-checked' : 'legal-policy-card'}>
@@ -38,7 +38,9 @@ export default function LegalRequirementCard({ requirement, index, checked, revi
     </details>
     <label className={reviewed ? 'legal-policy-acknowledge' : 'legal-policy-acknowledge is-locked'}>
       <input type="checkbox" checked={checked} disabled={busy || !reviewed} onChange={(event) => toggle(requirement.versionId, event.target.checked)} />
-      <span>{reviewed ? 'He revisado el documento completo y acepto esta versión.' : 'Abre «Leer documento completo» para habilitar tu confirmación.'}</span>
+      <span>{reviewed
+        ? (preview ? 'Simulo haber revisado y aceptado esta versión (no se guarda).' : 'He revisado el documento completo y acepto esta versión.')
+        : 'Abre «Leer documento completo» para habilitar tu confirmación.'}</span>
     </label>
   </article>
 }

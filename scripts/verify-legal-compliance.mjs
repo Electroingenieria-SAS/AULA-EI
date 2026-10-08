@@ -61,6 +61,35 @@ if(!privacy.includes("appUrl('/legal/read/'")||!privacy.includes('privacy-docume
   throw new Error('La biblioteca de privacidad debe abrir la versión íntegra vigente.')
 }
 
+// Administrative simulation must reuse the real consent UI without mutating receipts.
+const learnerApp = await mustRead('player/src/LearnerApp.jsx')
+const privacyStyles = await mustRead('player/src/styles/privacy.css')
+for(const token of [
+  'previewRequested',
+  "'admin', 'super_admin'",
+  'pending.length === 0',
+  'shownDocuments = isPreview ? requirements : pending',
+  'pending.length === 0 && !isPreview',
+  'if (previewRequested && !isAdministrator)',
+  'Simular ingreso (sin guardar)',
+  'onClick={submitAcceptance}',
+  'isPreview ?',
+]){
+  if(!legalGate.includes(token)) throw new Error('La vista previa podría alterar o eludir aceptaciones: '+token)
+}
+if(!learnerApp.includes('<PrivacyCenter profile={profile} />')) {
+  throw new Error('La biblioteca debe recibir el rol autenticado desde el perfil validado.')
+}
+for(const token of ['canPreview',"'admin','super_admin'","appUrl('/legal/preview')"]){
+  if(!privacy.includes(token)) throw new Error('Acceso administrativo a la demostración incompleto: '+token)
+}
+for(const token of ['preview = false','preview ?','disabled={busy || !reviewed}']){
+  if(!requirementCard.includes(token)) throw new Error('El formulario de simulación no distingue aceptación real: '+token)
+}
+if(!legalCss.includes('.legal-preview-notice') || !privacyStyles.includes('.privacy-admin-preview')){
+  throw new Error('La simulación legal debe identificarse visualmente en escritorio y móvil.')
+}
+
 const legalApi=await mustRead('src/legal/legal-api.js')
 for(const token of ['aula-ei-legal-receipt:v1:','localStorage.setItem','acceptLegalDocuments']){
   if(!legalApi.includes(token)) throw new Error('Recibo local legal incompleto: falta '+token)

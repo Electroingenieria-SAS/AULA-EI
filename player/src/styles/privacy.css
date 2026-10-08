@@ -37,14 +37,15 @@
 .privacy-admin-preview>div{display:grid;gap:4px;min-width:0}
 .privacy-admin-preview strong{font-size:.78rem;color:#154a80}
 .privacy-admin-preview span{font-size:.72rem;color:#627f99;line-height:1.5}
-.privacy-preview-action{
+.privacy-center a.privacy-preview-action,
+.privacy-center a.privacy-preview-action:visited{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   min-height:44px;padding:10px 13px;background:#0b5ca9;border-radius:11px;
   color:#fff;text-decoration:none;white-space:nowrap;font-size:.76rem;font-weight:800
 }
-.privacy-preview-action:hover{background:#064883}
-.privacy-preview-action:focus-visible{outline:3px solid #4c97dc;outline-offset:2px}
+.privacy-center a.privacy-preview-action:hover{background:#064883;color:#fff}
+.privacy-center a.privacy-preview-action:focus-visible{outline:3px solid #4c97dc;outline-offset:2px}
 @media(max-width:680px){
   .privacy-admin-preview{grid-template-columns:minmax(0,1fr)}
-  .privacy-preview-action{justify-self:stretch}
+  .privacy-center a.privacy-preview-action{justify-self:stretch}
 }

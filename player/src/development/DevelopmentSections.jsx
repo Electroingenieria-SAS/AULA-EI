@@ -93,7 +93,9 @@ export function DevelopmentDates({ items }) {
         <div><strong>{item.course.title}</strong><small>
           {item.overdue ? 'Fecha límite superada' : item.dueSoon ? 'Vence en los próximos 7 días' : 'Pendiente con fecha programada'}
         </small></div>
-        <button type="button" onClick={() => openLearnerCourse(item.course.id)}>Continuar <ArrowRight size={15}/></button>
+        {!item.routeLocked ? <button type="button" onClick={() => openLearnerCourse(item.course.id)}>
+          Continuar <ArrowRight size={15}/></button> :
+          <span className="development-deadline-locked"><LockKeyhole size={15}/> Requisito pendiente</span>}
       </article>)}
     </div> : <div className="development-empty"><CheckCircle2 size={25}/>
       <p>No tienes capacitaciones pendientes con una fecha límite registrada. Las capacitaciones sin fecha siguen disponibles en Mis capacitaciones.</p>

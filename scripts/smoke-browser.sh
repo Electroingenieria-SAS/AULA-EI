@@ -45,12 +45,27 @@ for viewport in "${VIEWPORTS[@]}"; do
   grep -q "Aula EI" "$dom"
   grep -Eq "Iniciar sesión|Acceso seguro|Correo" "$dom"
 
+  # Confirm the actual login form rendered after the public intro, not just a
+  # static startup shell. Keep this a public-only smoke; do not use real accounts.
+  grep -q 'auth-form-clean' "$dom"
+  grep -q 'dev-auth-signature' "$dom"
+  grep -q 'Juan E. Pérez' "$dom"
+
   if grep -q "Aula EI encontró un error inesperado" "$dom"; then
     echo "::error::El ErrorBoundary se activó en viewport ${label}."
     exit 1
   fi
 
   echo "Smoke OK: ${label}"
+done
+
+# Also verify the optimized static developer assets shipped in the public build.
+for image in juan-perez-primary-blue.webp juan-perez-secondary-blue.webp; do
+  target="/tmp/aula-ei-${image}"
+  curl --fail --silent --show-error --location \
+    "http://127.0.0.1:${PORT}/AULA-EI/brand/developer/${image}" -o "$target"
+  test "$(head -c 4 "$target")" = "RIFF"
+  test "$(wc -c < "$target")" -gt 5000
 done
 
 echo "Browser smoke matrix passed: 8 viewports entre 320px y 1440px."

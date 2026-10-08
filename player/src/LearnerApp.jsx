@@ -7,6 +7,7 @@ const loadCatalogPage = () => import('./CatalogPage.jsx')
 const loadCoursePlayer = () => import('./CoursePlayer.jsx')
 const loadCoursePreview = () => import('./CoursePreview.jsx')
 const loadGamesPage = () => import('./GamesPage.jsx')
+const loadDevelopmentPage = () => import('./DevelopmentPage.jsx')
 const loadPrivacyCenter = () => import('./PrivacyCenter.jsx')
 
 const StudioApp = lazy(loadStudioApp)
@@ -14,6 +15,7 @@ const CatalogPage = lazy(loadCatalogPage)
 const CoursePlayer = lazy(loadCoursePlayer)
 const CoursePreview = lazy(loadCoursePreview)
 const GamesPage = lazy(loadGamesPage)
+const DevelopmentPage = lazy(loadDevelopmentPage)
 const PrivacyCenter = lazy(loadPrivacyCenter)
 
 function readRoute() {
@@ -23,6 +25,7 @@ function readRoute() {
   const courseMatch = hash.match(/^#\/course\/([^/?#]+)/)
   if (courseMatch?.[1]) return { key: 'course:' + courseMatch[1], type: 'course' }
   if (/^#\/catalog(?:\/|$)/.test(hash)) return { key: 'catalog', type: 'catalog' }
+  if (/^#\/development(?:\/|$)/.test(hash)) return { key: 'development', type: 'development' }
   const gamesMatch = hash.match(/^#\/games\/([^/?#]+)/)
   if (gamesMatch?.[1]) return { key: 'games', type: 'games', courseId: gamesMatch[1] }
   if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games', courseId: '' }
@@ -48,6 +51,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     const warm = () => {
       void loadCatalogPage()
       void loadGamesPage()
+      void loadDevelopmentPage()
       void loadCoursePlayer()
       void loadPrivacyCenter()
       if (['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))) {
@@ -69,6 +73,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'course') void loadCoursePlayer()
     if (route.type === 'preview') void loadCoursePreview()
     if (route.type === 'catalog') void loadCatalogPage()
+    if (route.type === 'development') void loadDevelopmentPage()
     if (route.type === 'games') void loadGamesPage()
     if (route.type === 'studio') void loadStudioApp()
     if (route.type === 'privacy') void loadPrivacyCenter()
@@ -80,6 +85,7 @@ export default function LearnerApp({ profile, sessionUser }) {
       : <section className="course-preview-state" role="alert">No tienes permisos para consultar la vista previa.</section>
     if (route.type === 'course') return <CoursePlayer suppliedSessionUser={sessionUser} />
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
+    if (route.type === 'development') return <DevelopmentPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage sessionUser={sessionUser} initialCourseId={route.courseId || ''}/>
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
@@ -99,6 +105,8 @@ function RouteLoading({ route }) {
     ? 'Abriendo Gestión Aula EI…'
     : route === 'preview'
       ? 'Preparando la vista previa…'
+    : route === 'development'
+      ? 'Preparando tu desarrollo…'
     : route === 'catalog'
       ? 'Preparando tus capacitaciones…'
       : route === 'games'

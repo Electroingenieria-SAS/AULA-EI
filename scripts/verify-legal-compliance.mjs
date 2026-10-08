@@ -86,6 +86,14 @@ for(const token of ['canPreview',"'admin','super_admin'","appUrl('/legal/preview
 for(const token of ['preview = false','preview ?','disabled={busy || !reviewed}']){
   if(!requirementCard.includes(token)) throw new Error('El formulario de simulación no distingue aceptación real: '+token)
 }
+// The global shell link rule inherits dark text. The preview CTA needs a stronger
+// local selector in every link state so the accessible white-on-blue contrast holds.
+if(!/\.privacy-center a\.privacy-preview-action[,{\s]/.test(privacyStyles) ||
+   !/\.privacy-center a\.privacy-preview-action:visited/.test(privacyStyles) ||
+   !/\.privacy-center a\.privacy-preview-action:hover\{[^}]*color:#fff/.test(privacyStyles) ||
+   !/\.privacy-center a\.privacy-preview-action[\s\S]*?color:#fff/.test(privacyStyles)) {
+  throw new Error('El botón de vista previa debe mantener texto e ícono blancos sobre el fondo azul.')
+}
 if(!legalCss.includes('.legal-preview-notice') || !privacyStyles.includes('.privacy-admin-preview')){
   throw new Error('La simulación legal debe identificarse visualmente en escritorio y móvil.')
 }

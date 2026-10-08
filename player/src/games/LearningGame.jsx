@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, CheckCircle2, RotateCcw, Sparkles } from 'lucide-react'
 import { gameIsPlayable } from './game-data.js'
 
-function MemoryRound({ content }) {
+function MemoryRound({ content, onResult }) {
+  const mistakes = useRef(0)
   const [active, setActive] = useState(null)
   const [matched, setMatched] = useState([])
   const [message, setMessage] = useState('Selecciona un concepto y después su definición.')
@@ -11,10 +12,11 @@ function MemoryRound({ content }) {
   const match = (index) => {
     if (active === null || matched.includes(index)) return
     if (active === index) {
+      if (matched.length + 1 === pairs.length) onResult?.({ success: true, mistakes: mistakes.current })
       setMatched((current) => [...current, index])
       setActive(null)
       setMessage('¡Correcto! Has relacionado los conceptos.')
-    } else setMessage('No coincide. Prueba otra definición.')
+    } else { mistakes.current += 1; setMessage('No coincide. Prueba otra definición.') }
   }
   const complete = matched.length === pairs.length
   return <>
@@ -43,7 +45,8 @@ function MemoryRound({ content }) {
   </>
 }
 
-function ClassificationRound({ content }) {
+function ClassificationRound({ content, onResult }) {
+  const mistakes = useRef(0)
   const [done, setDone] = useState([])
   const [message, setMessage] = useState('Elige la categoría que corresponde a cada elemento.')
   const itemIndex = content.items.findIndex((_, index) => !done.includes(index))
@@ -51,9 +54,10 @@ function ClassificationRound({ content }) {
   const categories = [...new Set(content.items.map((entry) => entry.category))]
   const classify = (category) => {
     if (category === item.category) {
+      if (done.length + 1 === content.items.length) onResult?.({ success: true, mistakes: mistakes.current })
       setDone((current) => [...current, itemIndex])
       setMessage('Clasificación correcta. Sigue con el siguiente ejemplo.')
-    } else setMessage('Esa categoría no corresponde. Revisa el elemento e inténtalo nuevamente.')
+    } else { mistakes.current += 1; setMessage('Esa categoría no corresponde. Revisa el elemento e inténtalo nuevamente.') }
   }
   return <>
     <p className="game-help" role="status">{message}</p>
@@ -67,7 +71,9 @@ function ClassificationRound({ content }) {
   </>
 }
 
-function SequenceRound({ content }) {
+function SequenceRound({ content, onResult }) {
+  const mistakes = useRef(0)
+  const finished = useRef(false)
   const steps = content.steps
   const [order, setOrder] = useState(() => steps.map((_, i) => i).reverse())
   const [evaluated, setEvaluated] = useState(false)
@@ -94,14 +100,20 @@ function SequenceRound({ content }) {
         </div>
       </li>)}
     </ol>
-    <button className="game-check-action" type="button" onClick={() => setEvaluated(true)}>Comprobar secuencia</button>
+    <button className="game-check-action" type="button" onClick={() => {
+      if (correct && !finished.current) { finished.current = true; onResult?.({ success: true, mistakes: mistakes.current }) }
+      else if (!correct) mistakes.current += 1
+      setEvaluated(true)
+    }}>Comprobar secuencia</button>
     <div role="status" className={evaluated ? 'game-result' : 'game-result is-idle'}>
       {evaluated ? (correct ? '¡Excelente! Ordenaste correctamente todas las etapas.' : 'Aún hay pasos fuera de orden. Ajusta la secuencia y comprueba nuevamente.') : 'Puedes reorganizar las etapas tantas veces como necesites.'}
     </div>
   </>
 }
 
-function DecisionRound({ content }) {
+function DecisionRound({ content, onResult }) {
+  const mistakes = useRef(0)
+  const finished = useRef(false)
   const [choice, setChoice] = useState(null)
   const [checked, setChecked] = useState(false)
   const success = checked && choice === content.correctIndex
@@ -112,7 +124,13 @@ function DecisionRound({ content }) {
         className={choice === index ? 'selected' : ''}
         onClick={() => { setChoice(index); setChecked(false) }}>{option}</button>)}
     </div>
-    <button className="game-check-action" type="button" disabled={choice === null} onClick={() => setChecked(true)}>Revisar decisión</button>
+    <button className="game-check-action" type="button" disabled={choice === null} onClick={() => {
+      if (choice === content.correctIndex && !finished.current) {
+        finished.current = true
+        onResult?.({ success: true, mistakes: mistakes.current })
+      } else if (choice !== content.correctIndex) mistakes.current += 1
+      setChecked(true)
+    }}>Revisar decisión</button>
     {checked && <div role="status" className="game-result">
       {success ? '¡Muy bien! Elegiste la respuesta adecuada.' : 'Esta decisión puede mejorarse. Revisa el caso y selecciona otra opción.'}
     </div>}
@@ -125,7 +143,7 @@ function GameResult({ complete, count, total }) {
   </p>
 }
 
-export default function LearningGame({ content, title }) {
+export default function LearningGame({ content, title, onResult }) {
   const [round, setRound] = useState(0)
   if (!gameIsPlayable(content)) return <div className="game-legacy-note">
     <strong>{title || 'Actividad de práctica'}</strong>
@@ -139,10 +157,10 @@ export default function LearningGame({ content, title }) {
     </header>
     {content.instructions && <p className="learning-game-instructions">{content.instructions}</p>}
     <div key={round} className="learning-game-round">
-      {content.gameType === 'memory' && <MemoryRound content={content}/>}
-      {content.gameType === 'classification' && <ClassificationRound content={content}/>}
-      {content.gameType === 'sequence' && <SequenceRound content={content}/>}
-      {content.gameType === 'decision' && <DecisionRound content={content}/>}
+      {content.gameType === 'memory' && <MemoryRound content={content} onResult={onResult}/>}
+      {content.gameType === 'classification' && <ClassificationRound content={content} onResult={onResult}/>}
+      {content.gameType === 'sequence' && <SequenceRound content={content} onResult={onResult}/>}
+      {content.gameType === 'decision' && <DecisionRound content={content} onResult={onResult}/>}
     </div>
     <footer className="learning-game-disclaimer">
       Práctica formativa sin nota. El avance oficial del curso se gestiona mediante las actividades y preguntas de transición.

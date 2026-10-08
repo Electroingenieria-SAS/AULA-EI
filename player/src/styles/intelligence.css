@@ -1,0 +1,131 @@
+/* Phase 6: self-contained learner intelligence, lazy-loaded only on this route. */
+.intelligence-page{display:grid;gap:19px;max-width:1470px;margin:0 auto;padding:25px 27px 55px;font-family:"Century Gothic","Segoe UI",sans-serif;color:#204b73;min-width:0}
+.intelligence-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:20px;
+  min-height:230px;border-radius:25px;padding:30px 37px;background:linear-gradient(116deg,#083662,#0b579d 75%,#1475b8);
+  color:#fff;box-shadow:0 18px 45px rgba(8,49,94,.16)}
+.intelligence-hero>div:first-child{min-width:0;position:relative;z-index:1;max-width:790px}
+.intelligence-kicker,.intelligence-trust{display:inline-flex;align-items:center;gap:8px;font-size:.7rem;font-weight:900;letter-spacing:.06em;color:#dceeff;line-height:1.5}
+.intelligence-hero h1{margin:13px 0 9px;font-size:clamp(1.65rem,3vw,2.55rem);line-height:1.2;color:#fff}
+.intelligence-hero p{margin:0;color:#e4f0fd;line-height:1.7;font-size:.83rem}
+.intelligence-trust{margin-top:17px;letter-spacing:0}
+.intelligence-hero-art{display:grid;place-items:center;flex:none;width:170px;height:170px;position:relative;
+  border-radius:47px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#d6ecff}
+.intelligence-hero-art span{position:absolute;right:16px;bottom:13px;font-size:1.08rem;font-weight:900;color:#fff}
+.intelligence-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.intelligence-tabs button{display:flex;align-items:center;gap:12px;min-height:88px;padding:15px;
+  border:1px solid #dae7f2;border-radius:17px;background:#fff;color:#376488;text-align:left;cursor:pointer;
+  box-shadow:0 6px 19px rgba(17,52,88,.045)}
+.intelligence-tabs button>svg{flex:none;color:#2475ae}
+.intelligence-tabs button span{display:grid;gap:6px;min-width:0}
+.intelligence-tabs button strong{font-size:.81rem;line-height:1.35;color:#1c507c;font-weight:900}
+.intelligence-tabs button small{font-size:.67rem;line-height:1.3;color:#69879f}
+.intelligence-tabs button.is-active{background:#edf7ff;border-color:#74b3dd;box-shadow:0 11px 25px rgba(11,100,168,.1)}
+.intelligence-panel{min-width:0;overflow:hidden;border:1px solid #d9e6f1;border-radius:21px;background:#fff;
+  box-shadow:0 13px 32px rgba(20,56,98,.055)}
+.intelligence-panel-heading{display:flex;align-items:flex-start;gap:14px;padding:22px 24px;border-bottom:1px solid #e6eef5;
+  background:linear-gradient(115deg,#f5faff,#fff)}
+.intelligence-panel-heading>span{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:15px;background:#e5f2fe;color:#1268aa}
+.intelligence-panel-heading>div{min-width:0}
+.intelligence-panel-heading small{font-size:.65rem;color:#1166a9;font-weight:900;letter-spacing:.075em}
+.intelligence-panel-heading h2{margin:4px 0 6px;color:#153f6a;font-size:1.23rem;line-height:1.35}
+.intelligence-panel-heading p{margin:0;color:#6a8299;font-size:.76rem;line-height:1.65}
+.intelligence-selector{display:flex;align-items:end;justify-content:space-between;gap:15px;padding:18px 22px;border:1px solid #dae8f3;
+  border-radius:16px;background:linear-gradient(110deg,#f7fbff,#fff)}
+.intelligence-selector label{display:grid;gap:10px;min-width:0;flex:1;max-width:550px;font-size:.78rem;font-weight:900;color:#22577d}
+.intelligence-selector label svg{display:inline;margin-right:6px;vertical-align:middle}
+.intelligence-selector select{width:100%;min-height:47px;min-width:0;border:1px solid #c5ddee;border-radius:11px;padding:10px 12px;
+  font:inherit;font-size:.8rem;font-weight:800;background:#fff;color:#204e75}
+.intelligence-selector>span{display:inline-flex;align-items:center;gap:8px;color:#66849d;font-size:.71rem;padding-bottom:11px}
+.intelligence-status{display:flex;align-items:center;gap:10px;padding:20px;border:1px solid #dae8f3;border-radius:14px;background:#fff;color:#5c7c97;font-size:.8rem}
+.intelligence-tutor-body,.intelligence-rewards-body,.intelligence-routes-body,.intelligence-adaptive-content{padding:23px;display:grid;gap:17px}
+.intelligence-source-label{display:inline-flex;align-items:center;gap:8px;margin:0;color:#4f7896;font-size:.75rem;font-weight:900}
+.intelligence-suggestions{display:flex;flex-wrap:wrap;gap:9px}
+.intelligence-suggestions button{min-height:41px;padding:9px 13px;border:1px solid #cee2f2;border-radius:999px;background:#eff7fe;
+  color:#185b93;font-size:.74rem;font-weight:900;cursor:pointer}
+.intelligence-question-form{display:grid;gap:9px}
+.intelligence-question-form label{font-size:.78rem;font-weight:900;color:#255478}
+.intelligence-question-form>div{display:flex;gap:10px}
+.intelligence-question-form input{flex:1;min-width:0;min-height:47px;border:1px solid #c9dded;border-radius:11px;padding:11px 13px;font:inherit;font-size:.79rem;color:#1f4b73}
+.intelligence-question-form button,.intelligence-training-status button,.intelligence-success button,.intelligence-recommendations button,.intelligence-text-action{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:45px;border:1px solid #0d66ab;border-radius:11px;
+  background:#0d64a9;color:#fff;padding:10px 15px;font-size:.74rem;font-weight:900;cursor:pointer}
+.intelligence-question-form button:disabled{opacity:.4;cursor:not-allowed}
+.intelligence-tutor-answer{padding:20px;border-left:4px solid #2d8cc7;border-radius:14px;background:#f1f8ff}
+.intelligence-tutor-answer>small{display:inline-flex;align-items:center;gap:8px;color:#216aa1;font-weight:900;font-size:.67rem}
+.intelligence-tutor-answer h3{margin:8px 0;color:#17466f;font-size:1rem;line-height:1.4}
+.intelligence-tutor-answer p{margin:0;color:#355f82;font-size:.82rem;line-height:1.75}
+.intelligence-tutor-answer footer{margin-top:13px;padding-top:11px;border-top:1px solid #d9eaf6;color:#69879f;font-size:.7rem;line-height:1.6}
+.intelligence-disclaimer,.intelligence-footer-note{margin:0;font-size:.7rem;color:#728ba1;line-height:1.65}
+.intelligence-footer-note{padding:0 8px}
+.intelligence-empty{display:grid;justify-items:center;gap:10px;padding:29px 18px;border:1px dashed #cbdfec;border-radius:15px;text-align:center;color:#3678a4}
+.intelligence-empty strong{color:#285d80;font-size:.85rem}
+.intelligence-empty p{max-width:540px;margin:0;font-size:.75rem;line-height:1.7;color:#71889e}
+.intelligence-training-status{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;
+  border:1px solid #d8e8f4;border-radius:14px;background:#f5faff}
+.intelligence-training-status>div{display:grid;gap:6px;min-width:0}
+.intelligence-training-status small{font-size:.64rem;color:#3273a2;font-weight:900}
+.intelligence-training-status strong{font-size:.89rem;color:#21547a}
+.intelligence-training-status span{font-size:.71rem;color:#738ba1}
+.intelligence-success{display:flex;align-items:center;gap:12px;border:1px solid #c5e5d5;background:#ecf9f2;border-radius:12px;padding:12px;color:#1e7652}
+.intelligence-success span{flex:1;font-size:.73rem;line-height:1.55}
+.intelligence-success button{background:#1a7c54;border-color:#1a7c54}
+.intelligence-rewards-banner{display:flex;align-items:center;gap:15px;border-radius:16px;padding:19px;background:linear-gradient(115deg,#eaf4ff,#f7fbff);color:#1766a3}
+.intelligence-rewards-banner>div{display:grid;gap:5px}
+.intelligence-rewards-banner strong{color:#175280;font-size:1rem}
+.intelligence-rewards-banner span{font-size:.73rem;color:#62839c}
+.intelligence-badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.intelligence-badges article{display:flex;gap:13px;padding:18px;border:1px solid #dfe9f2;border-radius:15px;background:#fafcfe;min-width:0}
+.intelligence-badges article.achieved{background:#f3f9ff;border-color:#b5d7f2}
+.intelligence-badges article>span{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#edf1f5;color:#7e93a7}
+.intelligence-badges article.achieved>span{background:#e4f4ff;color:#1c70b2}
+.intelligence-badges article>div{display:grid;gap:7px;flex:1;min-width:0}
+.intelligence-badges strong{color:#285276;font-size:.83rem}
+.intelligence-badges p{margin:0;color:#6d869b;font-size:.72rem;line-height:1.5}
+.intelligence-badges small{display:flex;align-items:center;gap:5px;color:#6a839a;font-size:.69rem}
+.intelligence-badge-track{height:7px;background:#e2ebf3;border-radius:999px;overflow:hidden}
+.intelligence-badge-track i{display:block;height:100%;background:#2685c0;border-radius:999px}
+.intelligence-skills-summary{display:flex;gap:13px;padding:17px;border:1px solid #d7e8f6;border-radius:14px;background:#f5faff;color:#216fa8}
+.intelligence-skills-summary>div{min-width:0}
+.intelligence-skills-summary strong{font-size:.82rem;color:#174f7c}
+.intelligence-skills-summary p{margin:7px 0;color:#3e6b8e;font-size:.75rem}
+.intelligence-skills-summary small{color:#718ba0;font-size:.7rem;line-height:1.6}
+.intelligence-recommendations{list-style:none;display:grid;gap:10px;margin:0;padding:0}
+.intelligence-recommendations li{display:flex;align-items:center;gap:13px;min-height:76px;padding:14px;
+  border:1px solid #dfe9f2;border-radius:13px;background:#fff}
+.intelligence-recommendations li>span{flex:none;display:grid;place-items:center;width:38px;height:38px;
+  border-radius:12px;background:#e9f4ff;color:#196cae;font-weight:900;font-size:.78rem}
+.intelligence-recommendations li>div{min-width:0;flex:1;display:grid;gap:7px}
+.intelligence-recommendations strong{color:#1f507c;font-size:.82rem}
+.intelligence-recommendations small{color:#69849b;font-size:.71rem;line-height:1.45}
+.intelligence-text-action{justify-self:start;background:#eff7ff;color:#1a609a;border-color:#c9dfef}
+.intelligence-page button:focus-visible,.intelligence-page input:focus-visible,.intelligence-page select:focus-visible{
+  outline:3px solid #448fd0;outline-offset:3px}
+@media(max-width:1100px){.intelligence-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+  .intelligence-page{padding:14px 11px 95px;gap:12px}
+  .intelligence-hero{padding:20px;min-height:210px}
+  .intelligence-hero-art{width:95px;height:95px;border-radius:28px}
+  .intelligence-hero-art svg{width:48px}
+  .intelligence-selector{flex-direction:column;align-items:stretch;padding:14px}
+  .intelligence-selector label{max-width:none}
+  .intelligence-selector>span{padding:0}
+  .intelligence-panel-heading{padding:16px}
+  .intelligence-tutor-body,.intelligence-rewards-body,.intelligence-routes-body,.intelligence-adaptive-content{padding:13px;gap:12px}
+}
+@media(max-width:480px){
+  .intelligence-hero-art{display:none}
+  .intelligence-tabs{gap:7px}
+  .intelligence-tabs button{padding:10px;min-height:85px;align-items:flex-start;gap:7px;flex-direction:column}
+  .intelligence-tabs button>svg{width:19px;height:19px}
+  .intelligence-tabs button strong{font-size:.74rem}
+  .intelligence-tabs button small{font-size:.63rem}
+  .intelligence-question-form>div{flex-direction:column}
+  .intelligence-question-form button{align-self:stretch}
+  .intelligence-badges{grid-template-columns:1fr}
+  .intelligence-training-status,.intelligence-success{align-items:flex-start;flex-wrap:wrap}
+  .intelligence-training-status button{width:100%}
+  .intelligence-recommendations li{flex-wrap:wrap}
+  .intelligence-recommendations button{margin-left:auto}
+  .intelligence-rewards-banner strong{font-size:.86rem}
+}
+@media(prefers-reduced-motion:reduce){.intelligence-page *{scroll-behavior:auto!important;transition:none!important}}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, BookOpen, Briefcase, CheckCircle2, Clock3, GraduationCap, TrendingUp, Layers3, LockKeyhole, PlayCircle, ShieldCheck, Sparkles, Target, Trophy } from 'lucide-react'
+import { ArrowRight, BookOpen, Briefcase, CheckCircle2, Clock3, GraduationCap, TrendingUp, Layers3, LockKeyhole, PlayCircle, ShieldCheck, Sparkles, Target, Trophy, BrainCircuit } from 'lucide-react'
 import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 import { cachedQuery } from '../../src/data-cache.js'
@@ -84,6 +84,14 @@ export default function HomePage({ profile, sessionUser }) {
         <span>Competencias, rutas formativas, vencimientos y certificados, todo en un solo lugar.</span>
       </div>
       <button type="button" onClick={() => navigateLearner('/development')}>Ver mi desarrollo <ArrowRight size={17}/></button>
+    </section>
+
+    <section className="home-development-entry" aria-label="Entrenador inteligente de Aula EI">
+      <div className="home-development-entry-mark"><BrainCircuit size={22}/></div>
+      <div><strong>Mi entrenador · Aula EI Inteligente</strong>
+        <span>Consulta el tutor de estudio, refuerza conocimientos con juegos adaptativos y avanza en tus misiones.</span>
+      </div>
+      <button type="button" onClick={() => navigateLearner('/coach')}>Abrir entrenador <ArrowRight size={17}/></button>
     </section>
 
     {trainingProfile?.position && <section className="home-training-route-card">

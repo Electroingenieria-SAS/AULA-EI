@@ -69,8 +69,8 @@ export default function DevelopmentPage({ profile, sessionUser }) {
           {model.next && <button type="button" className="development-primary" onClick={() => openLearnerCourse(model.next.course.id)}>
             <ArrowRight size={18}/> Continuar siguiente capacitación
           </button>}
-          <button type="button" className="development-secondary" onClick={() => navigateLearner('/games')}>
-            <BookOpen size={17}/> Repasar con Juegos EI
+          <button type="button" className="development-secondary" onClick={() => navigateLearner('/coach')}>
+            <BookOpen size={17}/> Abrir mi entrenador
           </button>
         </div>
       </div>

@@ -8,6 +8,7 @@ const loadCoursePlayer = () => import('./CoursePlayer.jsx')
 const loadCoursePreview = () => import('./CoursePreview.jsx')
 const loadGamesPage = () => import('./GamesPage.jsx')
 const loadDevelopmentPage = () => import('./DevelopmentPage.jsx')
+const loadIntelligencePage = () => import('./IntelligencePage.jsx')
 const loadPrivacyCenter = () => import('./PrivacyCenter.jsx')
 const loadDeveloperCredits = () => import('./DeveloperCreditsPage.jsx')
 
@@ -17,6 +18,7 @@ const CoursePlayer = lazy(loadCoursePlayer)
 const CoursePreview = lazy(loadCoursePreview)
 const GamesPage = lazy(loadGamesPage)
 const DevelopmentPage = lazy(loadDevelopmentPage)
+const IntelligencePage = lazy(loadIntelligencePage)
 const PrivacyCenter = lazy(loadPrivacyCenter)
 const DeveloperCreditsPage = lazy(loadDeveloperCredits)
 
@@ -28,6 +30,7 @@ function readRoute() {
   if (courseMatch?.[1]) return { key: 'course:' + courseMatch[1], type: 'course' }
   if (/^#\/catalog(?:\/|$)/.test(hash)) return { key: 'catalog', type: 'catalog' }
   if (/^#\/development(?:\/|$)/.test(hash)) return { key: 'development', type: 'development' }
+  if (/^#\/coach(?:\/|$)/.test(hash)) return { key: 'coach', type: 'coach' }
   const gamesMatch = hash.match(/^#\/games\/([^/?#]+)/)
   if (gamesMatch?.[1]) return { key: 'games', type: 'games', courseId: gamesMatch[1] }
   if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games', courseId: '' }
@@ -55,6 +58,7 @@ export default function LearnerApp({ profile, sessionUser }) {
       void loadCatalogPage()
       void loadGamesPage()
       void loadDevelopmentPage()
+      void loadIntelligencePage()
       void loadCoursePlayer()
       void loadPrivacyCenter()
       void loadDeveloperCredits()
@@ -78,6 +82,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'preview') void loadCoursePreview()
     if (route.type === 'catalog') void loadCatalogPage()
     if (route.type === 'development') void loadDevelopmentPage()
+    if (route.type === 'coach') void loadIntelligencePage()
     if (route.type === 'games') void loadGamesPage()
     if (route.type === 'studio') void loadStudioApp()
     if (route.type === 'privacy') void loadPrivacyCenter()
@@ -91,6 +96,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'course') return <CoursePlayer suppliedSessionUser={sessionUser} />
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'development') return <DevelopmentPage profile={profile} sessionUser={sessionUser} />
+    if (route.type === 'coach') return <IntelligencePage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage sessionUser={sessionUser} initialCourseId={route.courseId || ''}/>
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
@@ -113,6 +119,8 @@ function RouteLoading({ route }) {
       ? 'Preparando la vista previa…'
     : route === 'credits'
       ? 'Abriendo créditos de desarrollo…'
+    : route === 'coach'
+      ? 'Preparando Mi entrenador…'
     : route === 'development'
       ? 'Preparando tu desarrollo…'
     : route === 'catalog'

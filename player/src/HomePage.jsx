@@ -86,6 +86,14 @@ export default function HomePage({ profile, sessionUser }) {
       <button type="button" onClick={() => navigateLearner('/development')}>Ver mi desarrollo <ArrowRight size={17}/></button>
     </section>
 
+    <section className="home-development-entry" aria-label="Mi plan de formación">
+      <div className="home-development-entry-mark"><Layers3 size={22}/></div>
+      <div><strong>Mi plan de formación</strong>
+        <span>Prioriza lo urgente, continúa los cursos habilitados y consulta tus próximos compromisos.</span>
+      </div>
+      <button type="button" onClick={() => navigateLearner('/plan')}>Abrir mi plan <ArrowRight size={17}/></button>
+    </section>
+
     <section className="home-development-entry" aria-label="Entrenador inteligente de Aula EI">
       <div className="home-development-entry-mark"><BrainCircuit size={22}/></div>
       <div><strong>Mi entrenador · Aula EI Inteligente</strong>

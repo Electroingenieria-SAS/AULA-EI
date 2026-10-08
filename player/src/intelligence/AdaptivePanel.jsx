@@ -24,7 +24,11 @@ export default function AdaptivePanel({ groups, courseId, practice, onResult }) 
     {current ? <div className="intelligence-adaptive-content">
       <div className="intelligence-training-status">
         <div><small>RECOMENDACIÓN ACTUAL · {Math.min(position+1,rounds.length)} DE {rounds.length}</small>
-          <strong>{current.title}</strong><span>{current.practice?.mistakes ? 'Tema para reforzar · ' + current.practice.mistakes + ' errores registrados' : 'Tema disponible para practicar'}</span></div>
+          <strong>{current.title}</strong><span>{current.practice?.mistakes ? 'Tema para reforzar · ' + current.practice.mistakes + ' errores registrados' : 'Tema disponible para practicar'}</span>
+          <div className="intelligence-round-progress" role="progressbar" aria-label="Avance por rondas disponibles"
+            aria-valuemin={0} aria-valuemax={rounds.length} aria-valuenow={Math.min(position+1,rounds.length)}>
+            <i style={{width:(100*(position+1)/rounds.length)+'%'}}/>
+          </div></div>
         <button type="button" onClick={next}><RefreshCw size={17}/> Cambiar ronda</button>
       </div>
       <LearningGame key={courseId + ':' + current.id + ':' + run}

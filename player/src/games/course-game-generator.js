@@ -101,7 +101,8 @@ export function generateCourseReviewGames(course, completedIds = new Set()) {
     for (let start = 0; start < classified.length; start += 6) {
       let selection = classified.slice(start, start + 6)
       if (new Set(selection.map((entry) => keyText(entry.category))).size < 2) {
-        selection = classified.slice(0, Math.min(classified.length, 6))
+        const other = classified.find((entry) => keyText(entry.category) !== keyText(selection[0]?.category))
+        if (other) selection = [other, ...selection.filter((entry) => entry.label !== other.label)].slice(0, 6)
       }
       bucket.get('classification').push({
         id: 'classification-' + start,

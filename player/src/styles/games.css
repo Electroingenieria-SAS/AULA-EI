@@ -96,3 +96,93 @@
   .game-match-grid,.game-choice-grid,.games-roadmap>div{grid-template-columns:minmax(0,1fr)}
   .learning-game-disclaimer{padding:12px}
 }
+
+
+/* Personalized course-first practice, all inside existing Games EI layout. */
+.games-course-selector{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,350px);
+  align-items:center;gap:22px;margin:20px 0 22px;padding:23px 25px;
+  border:1px solid #d9e7f4;border-radius:20px;
+  background:linear-gradient(115deg,#fff,#f3f8ff);
+  box-shadow:0 10px 29px rgba(21,65,113,.05)
+}
+.games-selector-heading>span,.games-generated-heading>div>span{
+  display:inline-flex;align-items:center;gap:7px;font-size:.67rem;
+  color:#1163a9;font-weight:900;letter-spacing:.055em
+}
+.games-selector-heading h2,.games-generated-heading h2{
+  margin:6px 0;color:#123f71;font-size:clamp(1.1rem,2.3vw,1.48rem);line-height:1.35
+}
+.games-selector-heading p,.games-generated-heading p{
+  margin:0;color:#607e98;font-size:.76rem;line-height:1.65
+}
+.games-course-selector>label{
+  display:grid;gap:8px;min-width:0;color:#24597f;
+  font-size:.76rem;font-weight:900
+}
+.games-course-selector select{
+  width:100%;min-width:0;min-height:48px;padding:10px 13px;
+  border:1px solid #bcd5eb;border-radius:12px;background:#fff;
+  color:#193e6a;font:inherit;font-size:.81rem;font-weight:800;cursor:pointer
+}
+.games-course-selector select:disabled{opacity:.6;cursor:not-allowed}
+.games-selection-state{
+  display:grid;gap:10px;justify-items:center;margin:18px 0;padding:28px 19px;
+  border:1px solid #dce8f4;border-radius:16px;background:#fff;
+  color:#52728e;font-size:.79rem;text-align:center;line-height:1.55
+}
+.games-selection-state h2{color:#194975;font-size:1rem;margin:0}
+.games-selection-state p{margin:0}
+.games-selection-state button,.games-empty-type button{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:44px;padding:10px 14px;border:1px solid #0d5ea8;border-radius:11px;
+  background:#0c5da9;color:#fff;font-size:.76rem;font-weight:900;cursor:pointer
+}
+.games-generated-content{display:grid;gap:14px}
+.games-generated-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:3px 1px
+}
+.games-generated-heading>div{min-width:0}
+.games-round-count{
+  flex:none;padding:8px 12px;border-radius:999px;
+  background:#eaf5ff;color:#155b98;font-size:.7rem;font-weight:900
+}
+.games-source-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:47px;margin-bottom:8px;padding:8px 10px;border:1px solid #d7e9f5;
+  border-radius:11px;background:#f4f9fe;color:#376887
+}
+.games-source-row span{display:inline-flex;align-items:center;gap:7px;font-size:.7rem;font-weight:800;line-height:1.4}
+.games-source-row button{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;
+  min-height:40px;padding:8px 12px;border:1px solid #c6dfef;border-radius:10px;
+  color:#135c9b;background:#fff;font-size:.73rem;font-weight:900;cursor:pointer
+}
+.games-empty-type{
+  display:grid;justify-items:center;gap:12px;min-height:310px;padding:28px 20px;
+  border:1px solid #dce8f4;border-radius:18px;background:#fff;
+  color:#527698;text-align:center
+}
+.games-empty-type h3{margin:0;color:#154c7d;font-size:1.02rem}
+.games-empty-type p{max-width:530px;margin:0;line-height:1.65;font-size:.77rem}
+.games-empty-type .games-course-return{background:#eff6fd;color:#14578f}
+.games-review-safety{
+  display:flex;align-items:flex-start;gap:9px;margin:6px 0 22px;padding:13px 16px;
+  border:1px solid #e0e9f3;border-radius:13px;background:#f8fbff;
+  color:#607e97;font-size:.71rem;line-height:1.6
+}
+.games-review-safety svg{flex:none;color:#1463a5}
+.games-course-selector select:focus-visible,.games-source-row button:focus-visible,.games-empty-type button:focus-visible{
+  outline:3px solid #4d96d5;outline-offset:2px
+}
+@media(max-width:900px){
+  .games-course-selector{grid-template-columns:minmax(0,1fr);gap:13px;padding:19px}
+}
+@media(max-width:580px){
+  .games-course-selector{margin:12px 0 17px;padding:14px;border-radius:16px}
+  .games-generated-heading{align-items:flex-start;flex-direction:column;gap:9px}
+  .games-source-row{flex-direction:column;align-items:stretch}
+  .games-source-row button{align-self:flex-start}
+  .games-course-selector select{font-size:16px}
+}

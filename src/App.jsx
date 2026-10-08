@@ -40,11 +40,6 @@ export default function App() {
   const [introComplete, setIntroComplete] = useState(false)
 
   useEffect(() => {
-    if (!showWelcome) return
-    try { window.sessionStorage.removeItem('aula-ei-brand-welcome-v1') } catch {}
-  }, [showWelcome])
-
-  useEffect(() => {
     let alive = true
     const syncRoute = () => setRoute(routeInfo())
     window.addEventListener('hashchange', syncRoute)

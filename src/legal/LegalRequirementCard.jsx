@@ -31,7 +31,7 @@ export default function LegalRequirementCard({ requirement, index, checked, revi
         <p className="legal-policy-excerpt">{excerpt || 'El texto completo está disponible en la versión oficial del documento.'}</p>
         <p className="legal-policy-note">Este es un extracto orientativo, no sustituye el documento íntegro ni modifica su contenido.</p>
         <a className="legal-policy-read" href={url} target="_blank" rel="noopener noreferrer" onClick={() => markReviewed(requirement.versionId)}>
-          <BookOpen size={18} /> Leer documento completo <ExternalLink size={15} />
+          <BookOpen size={18} /> Leer documento completo (nueva pestaña) <ExternalLink size={15} />
         </a>
         <small className="legal-policy-instruction">Se abrirá en otra pestaña, con índice y opción de guardar en PDF.</small>
       </div>

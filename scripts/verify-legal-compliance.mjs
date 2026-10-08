@@ -63,7 +63,6 @@ if(!privacy.includes("appUrl('/legal/read/'")||!privacy.includes('privacy-docume
 
 // Administrative simulation must reuse the real consent UI without mutating receipts.
 const learnerApp = await mustRead('player/src/LearnerApp.jsx')
-const requirementCard = await mustRead('src/legal/LegalRequirementCard.jsx')
 const privacyStyles = await mustRead('player/src/styles/privacy.css')
 for(const token of [
   'previewRequested',

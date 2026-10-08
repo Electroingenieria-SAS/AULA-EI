@@ -1,0 +1,166 @@
+/* Aula EI · Fase 3. Single-source learning progress, no shadow state. */
+.learner-development-page{
+  width:min(1530px,100%);box-sizing:border-box;margin:0 auto;
+  padding:26px;display:grid;gap:18px;
+  color:#183b61;font-family:"Century Gothic","Segoe UI",system-ui,sans-serif
+}
+.development-hero{
+  display:grid;grid-template-columns:minmax(0,1.75fr) minmax(255px,.85fr);
+  align-items:stretch;gap:24px;position:relative;overflow:hidden;
+  border-radius:24px;padding:30px;
+  color:#fff;background:linear-gradient(121deg,#073768 0%,#0a559b 72%,#166eb4 100%);
+  box-shadow:0 18px 42px rgba(6,57,111,.17)
+}
+.development-hero:before{content:"";position:absolute;width:360px;height:360px;border:1px solid rgba(255,255,255,.1);border-radius:50%;right:-80px;top:-180px;pointer-events:none}
+.development-hero-copy,.development-hero-profile{position:relative;z-index:1;min-width:0}
+.development-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.7rem;font-weight:900;letter-spacing:.08em;color:#d8edff}
+.development-hero h1{margin:11px 0 8px;font-size:clamp(1.65rem,3.2vw,2.55rem);line-height:1.13;color:#fff}
+.development-hero-copy>p{max-width:680px;margin:0;color:#deecf9;font-size:.83rem;line-height:1.7}
+.development-hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.development-hero-actions button,.development-path-primary{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:46px;padding:11px 16px;border-radius:12px;
+  cursor:pointer;font:inherit;font-size:.76rem;font-weight:900;line-height:1.4
+}
+.development-primary{border:1px solid #f4d963;background:#ffd44c;color:#123b6c}
+.development-secondary{border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.12);color:#fff}
+.development-hero-profile{
+  display:flex;flex-direction:column;justify-content:center;gap:11px;padding:21px;
+  border:1px solid rgba(255,255,255,.22);border-radius:17px;
+  background:rgba(255,255,255,.1);backdrop-filter:blur(5px)
+}
+.development-hero-profile small{font-size:.67rem;letter-spacing:.06em;font-weight:900;color:#d2e9ff}
+.development-hero-profile strong{color:#fff;font-size:1.21rem;line-height:1.3;overflow-wrap:anywhere}
+.development-hero-profile>span{font-size:.75rem;line-height:1.55;color:#e1edfb}
+.development-hero-profile .development-supervisor{padding-top:11px;border-top:1px solid rgba(255,255,255,.23)}
+.development-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.development-kpis article{
+  min-width:0;display:flex;align-items:center;gap:13px;padding:16px;
+  border:1px solid #dce7f1;border-radius:17px;background:#fff;
+  box-shadow:0 7px 18px rgba(15,45,80,.045)
+}
+.development-kpis article>svg{flex:none;color:#1365a9}
+.development-kpis article>div{min-width:0;display:flex;flex-direction:column;gap:5px}
+.development-kpis span{font-size:.68rem;line-height:1.4;color:#5e7a94}
+.development-kpis strong{font-size:1.35rem;font-variant-numeric:tabular-nums;color:#153e6c}
+.development-kpis .needs-attention{border-color:#e9caa4;background:#fffdf9}
+.development-kpis .needs-attention>svg{color:#ae721b}
+.development-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-3px 0
+}
+.development-toolbar>span{display:inline-flex;align-items:center;gap:7px;color:#607d98;font-size:.68rem}
+.development-toolbar button,.development-text-link{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:42px;border:1px solid #cfe1f2;border-radius:11px;
+  padding:9px 13px;background:#f0f7ff;color:#135b9c;
+  font:inherit;font-size:.73rem;font-weight:900;cursor:pointer
+}
+.development-toolbar button:disabled{opacity:.45;cursor:not-allowed}
+.development-inline-error{padding:13px;border:1px solid #e6bcbf;border-radius:13px;background:#fff4f4;color:#8e272b;font-size:.77rem}
+.development-layout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:17px}
+.development-panel{min-width:0;overflow:hidden;border:1px solid #dce7f2;border-radius:19px;background:#fff;box-shadow:0 10px 29px rgba(19,55,92,.055)}
+.development-panel-head{
+  display:flex;align-items:flex-start;gap:13px;padding:21px;
+  border-bottom:1px solid #e6eef5;background:linear-gradient(115deg,#f4f9ff,#fff)
+}
+.development-panel-icon{display:grid;place-items:center;flex:none;width:43px;height:43px;border-radius:13px;background:#e7f3ff;color:#165fa2}
+.development-panel-head>div{min-width:0}
+.development-panel-head small{font-size:.62rem;font-weight:900;letter-spacing:.07em;color:#1b68a6}
+.development-panel-head h2{margin:5px 0;color:#153e6b;font-size:clamp(1rem,1.55vw,1.18rem);line-height:1.35}
+.development-panel-head p{margin:5px 0 0;color:#66809a;font-size:.73rem;line-height:1.55}
+.development-skills{display:grid;gap:0;padding:0 20px}
+.development-skill{padding:17px 0;border-bottom:1px solid #edf2f7}
+.development-skill:last-child{border-bottom:0}
+.development-skill-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.development-skill-top strong{min-width:0;color:#234970;font-size:.81rem;line-height:1.35;overflow-wrap:anywhere}
+.development-skill-top>span{flex:none;font-size:.63rem;font-weight:900;color:#9b6620}
+.development-skill-top>span.is-reached{display:inline-flex;align-items:center;gap:5px;color:#24845a}
+.development-skill-track,.development-path-progress{height:9px;overflow:hidden;border-radius:999px;background:#e8f0f7;margin-top:12px}
+.development-skill-track>span,.development-path-progress>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#1576c3,#1cb8b1);transition:width .3s}
+.development-skill-labels{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;font-size:.65rem;color:#7890a5}
+.development-skill-labels b{font-variant-numeric:tabular-nums;color:#486d8d}
+.development-explanation{margin:0;padding:12px 20px;border-top:1px solid #e5edf6;background:#f8fbff;color:#72879c;font-size:.65rem;line-height:1.55}
+.development-path-list{display:grid;gap:12px;padding:15px}
+.development-path{padding:16px;border:1px solid #e0eaf4;border-radius:15px}
+.development-path-head{display:flex;align-items:center;justify-content:space-between;gap:13px}
+.development-path-head>div{display:grid;gap:5px;min-width:0}
+.development-path-head strong{color:#1b4a78;font-size:.88rem;line-height:1.3}
+.development-path-head small{color:#718ba2;font-size:.64rem}
+.development-path-head>span{font-variant-numeric:tabular-nums;font-size:1rem;font-weight:900;color:#0f64ab}
+.development-path-description{margin:9px 0 13px;color:#607c93;font-size:.69rem}
+.development-path-steps{display:grid;gap:8px;list-style:none;margin:0;padding:0}
+.development-path-step{display:flex;align-items:center;gap:10px;padding:11px 9px;border:1px solid #e6edf5;border-radius:11px;background:#fbfdff}
+.development-step-icon{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#e8f3ff;color:#1b6baf}
+.development-path-step.is-locked .development-step-icon{background:#f0f2f5;color:#889aaa}
+.development-path-step.is-complete .development-step-icon{background:#e7f8ef;color:#1f8757}
+.development-path-step>div{min-width:0;flex:1;display:grid;gap:4px}
+.development-path-step strong{font-size:.75rem;line-height:1.4;color:#254c70;overflow-wrap:anywhere}
+.development-path-step small{font-size:.64rem;color:#718ba1}
+.development-path-step>button,.development-deadline button,.development-certificates button{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  flex:none;min-height:39px;padding:9px 11px;border:1px solid #c7dff3;
+  border-radius:10px;background:#ecf6ff;color:#135d9e;font-size:.69rem;font-weight:900;cursor:pointer
+}
+.development-path-primary{margin-top:14px;background:#0c5fa9;color:#fff;border:1px solid #0c5fa9}
+.development-deadline-list,.development-certificates{display:grid;gap:0;padding:0 17px}
+.development-deadline,.development-certificates article{display:flex;align-items:center;gap:13px;padding:15px 0;border-bottom:1px solid #eaf0f6}
+.development-deadline:last-child,.development-certificates article:last-child{border-bottom:0}
+.development-deadline-date{display:grid;gap:5px;justify-items:center;flex:none;min-width:98px;padding:9px;border-radius:10px;background:#f1f7ff;color:#326a97;text-align:center;font-size:.66rem;font-weight:900}
+.development-deadline.is-overdue .development-deadline-date{background:#fff1e1;color:#975d17}
+.development-deadline.is-soon .development-deadline-date{background:#fff9e6;color:#86671a}
+.development-deadline>div,.development-certificates article>div{min-width:0;display:grid;gap:5px;flex:1}
+.development-deadline strong,.development-certificates strong{font-size:.76rem;line-height:1.4;color:#244b70}
+.development-deadline small,.development-certificates small{font-size:.65rem;line-height:1.4;color:#738a9f;overflow-wrap:anywhere}
+.development-certificates article>span{display:grid;place-items:center;width:39px;height:39px;flex:none;border-radius:12px;background:#e8f7ee;color:#23845a}
+.development-text-link{margin:0 17px 17px}
+.development-empty{display:grid;justify-items:center;gap:10px;margin:18px;padding:19px;border:1px dashed #caddea;border-radius:12px;color:#6685a0;text-align:center}
+.development-empty p{max-width:400px;margin:0;font-size:.73rem;line-height:1.65}
+.development-loading{display:grid;justify-items:center;gap:12px;padding:62px 18px;border:1px solid #dae7f2;border-radius:18px;background:#fff;text-align:center;color:#285682}
+.development-loading h1{margin:0;font-size:1.25rem}.development-loading p{max-width:530px;margin:0;font-size:.8rem;color:#638099}
+.development-loading button{display:inline-flex;gap:8px;align-items:center;padding:10px;border:1px solid #cce0f3;border-radius:10px;background:#eef6ff;color:#145c9f;font-weight:900;cursor:pointer}
+.home-development-entry{
+  display:flex;align-items:center;gap:16px;margin:18px 0;padding:17px;
+  border:1px solid #d3e5f4;border-radius:18px;
+  background:linear-gradient(108deg,#edf6ff,#fff);color:#1e4d79
+}
+.home-development-entry-mark{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:15px;background:#dcefff;color:#1663a5}
+.home-development-entry>div:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.home-development-entry strong{font-size:.83rem;color:#194d7c}
+.home-development-entry span{font-size:.71rem;line-height:1.55;color:#68869f}
+.home-development-entry button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:10px 14px;border:1px solid #0a5ea6;border-radius:12px;
+  background:#0a5ea6;color:#fff;font-size:.76rem;font-weight:900;cursor:pointer
+}
+.learner-development-page button:focus-visible,.home-development-entry button:focus-visible{
+  outline:3px solid #3e93d8;outline-offset:3px
+}
+@media(max-width:1100px){
+  .development-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .development-layout{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .learner-development-page{padding:13px 11px 87px;gap:13px}
+  .development-hero{grid-template-columns:minmax(0,1fr);padding:20px;gap:16px}
+  .development-hero-profile{padding:15px}
+  .development-hero-actions button{flex:1 1 180px}
+  .development-panel-head{padding:16px}
+  .home-development-entry{padding:13px;gap:11px;align-items:flex-start;flex-wrap:wrap}
+  .home-development-entry button{margin-left:auto}
+}
+@media(max-width:480px){
+  .development-kpis{gap:8px}
+  .development-kpis article{align-items:flex-start;flex-direction:column;padding:12px}
+  .development-kpis strong{font-size:1.12rem}
+  .development-toolbar{align-items:flex-start}
+  .development-toolbar>span{font-size:.6rem}
+  .development-panel-head{gap:10px}
+  .development-panel-icon{width:37px;height:37px}
+  .development-skill-top,.development-skill-labels{align-items:flex-start;flex-direction:column;gap:6px}
+  .development-deadline,.development-certificates article{flex-wrap:wrap;align-items:flex-start}
+  .development-deadline-date{min-width:auto;align-self:start}
+  .development-deadline button,.development-certificates button{margin-left:auto}
+  .home-development-entry-mark{width:39px;height:39px}
+  .home-development-entry button{width:100%;margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){.development-skill-track>span,.development-path-progress>i{transition:none}}

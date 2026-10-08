@@ -7,12 +7,13 @@ export async function exitBrowserFullscreen() {
   } catch {}
 }
 
-export async function runViewerNavigation({ action, navigationBusyRef, close }) {
+// Navigating a course slide must not unmount the fullscreen viewer.
+export async function runViewerNavigation({ action, navigationBusyRef }) {
   if (!action || navigationBusyRef.current) return
   navigationBusyRef.current = true
-  close()
-  window.requestAnimationFrame(() => {
-    action()
-    window.setTimeout(() => { navigationBusyRef.current = false }, 250)
-  })
+  try {
+    await action()
+  } finally {
+    navigationBusyRef.current = false
+  }
 }

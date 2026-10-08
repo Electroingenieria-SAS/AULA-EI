@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { BookOpen, CheckCircle2, ChevronDown, Clock3, Code2, ExternalLink, Eye, FileCheck2, RefreshCw, Send, ShieldCheck } from 'lucide-react'
 import { appUrl } from '../../src/paths.js'
 import { navigateLearner } from './navigation.js'
+import './styles/privacy-developer-entry.css'
 import { parseLegalMarkdown, stripLegalMarkdown } from '../../src/legal/legal-markdown.js'
 import {
   createPrivacyRequest,

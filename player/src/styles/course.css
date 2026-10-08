@@ -434,7 +434,10 @@
 .course-intro-track{height:7px;border-radius:999px;background:#e6eef6;overflow:hidden}
 .course-intro-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#105bb6,#288c67);transition:width .25s}
 .course-workspace{width:min(1680px,calc(100% - 36px));margin:0 auto 32px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-.course-main{min-width:0}
+.course-workspace.route-open{grid-template-columns:minmax(235px,272px) minmax(0,1fr)}
+.course-main{min-width:0;grid-column:1;grid-row:1}
+.course-workspace.route-open .course-main{grid-column:2}
+.course-workspace .course-insights{grid-column:1/-1}
 .course-stage-toolbar{
   display:flex;gap:14px;align-items:center;min-height:48px;
   padding:9px 14px;border:1px solid #d7e3ee;border-radius:16px 16px 0 0;background:#fff;
@@ -485,20 +488,44 @@
 .course-insights li svg{flex-shrink:0;color:#3a9060}
 .course-insights li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .course-insights li strong{margin-left:auto;color:#215d99}
-.outline-backdrop{
-  position:fixed;z-index:2098;inset:0;display:block;border:0;width:100%;height:100%;
-  background:rgba(10,27,49,.58);cursor:default;
-}
+/* Desktop: the route is a proper column next to the lesson, never a
+   floating panel on top of the global navigation. */
+.outline-backdrop{display:none}
 .course-route-drawer{
-  position:fixed;z-index:2099;left:0;top:0;bottom:0;display:flex;flex-direction:column;
-  width:min(370px,90vw);max-height:100dvh;overflow:hidden;border:0;border-right:1px solid #c7dced;
-  border-radius:0 20px 20px 0;background:#fff;box-shadow:16px 0 56px rgba(4,20,44,.22);
+  grid-column:1;grid-row:1;position:sticky;top:90px;align-self:start;
+  display:flex;flex-direction:column;min-width:0;max-height:calc(100dvh - 108px);
+  overflow:hidden;border:1px solid #d6e5f2;border-radius:16px;
+  background:rgba(255,255,255,.97);box-shadow:0 12px 36px rgba(17,46,81,.08);
 }
-.course-route-drawer .outline-header{flex-shrink:0;padding:20px}
+.course-route-drawer .outline-header{flex-shrink:0;padding:16px}
 .course-route-drawer .outline-close{display:grid;place-items:center;min-width:42px;min-height:42px;border-radius:10px}
 .course-route-drawer .outline-close:hover{background:#edf5ff}
 .course-route-drawer .outline-scroll{flex:1;max-height:none;min-height:0;overscroll-behavior:contain}
 .course-route-drawer .outline-block-list button{min-height:42px;width:100%}
+@media(min-width:901px) and (max-width:1120px){
+  .course-workspace.route-open{grid-template-columns:220px minmax(0,1fr)}
+}
+/* Mobile: only one left drawer, portaled to document.body so no ancestor
+   stacking context can put it behind the application navigation. */
+@media(max-width:900px){
+  .course-workspace.route-open{grid-template-columns:minmax(0,1fr)}
+  .course-workspace.route-open .course-main{grid-column:1}
+  .course-route-open{overflow:hidden}
+  .outline-backdrop{
+    display:block;position:fixed;inset:0;z-index:6000;width:100%;
+    height:100dvh;border:0;background:rgba(6,24,47,.60);
+  }
+  .course-route-drawer{
+    position:fixed;z-index:6001;top:0;bottom:0;left:0;grid-column:auto;grid-row:auto;
+    width:min(360px,calc(100vw - 26px));height:100dvh;max-height:100dvh;
+    border-radius:0 20px 20px 0;border:0;border-right:1px solid #d1e1ef;
+    box-shadow:18px 0 55px rgba(4,20,43,.23);background:#fff;
+  }
+  .course-route-drawer .outline-scroll{
+    min-height:0;max-height:none;padding-bottom:max(24px,env(safe-area-inset-bottom,0px));
+    -webkit-overflow-scrolling:touch;
+  }
+}
 .course-route-trigger:focus-visible,.course-flow-button:focus-visible,
 .course-insights summary:focus-visible,.course-route-drawer button:focus-visible{
   outline:3px solid rgba(8,98,195,.5);outline-offset:2px;

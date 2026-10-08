@@ -5,7 +5,6 @@ import {
 import { safeExternalUrl } from '../../../src/security.js'
 import { signedAsset } from '../supabase.js'
 import { ReadingContent } from './CoursePlayerViews.jsx'
-import ImageGallery from './ImageGallery.jsx'
 import '../styles/immersive.css'
 
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
@@ -49,35 +48,44 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
   </>
 }
 
-export function ContentExperience({ block, completed, previousTitle, nextTitle, canPrevious, canNext, previous, next }) {
-  const [assetUrl, setAssetUrl] = useState(null)
-  const [assetError, setAssetError] = useState('')
+// Media URLs have one owner for the player and fullscreen gallery.
+export function useCourseAsset(block) {
+  const [signed, setSigned] = useState({ blockId: null, url: null, error: '' })
+  useEffect(() => {
+    let active = true
+    const blockId = block?.id || null
+    if (!block?.asset_path) {
+      setSigned({ blockId, url: null, error: '' })
+      return () => { active = false }
+    }
+    setSigned({ blockId, url: null, error: '' })
+    signedAsset(block.asset_path)
+      .then((url) => { if (active) setSigned({ blockId, url, error: '' }) })
+      .catch((error) => { if (active) setSigned({ blockId, url: null, error: error.message }) })
+    return () => { active = false }
+  }, [block?.id, block?.asset_path])
+
+  const externalUrl = String(block?.content?.url || '').trim()
+  const asset = signed.blockId === block?.id ? signed : { url: null, error: '' }
+  const displayUrl = externalUrl ? normalizeExternalUrl(externalUrl, block?.type) : asset.url
+  return {
+    displayUrl,
+    originalUrl: externalUrl ? safeExternalUrl(externalUrl) : asset.url,
+    isExternalEmbed: Boolean(displayUrl && isEmbedProvider(displayUrl)),
+    assetError: asset.error,
+  }
+}
+
+export function ContentExperience({ block, completed, asset, openImmersive }) {
   const [feedback, setFeedback] = useState('')
   const [selectedOption, setSelectedOption] = useState(null)
-  const [mediaViewerOpen, setMediaViewerOpen] = useState(false)
   const content = block.content || {}
-  const externalUrl = String(content.url || '').trim()
+  const { displayUrl, originalUrl, assetError } = asset
 
   useEffect(() => {
-    setMediaViewerOpen(false)
     setFeedback('')
     setSelectedOption(null)
   }, [block.id])
-
-  useEffect(() => {
-    let active = true
-    setAssetUrl(null)
-    setAssetError('')
-    if (!block.asset_path) return () => { active = false }
-    signedAsset(block.asset_path)
-      .then((url) => { if (active) setAssetUrl(url) })
-      .catch((error) => { if (active) setAssetError(error.message) })
-    return () => { active = false }
-  }, [block.id, block.asset_path])
-
-  const displayUrl = externalUrl ? normalizeExternalUrl(externalUrl, block.type) : assetUrl
-  const originalUrl = externalUrl ? safeExternalUrl(externalUrl) : assetUrl
-  const isExternalEmbed = Boolean(displayUrl && isEmbedProvider(displayUrl))
 
   const validate = () => {
     const correct = Number(content.correctIndex ?? -1)
@@ -86,21 +94,6 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
   }
 
   const TypeIcon = typeIcon(block.type)
-  const visualMedia = ['image', 'video', 'presentation'].includes(block.type)
-
-  const openImmersive = async ({ fullscreen = false } = {}) => {
-    if (fullscreen && window.matchMedia('(min-width: 901px) and (pointer: fine)').matches) {
-      try {
-        const root = document.documentElement
-        if (!(document.fullscreenElement || document.webkitFullscreenElement)) {
-          if (root.requestFullscreen) await root.requestFullscreen({ navigationUI: 'hide' })
-          else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen()
-        }
-      } catch {}
-    }
-    setMediaViewerOpen(true)
-  }
-
 
   return <article className="content-experience">
     <header className="content-experience-header">
@@ -143,9 +136,7 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
             role="button"
             tabIndex={0}
             aria-label="Abrir imagen en vista inmersiva"
-            onClick={() => {
-              if (window.matchMedia('(max-width: 900px), (pointer: coarse)').matches) void openImmersive()
-            }}
+            onClick={() => void openImmersive()}
             onDoubleClick={() => openImmersive({ fullscreen: true })}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
@@ -155,14 +146,7 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
             }}
           >
             <img src={displayUrl} alt={block.title} />
-            <span className="immersive-image-preview-badge"><Maximize2 size={16} /> Doble clic: pantalla completa</span>
-          </div>
-          <div className="immersive-media-preview-actions">
-            <span>Visor tipo galería · zoom, paneo y navegación flotante.</span>
-            <div>
-              {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Original</a>}
-              <button type="button" className="primary" onClick={() => openImmersive()}><Maximize2 size={16} /> Abrir vista inmersiva</button>
-            </div>
+            <span className="immersive-image-preview-badge"><Maximize2 size={16} /> Ampliar imagen</span>
           </div>
         </div>
       )}
@@ -220,20 +204,7 @@ export function ContentExperience({ block, completed, previousTitle, nextTitle, 
 
       {!displayUrl && ['video','audio','image','presentation','file'].includes(block.type) && <div className="asset-unavailable"><CircleAlert size={24} /><strong>Recurso no disponible</strong><span>{assetError || 'No fue posible cargar el archivo asociado a este contenido.'}</span></div>}
 
-      {mediaViewerOpen && visualMedia && displayUrl && <ImageGallery
-        src={displayUrl}
-        alt={block.title}
-        originalUrl={originalUrl}
-        mediaType={block.type}
-        isExternalEmbed={isExternalEmbed}
-        close={() => setMediaViewerOpen(false)}
-        previousTitle={previousTitle}
-        nextTitle={nextTitle}
-        canPrevious={canPrevious}
-        canNext={canNext}
-        previous={previous}
-        next={next}
-      />}
+
 
       {feedback && <div className={'content-feedback ' + (feedback.startsWith('¡') ? 'success' : '')}>{feedback}</div>}
     </div>

@@ -9,7 +9,7 @@ const [html,main,worker,foundation,mobile,games,coach,gameStyles,coachStyles,lea
   read('player/src/LearnerApp.jsx'),
 ])
 assert.match(html,/name="aula-ei-release" content="phase-[0-9]+(?:\.[0-9]+)?-[0-9]{4}-[0-9]{2}-[0-9]{2}"/)
-assert.ok(main.includes("sw.js?v=5"))
+assert.ok(main.includes("sw.js?v=6"))
 assert.ok(main.includes("aula-ei-pwa-refresh-v6"))
 assert.ok(worker.includes("CACHE_VERSION = 'aula-ei-pwa-v6'"))
 assert.ok(worker.includes('networkFirstNavigation'))

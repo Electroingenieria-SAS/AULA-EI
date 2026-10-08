@@ -177,7 +177,7 @@ if (certificate.startsWith(':root{') || certificate.includes('\nbody{background:
 }
 
 if (!index.includes('viewport-fit=cover')) throw new Error('Falta soporte de safe area móvil.')
-if (/rel=["']preload["'][^>]*brand\\/fondo\\.jpg/i.test(index)) {
+if (/rel=["']preload["'][^>]*brand\/fondo\.jpg/i.test(index)) {
   throw new Error('El fondo institucional no debe precargarse globalmente: produce avisos de recursos no usados.')
 }
 for (const forbidden of ['aula-pointer-dot','aula-pointer-ring','aula-click-burst']) {

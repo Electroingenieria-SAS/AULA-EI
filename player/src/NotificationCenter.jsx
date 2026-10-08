@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Bell, BellRing, BookOpen, CheckCheck, Clock3, WifiOff, X } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'
+import { notificationDestination, notificationUrgency, organizeTrainingNotifications } from './notifications/notification-priority.js'
 
 const POLL_INTERVAL = 180000
 
@@ -15,6 +16,7 @@ function connectionMessage(error) {
 
 export default function NotificationCenter({ profile = null }) {
   const [open, setOpen] = useState(false)
+  const [view, setView] = useState('all')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [networkIssue, setNetworkIssue] = useState('')
@@ -92,7 +94,8 @@ export default function NotificationCenter({ profile = null }) {
     }
   }, [open])
 
-  const unread = useMemo(() => items.filter((item) => !item.read_at).length, [items])
+  const organized = useMemo(() => organizeTrainingNotifications(items, view), [items, view])
+  const unread = organized.counts.unread
 
   const markRead = async (item) => {
     if (!item?.id || item.read_at) return
@@ -130,7 +133,8 @@ export default function NotificationCenter({ profile = null }) {
   const openItem = async (item) => {
     await markRead(item)
     setOpen(false)
-    if (item.course_id) navigateLearner('/course/' + encodeURIComponent(item.course_id))
+    const destination = notificationDestination(item)
+    if (destination) navigateLearner(destination)
   }
 
   if (!profile?.id) return null
@@ -165,23 +169,43 @@ export default function NotificationCenter({ profile = null }) {
         <button type="button" onClick={() => load()}>Reintentar</button>
       </div>}
 
+
+      <div className="training-notification-filters" role="group" aria-label="Filtrar notificaciones">
+        <button type="button" aria-pressed={view === 'all'} className={view === 'all' ? 'is-selected' : ''}
+          onClick={() => setView('all')}>Todas <b>{organized.counts.total}</b></button>
+        <button type="button" aria-pressed={view === 'unread'} className={view === 'unread' ? 'is-selected' : ''}
+          onClick={() => setView('unread')}>Sin leer <b>{unread}</b></button>
+        <button type="button" aria-pressed={view === 'priority'} className={view === 'priority' ? 'is-selected' : ''}
+          onClick={() => setView('priority')}>Prioritarias <b>{organized.counts.priority}</b></button>
+      </div>
       <div className="training-notification-list">
         {loading && <div className="training-notification-empty"><i /><strong>Actualizando avisos…</strong></div>}
-        {!loading && items.map((item) => <button
+        {!loading && organized.items.map((item) => <button
           key={item.id}
-          className={'training-notification-item ' + (!item.read_at ? 'unread' : '')}
+          className={'training-notification-item ' + (!item.read_at ? 'unread' : '') + (notificationUrgency(item) ? ' is-priority' : '')}
           onClick={() => openItem(item)}
         >
           <span className="training-notification-icon">{item.course_id ? <BookOpen size={18} /> : <Bell size={18} />}</span>
           <span className="training-notification-copy">
+            {notificationUrgency(item) && <span className="training-notification-urgency">
+              {notificationUrgency(item) === 'overdue' ? 'VENCIDA' : 'PRÓXIMA A VENCER'}
+            </span>}
             <strong>{item.title}</strong>
             <small>{item.message}</small>
             <em><Clock3 size={12} /> {relativeTime(item.created_at)}</em>
           </span>
           {!item.read_at && <i className="training-notification-dot" />}
         </button>)}
-        {!loading && !items.length && <div className="training-notification-empty"><Bell size={26} /><strong>Todo al día</strong><span>Los vencimientos, recertificaciones y novedades aparecerán aquí.</span></div>}
+        {!loading && !organized.items.length && <div className="training-notification-empty"><Bell size={26} />
+          <strong>{items.length ? 'Sin avisos en este filtro' : 'Todo al día'}</strong>
+          <span>{items.length ? 'Puedes revisar las otras categorías.' : 'Los vencimientos, recertificaciones y novedades aparecerán aquí.'}</span>
+        </div>}
       </div>
+      <footer className="training-notification-footer">
+        <button type="button" onClick={() => { setOpen(false); navigateLearner('/plan') }}>
+          Ver mi plan de formación <BookOpen size={16}/>
+        </button>
+      </footer>
     </section>}
   </div>
 }

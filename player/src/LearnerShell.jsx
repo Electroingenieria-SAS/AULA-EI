@@ -61,6 +61,9 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     </aside>
 
     <header className="learner-mobile-appbar" aria-label={isCourse ? 'Cabecera de capacitación' : 'Cabecera de Aula EI'}>
+      {!isCourse && <div className="learner-desktop-header-label" aria-hidden="true">
+        ACADEMIA INTERNA <strong>Aula EI · Formación</strong>
+      </div>}
       {isCourse ? <>
         <button className="learner-course-back" type="button" onClick={() => navigateLearner('/catalog')} aria-label="Volver a mis capacitaciones">
           <ArrowLeft size={19} aria-hidden="true" />

@@ -8,7 +8,7 @@
     "admin-auth-leaked-password-protection": {
       "status": "PENDIENTE",
       "evidence": "",
-      "notes": "La protección nativa exige Supabase Pro según documentación; sin cambio de plan autorizado."
+      "notes": "La protección nativa es Supabase Pro; pendiente. Solo este control admite ACEPTADO_CON_RIESGO con acta firmada, evidencias HIBP Edge/MFA y certificación CONDICIONADA. Ningún pago fue autorizado."
     },
     "privileged-rpc-authenticated-matrix": {
       "status": "PENDIENTE",

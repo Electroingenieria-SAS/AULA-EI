@@ -1,0 +1,52 @@
+/* Visible but secondary authorship: preserve Aula EI and Electroingeniería branding. */
+.dev-sidebar-signature{
+  display:grid;grid-template-columns:41px minmax(0,1fr) 17px;
+  align-items:center;gap:10px;width:100%;min-height:66px;
+  border:1px solid #d9e7f3;border-radius:15px;
+  background:linear-gradient(110deg,#f1f7fd,#fff);
+  color:#174d82;padding:7px 10px;text-align:left;
+  cursor:pointer
+}
+.dev-sidebar-signature img{display:block;width:36px;height:50px;object-fit:contain}
+.dev-sidebar-signature>span{display:grid;gap:4px;min-width:0}
+.dev-sidebar-signature strong{font-size:.72rem;font-weight:900;line-height:1.3;color:#194875}
+.dev-sidebar-signature small{font-size:.62rem;line-height:1.35;color:#67829a}
+.dev-sidebar-signature>svg{color:#3d79ad}
+.dev-sidebar-signature:hover{border-color:#95c2e6;background:#eaf5ff}
+.dev-sidebar-signature:focus-visible,.dev-signature-mobile:focus-visible,.dev-signature-course:focus-visible{
+  outline:3px solid #438fd0;outline-offset:3px
+}
+.dev-signature-mobile{display:none}
+.dev-signature-course{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;justify-self:center;align-self:center;
+  min-height:32px;max-width:100%;padding:2px 7px;
+  border:1px solid #e0eaf4;border-radius:10px;background:#f7fbff;
+  color:#547392;font-size:.64rem;font-weight:850;cursor:pointer
+}
+.dev-signature-course img{width:23px;height:30px;object-fit:contain;flex:none}
+.dev-signature-course span{white-space:nowrap}
+.dev-signature-course:hover{border-color:#9ac6e7;background:#eaf4ff}
+@media(max-width:900px){
+  .learner-mobile-appbar .dev-signature-mobile{
+    display:inline-grid;place-items:center;flex:0 0 38px;
+    width:38px;height:44px;min-width:38px;
+    padding:2px;border:1px solid #d7e7f4;border-radius:11px;
+    background:#f3f9ff;color:#1d669c;cursor:pointer
+  }
+  .learner-mobile-appbar .dev-signature-mobile img{
+    display:block;width:28px;height:37px;object-fit:contain
+  }
+  .learner-mobile-appbar>.learner-mobile-brand{flex:1;min-width:0}
+  .learner-course-heading .dev-signature-course{min-width:35px;min-height:31px;padding:1px 5px}
+  .learner-course-heading .dev-signature-course span{display:none}
+  .learner-course-heading .dev-signature-course img{width:23px;height:30px}
+}
+@media(max-width:380px){
+  .learner-mobile-appbar .dev-signature-mobile{width:35px;min-width:35px;flex-basis:35px;height:40px}
+  .learner-mobile-appbar .dev-signature-mobile img{width:24px;height:33px}
+  .learner-course-heading .dev-signature-course{padding:1px 4px}
+}
+@media(prefers-reduced-motion:reduce){
+  .dev-sidebar-signature,.dev-signature-mobile,.dev-signature-course{transition:none}
+}

@@ -4,6 +4,7 @@ import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
 import { supabase } from './supabase.js'
+import '../../src/branding/developer-signature.css'
 
 export default function LearnerShell({ children, activeRoute = 'catalog', profile = null }) {
   const displayName = profile?.full_name || 'Colaborador EI'
@@ -47,8 +48,11 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
       </nav>
 
       <div className="learner-sidebar-bottom">
-        <button type="button" className="learner-sidebar-signout" onClick={() => navigateLearner('/credits')}>
-          <Code2 size={18} /> Créditos de desarrollo
+        <button type="button" className="dev-sidebar-signature" onClick={() => navigateLearner('/credits')}
+          aria-label="Ver créditos de desarrollo de Juan E. Pérez">
+          <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt="" width="38" height="62" />
+          <span><strong>Juan E. Pérez</strong><small>Créditos de desarrollo</small></span>
+          <Code2 size={16} aria-hidden="true"/>
         </button>
         <button className="learner-sidebar-signout" onClick={signOut}><LogOut size={18} /> Cerrar sesión</button>
         <div className="learner-sidebar-security"><Sparkles size={16} /><span>Contenido protegido con Supabase Auth y RLS.</span></div>
@@ -61,10 +65,22 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
           <ArrowLeft size={19} aria-hidden="true" />
           <span>Mis capacitaciones</span>
         </button>
-        <div className="learner-course-heading"><small>Aula EI</small><strong>Capacitación</strong></div>
+        <div className="learner-course-heading">
+          <button className="dev-signature-course" type="button" onClick={() => navigateLearner('/credits')}
+            aria-label="Ver créditos de desarrollo de Juan E. Pérez">
+            <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt="" width="26" height="36"/>
+            <span>Créditos</span>
+          </button>
+          <strong>Capacitación</strong>
+        </div>
       </> : <button className="learner-mobile-brand" type="button" onClick={() => navigateLearner('/')} aria-label="Ir al inicio de Aula EI">
         <img src={assetUrl('brand/logo-aula-ei.png')} alt="" />
         <span><small>Aula EI</small><strong>{mobileTitle}</strong></span>
+      </button>}
+      {!isCourse && <button className="dev-signature-mobile" type="button"
+        onClick={() => navigateLearner('/credits')} aria-label="Ver créditos de desarrollo de Juan E. Pérez"
+        title="Créditos de desarrollo">
+        <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt="" width="31" height="39"/>
       </button>}
       <NotificationCenter profile={profile} />
     </header>

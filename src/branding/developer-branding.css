@@ -1,4 +1,4 @@
-/* A standalone, one-time post-auth experience. No blocking animations on routes. */
+/* One-time PUBLIC entrance before login; never blocks authenticated route changes. */
 .dev-splash{
   position:relative;isolation:isolate;display:grid;place-items:center;
   min-height:100vh;min-height:100dvh;overflow:hidden;padding:20px;

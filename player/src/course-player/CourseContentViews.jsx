@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   BookOpen, BrainCircuit, Check, CheckCircle2, ChevronRight, CircleAlert, ExternalLink, File, FileAudio, FileText, Gamepad2, GraduationCap, Image as ImageIcon, Link2, Loader2, LockKeyhole, Maximize2, PlayCircle, Presentation, ShieldCheck, Video, X,
 } from 'lucide-react'
@@ -8,12 +8,43 @@ import { ReadingContent } from './CoursePlayerViews.jsx'
 import '../styles/immersive.css'
 
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
+  const drawerRef = useRef(null)
+  const closeRef = useRef(null)
+
+  useEffect(() => {
+    const previousFocus = document.activeElement
+    closeRef.current?.focus()
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        close()
+      }
+      if (event.key !== 'Tab') return
+      const options = Array.from(drawerRef.current?.querySelectorAll('button:not(:disabled)') || [])
+      if (!options.length) return
+      const first = options[0]
+      const last = options[options.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      if (previousFocus?.isConnected) previousFocus.focus()
+    }
+  }, [])
+
   return <>
     {open && <button className="outline-backdrop" aria-label="Cerrar ruta" onClick={close} />}
-    <aside className="course-route-drawer">
+    <aside ref={drawerRef} className="course-route-drawer" role="dialog" aria-modal="true" aria-label="Ruta de capacitación">
       <div className="outline-header">
         <div><span>Tu ruta</span><strong>Contenido de la capacitación</strong></div>
-        <button className="outline-close" onClick={close}><X size={18} /></button>
+        <button ref={closeRef} type="button" className="outline-close" aria-label="Cerrar ruta" onClick={close}><X size={18} /></button>
       </div>
       <div className="outline-scroll">
         {course.phases.map((phase, phaseIndex) => {

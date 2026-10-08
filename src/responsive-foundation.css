@@ -14,25 +14,33 @@
 .learner-mobile-appbar{display:contents}
 .learner-mobile-brand{display:none!important}
 
+/* Header desktop cargado de forma incondicional: nunca depende de mobile-app.css. */
+.learner-desktop-header-label{display:none}
 @media(min-width:1101px){
-  .learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-center{
-    position:fixed!important;
-    right:20px!important;
-    top:18px!important;
-    width:auto!important;
-    margin:0!important;
-    z-index:180!important;
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar{
+    display:flex;position:relative;align-items:center;justify-content:space-between;
+    gap:16px;box-sizing:border-box;min-height:68px;min-width:0;
+    width:calc(100% - var(--aula-sidebar-width));margin-left:var(--aula-sidebar-width);
+    padding:12px clamp(18px,2.4vw,36px);z-index:95;
+    background:rgba(255,255,255,.92);border-bottom:1px solid #dce7f2;
+    box-shadow:0 4px 22px rgba(19,52,88,.045);
   }
-
-  .learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-trigger{
-    width:auto!important;
-    min-width:150px!important;
+  .learner-desktop-header-label{
+    display:flex;align-items:center;gap:12px;min-width:0;
+    color:#68839e;font-size:.67rem;font-weight:850;letter-spacing:.07em;
   }
-
-  .learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-panel{
-    left:auto!important;
-    right:0!important;
-    top:52px!important;
+  .learner-desktop-header-label strong{font-size:.87rem;letter-spacing:0;color:#194a7a}
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .dev-signature-mobile{display:none}
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .training-notification-center{
+    position:relative!important;top:auto!important;right:auto!important;
+    bottom:auto!important;left:auto!important;flex:0 0 auto;
+    width:auto!important;margin:0!important;z-index:3!important;
+  }
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .training-notification-trigger{
+    width:auto!important;min-width:160px!important;max-width:100%;
+  }
+  .learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .training-notification-panel{
+    left:auto!important;right:0!important;top:calc(100% + 9px)!important;
   }
 }
 

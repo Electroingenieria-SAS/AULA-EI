@@ -21,7 +21,7 @@ function MemoryRound({ content, onResult }) {
   }
   const complete = matched.length === pairs.length
   return <>
-    <p className="game-help">{message}</p>
+    <p className="game-help" role="status" aria-live="polite">{message}</p>
     <div className="game-match-grid">
       <div className="game-match-column" aria-label="Conceptos">
         <strong>Conceptos</strong>
@@ -96,12 +96,12 @@ function SequenceRound({ content, onResult }) {
         <span className="game-step-number">{i + 1}</span>
         <strong>{steps[id]}</strong>
         <div className="game-order-actions">
-          <button type="button" aria-label={'Subir ' + steps[id]} disabled={i === 0} onClick={() => move(i, -1)}><ArrowUp size={18}/></button>
-          <button type="button" aria-label={'Bajar ' + steps[id]} disabled={i === order.length - 1} onClick={() => move(i, 1)}><ArrowDown size={18}/></button>
+          <button type="button" aria-label={'Subir ' + steps[id]} disabled={finished.current || i === 0} onClick={() => move(i, -1)}><ArrowUp size={18}/></button>
+          <button type="button" aria-label={'Bajar ' + steps[id]} disabled={finished.current || i === order.length - 1} onClick={() => move(i, 1)}><ArrowDown size={18}/></button>
         </div>
       </li>)}
     </ol>
-    <button className="game-check-action" type="button" onClick={() => {
+    <button className="game-check-action" type="button" disabled={finished.current} onClick={() => {
       if (correct && !finished.current) { finished.current = true; onResult?.({ success: true, mistakes: mistakes.current }) }
       else if (!correct) mistakes.current += 1
       setEvaluated(true)
@@ -122,10 +122,10 @@ function DecisionRound({ content, onResult }) {
     <h3 className="game-decision-question">{content.prompt}</h3>
     <div className="game-choice-grid game-decision-choices">
       {content.options.map((option, index) => <button key={index} type="button" aria-pressed={choice === index}
-        className={choice === index ? 'selected' : ''}
+        className={choice === index ? 'selected' : ''} disabled={finished.current}
         onClick={() => { setChoice(index); setChecked(false) }}>{option}</button>)}
     </div>
-    <button className="game-check-action" type="button" disabled={choice === null} onClick={() => {
+    <button className="game-check-action" type="button" disabled={choice === null || finished.current} onClick={() => {
       if (choice === content.correctIndex && !finished.current) {
         finished.current = true
         onResult?.({ success: true, mistakes: mistakes.current })

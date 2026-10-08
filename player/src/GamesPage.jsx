@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, BookOpenCheck, BrainCircuit, CheckCircle2, ChevronRight, Layers3, ListOrdered, RefreshCw, Shapes, Sparkles, ShieldCheck } from 'lucide-react'
 import LearningGame from './games/LearningGame.jsx'
+import { firstPlayableGroup } from './games/game-data.js'
 import { generateCourseReviewGames } from './games/course-game-generator.js'
 import { recordPractice } from './intelligence/intelligence-model.js'
 import { navigateLearner, openLearnerCourse } from './navigation.js'
@@ -20,6 +21,9 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
   const [course, setCourse] = useState(null)
   const [gameType, setGameType] = useState('memory')
   const [round, setRound] = useState(0)
+  const [completedRound, setCompletedRound] = useState('')
+  const [replayToken, setReplayToken] = useState(0)
+  const [retryCourse, setRetryCourse] = useState(0)
 
   useEffect(() => {
     setSelectedCourseId(initialCourseId)
@@ -64,6 +68,7 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
     setCourse(null)
     setCourseError('')
     setRound(0)
+    setCompletedRound('')
     if (loading || error || !selectedCourseId) {
       setLoadingCourse(false)
       return () => { active = false }
@@ -95,23 +100,43 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
       }
     })()
     return () => { active = false }
-  }, [selectedCourseId, selected?.course?.id, sessionUser?.id, loading, error])
+  }, [selectedCourseId, selected?.course?.id, sessionUser?.id, loading, error, retryCourse])
 
   const available = useMemo(() => course
     ? generateCourseReviewGames(course, completed)
     : [], [course, completed])
+  // Al abrir otro curso, evita un laboratorio vacío si el primer tipo no tiene rondas.
+  // Una elección manual de un tipo vacío conserva su explicación.
+  useEffect(() => {
+    const preferred = firstPlayableGroup(available, gameType)
+    if (preferred && preferred.type !== gameType) {
+      setGameType(preferred.type)
+      setRound(0)
+      setCompletedRound('')
+    }
+  }, [available])
   const activeGroup = available.find((entry) => entry.type === gameType)
   const activeRound = activeGroup?.rounds?.[round % activeGroup.rounds.length] || null
   const totalRounds = available.reduce((count, entry) => count + entry.rounds.length, 0)
+  const nextRound = () => {
+    setRound((value) => value + 1)
+    setCompletedRound('')
+  }
+  const restartRound = () => {
+    setReplayToken((value) => value + 1)
+    setCompletedRound('')
+  }
   const chooseCourse = (value) => {
     setSelectedCourseId(value)
     setRound(0)
+    setCompletedRound('')
     if (value) navigateLearner('/games/' + encodeURIComponent(value))
     else navigateLearner('/games')
   }
   const chooseType = (value) => {
     setGameType(value)
     setRound(0)
+    setCompletedRound('')
   }
 
   return <main className="learner-games-page">
@@ -159,7 +184,10 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
       <button type="button" onClick={() => navigateLearner('/catalog')}>Ver mis capacitaciones <ArrowRight size={16}/></button>
     </section>}
     {loadingCourse && <p className="games-selection-state" role="status">Preparando los juegos con tu capacitación…</p>}
-    {courseError && !loadingCourse && <div className="games-selection-state" role="alert">{courseError}</div>}
+    {courseError && !loadingCourse && <div className="games-selection-state games-retry-state" role="alert">
+      <strong>No pudimos abrir esta capacitación</strong><p>{courseError}</p>
+      <button type="button" onClick={() => setRetryCourse((value) => value + 1)}><RefreshCw size={16}/> Reintentar consulta</button>
+    </div>}
 
     {!loadingCourse && course && <section className="games-generated-content">
       <div className="games-generated-heading">
@@ -193,12 +221,22 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
           {activeRound ? <>
             <div className="games-source-row">
               <span><ShieldCheck size={15}/>{activeRound.sourceLabel}</span>
-              {activeGroup.rounds.length > 1 && <button type="button" onClick={() => setRound((value) => value + 1)}>
+              {activeGroup.rounds.length > 1 && <button type="button" onClick={nextRound}>
                 <RefreshCw size={16}/> Otra ronda <ChevronRight size={15}/>
               </button>}
             </div>
-            <LearningGame key={String(selectedCourseId) + ':' + gameType + ':' + activeRound.id} content={activeRound.content} title={activeRound.title}
-              onResult={(result) => { if (result.success) recordPractice(sessionUser?.id, selectedCourseId, activeRound.id, true, result.mistakes) }}/>
+            <LearningGame key={String(selectedCourseId) + ':' + gameType + ':' + activeRound.id + ':' + replayToken} content={activeRound.content} title={activeRound.title}
+              onResult={(result) => {
+                if (!result.success || completedRound === activeRound.id) return
+                setCompletedRound(activeRound.id)
+                recordPractice(sessionUser?.id, selectedCourseId, activeRound.id, true, result.mistakes)
+              }}/>
+            {completedRound === activeRound.id && <div className="games-round-complete" role="status" aria-live="polite">
+              <span><CheckCircle2 size={20}/> ¡Ronda terminada! Puedes continuar o reforzar el mismo tema.</span>
+              <button type="button" onClick={activeGroup.rounds.length > 1 ? nextRound : restartRound}>
+                {activeGroup.rounds.length > 1 ? 'Siguiente ronda' : 'Repetir actividad'} <ArrowRight size={16}/>
+              </button>
+            </div>}
           </> : <div className="games-empty-type">
             <BookOpenCheck size={30}/><h3>Todavía no hay ejercicios de este tipo</h3>
             <p>Completa más temas del curso o selecciona otra dinámica. No generamos respuestas inventadas ni utilizamos preguntas reservadas del examen.</p>

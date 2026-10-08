@@ -318,3 +318,21 @@
 @media(prefers-reduced-motion:reduce){
   .learner-games-page button{transition:none!important;transform:none!important}
 }
+
+
+/* Fase 6.4 · Retroalimentación explícita y acciones de continuidad. */
+.games-round-complete{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border:1px solid #b3dfc5;border-radius:15px;background:#eefaf3;padding:13px 15px}
+.games-round-complete>span{display:flex;align-items:center;gap:9px;color:#1f6d49;font-size:.77rem;font-weight:850;line-height:1.5}
+.games-round-complete svg{flex:none}
+.games-round-complete button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;
+  border:1px solid #168254;border-radius:11px;background:#16784f;color:white;padding:9px 13px;
+  font:inherit;font-weight:850;font-size:.75rem;cursor:pointer}
+.games-round-complete button:focus-visible,.games-retry-state button:focus-visible{outline:3px solid #498aca;outline-offset:3px}
+.games-retry-state{display:grid;gap:8px;justify-items:start}
+.games-retry-state p{margin:0;overflow-wrap:anywhere}
+.game-check-action:disabled{opacity:.65;cursor:default}
+@media(max-width:650px){
+  .games-round-complete{align-items:stretch;flex-direction:column}
+  .games-round-complete button{width:100%}
+}

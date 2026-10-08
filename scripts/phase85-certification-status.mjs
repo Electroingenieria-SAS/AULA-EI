@@ -3,13 +3,18 @@ import { fileURLToPath } from 'node:url'
 
 export function certificationCheck(report) {
   const controls = Object.entries(report?.controls || {})
-  const incomplete = controls.filter(([,control])=>
-    control?.status !== 'APROBADO' || !String(control?.evidence || '').trim())
+  const compensable = 'admin-auth-leaked-password-protection'
+  const incomplete = controls.filter(([key,control])=>
+    !String(control?.evidence || '').trim() ||
+    (control?.status !== 'APROBADO' &&
+      !(key === compensable && control?.status === 'ACEPTADO_CON_RIESGO')))
     .map(([key]) => key)
   if (!controls.length) incomplete.push('no-controls-defined')
-  const valid = report?.certification_status === 'CERTIFICADO' && incomplete.length === 0
+  const acceptedRisk = report?.controls?.[compensable]?.status === 'ACEPTADO_CON_RIESGO'
+  const requiredStatus = acceptedRisk ? 'CERTIFICADO_CONDICIONADO' : 'CERTIFICADO'
+  const valid = report?.certification_status === requiredStatus && incomplete.length === 0
   return { valid, total: controls.length, approved: controls.length - incomplete.length,
-    incomplete, status: valid ? 'CERTIFICADO' : 'PENDIENTE' }
+    incomplete, status: valid ? requiredStatus : 'PENDIENTE' }
 }
 
 export async function readCertificationEvidence() {

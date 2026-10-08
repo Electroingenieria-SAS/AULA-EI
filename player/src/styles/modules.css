@@ -85,8 +85,10 @@
   align-items:center;
   justify-content:center;
   gap:7px;
-  font-size:.70rem;
+  font-size:.78rem;
   font-weight:900;
+  letter-spacing:.008em;
+  line-height:1.35;
 }
 .home-yellow-button{
   border:0;

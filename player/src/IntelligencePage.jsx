@@ -121,9 +121,10 @@ export default function IntelligencePage({ profile, sessionUser }) {
       <div className="intelligence-hero-art" aria-hidden="true"><BrainCircuit size={78}/><span>EI</span></div>
     </section>
     <div className="intelligence-section-heading"><span>MI ESPACIO DE APRENDIZAJE</span><strong>Elige cómo quieres entrenar hoy</strong></div>
-    <nav className="intelligence-tabs" aria-label="Elegir función del entrenador">
+    <nav className="intelligence-tabs" role="tablist" aria-label="Elegir función del entrenador">
       {OPTIONS.map(({id,title,detail,icon:Icon})=><button key={id} type="button"
-        className={tab===id?'is-active':''} aria-current={tab===id?'page':undefined}
+        role="tab" id={"intelligence-tab-"+id} aria-controls="intelligence-tool-panel" aria-selected={tab===id}
+        className={tab===id?'is-active':''}
         onClick={()=>setTab(id)}><Icon size={22}/><span><strong>{title}</strong><small>{detail}</small></span></button>)}
     </nav>
     <div className="intelligence-toolbar">
@@ -132,6 +133,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
         <RefreshCw size={16}/> {loading ? 'Actualizando…' : 'Actualizar mi progreso'}
       </button>
     </div>
+    <div id="intelligence-tool-panel" role="tabpanel" aria-labelledby={"intelligence-tab-"+tab}>
     {loading ? <section className="intelligence-status" role="status"><RefreshCw size={21}/> Preparando tu experiencia personalizada…</section> :
       error ? <section className="intelligence-status" role="alert">{error}</section> : <>
       {['tutor','adaptive'].includes(tab) && <section className="intelligence-selector">
@@ -151,6 +153,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
       {tab==='rewards' && <RewardsPanel development={development} practice={practice} onClearHistory={clearHistory}/>}
       {tab==='paths' && <RoutesPanel development={development}/>}
     </>}
+    </div>
     <p className="intelligence-footer-note">El tutor usa búsqueda de información publicada y completada, no genera afirmaciones nuevas. Las insignias y prácticas son motivacionales; las calificaciones y los certificados solo los emite el LMS institucional.</p>
   </main>
 }

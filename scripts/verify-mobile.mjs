@@ -11,6 +11,8 @@ const mobile = await read('src/mobile.css')
 const mobileApp = await read('src/mobile-app.css')
 const responsiveFoundation = await read('src/responsive-foundation.css')
 const shell = await read('player/src/LearnerShell.jsx')
+const coursePlayer = await read('player/src/CoursePlayer.jsx')
+const shellStyles = await read('player/src/styles/shell.css')
 const gallery = await read('player/src/course-player/ImageGallery.jsx')
 const galleryMedia = await read('player/src/course-player/GalleryMediaContent.jsx')
 const galleryStyles = await read('player/src/styles/gallery.css')
@@ -141,6 +143,42 @@ for (const required of [
   'mobileTitle',
 ]) {
   if (!shell.includes(required)) throw new Error('Shell móvil dedicado incompleto: falta ' + required)
+}
+
+// One shared course header: no duplicate topbars or floating bell at any breakpoint.
+for (const marker of [
+  'learner-course-shell',
+  'learner-course-back',
+  'learner-course-heading',
+  '<NotificationCenter profile={profile} />',
+  "navigateLearner('/catalog')",
+]) {
+  if (!shell.includes(marker)) throw new Error('La cabecera de capacitación debe incluir navegación y notificaciones sin duplicarse: ' + marker)
+}
+if (coursePlayer.includes('<LearnerTopbar') || coursePlayer.includes("import LearnerTopbar")) {
+  throw new Error('El curso no debe montar una segunda topbar debajo de las notificaciones.')
+}
+for (const marker of [
+  '.learner-course-shell>.learner-mobile-appbar',
+  'grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)',
+  '.learner-course-back',
+  '.learner-course-heading',
+]) {
+  if (!shellStyles.includes(marker)) throw new Error('Falta distribución de cabecera de escritorio: ' + marker)
+}
+for (const marker of [
+  '.learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-center',
+  '.learner-course-shell>.learner-mobile-appbar',
+  'grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px!important',
+]) {
+  if (!responsiveFoundation.includes(marker)) throw new Error('Cabecera tablet/desktop no aislada: ' + marker)
+}
+for (const marker of [
+  '.learner-course-shell>.learner-mobile-appbar',
+  'grid-template-columns:44px minmax(0,1fr) 48px!important',
+  '.learner-course-back span{display:none}',
+]) {
+  if (!mobileApp.includes(marker)) throw new Error('Cabecera móvil sobrepuesta: ' + marker)
 }
 
 if (!shell.includes('mobileHaptic')) {

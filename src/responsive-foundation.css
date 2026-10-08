@@ -15,7 +15,7 @@
 .learner-mobile-brand{display:none!important}
 
 @media(min-width:1101px){
-  .learner-mobile-appbar .training-notification-center{
+  .learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-center{
     position:fixed!important;
     right:20px!important;
     top:18px!important;
@@ -24,12 +24,12 @@
     z-index:180!important;
   }
 
-  .learner-mobile-appbar .training-notification-trigger{
+  .learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-trigger{
     width:auto!important;
     min-width:150px!important;
   }
 
-  .learner-mobile-appbar .training-notification-panel{
+  .learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-panel{
     left:auto!important;
     right:0!important;
     top:52px!important;
@@ -60,6 +60,12 @@
     box-sizing:border-box!important;
     display:grid!important;
     grid-template-columns:minmax(0,1fr) auto!important;
+  }
+  /* A course header always reserves three distinct interaction zones. */
+  .learner-course-shell>.learner-mobile-appbar{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px!important;
+  }
+  .learner-app-shell>.learner-mobile-appbar{
     align-items:center!important;
     gap:10px!important;
     border-bottom:1px solid rgba(32,78,130,.12)!important;

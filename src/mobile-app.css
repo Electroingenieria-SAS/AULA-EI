@@ -861,45 +861,29 @@
     padding-right:0!important;
   }
 
-  .learner-course-app .learner-topbar{
-    position:sticky!important;
-    z-index:120!important;
-    top:calc(var(--mobile-appbar-height) + env(safe-area-inset-top,0px))!important;
-    width:100%!important;
-    min-height:58px!important;
-    padding:7px var(--mobile-page-x)!important;
+  /* Course uses the main appbar, not a second sticky topbar. */
+  .learner-course-shell>.learner-mobile-appbar{
     display:grid!important;
-    grid-template-columns:minmax(0,1fr) auto!important;
-    gap:9px!important;
-    border-radius:0!important;
-    background:rgba(255,255,255,.95)!important;
-    border-bottom:1px solid #dce7f2!important;
-    box-shadow:0 5px 18px rgba(15,44,77,.06)!important;
-    backdrop-filter:blur(14px)!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px!important;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    margin-left:0;
+    padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));
   }
-  .learner-course-app .learner-brand{display:none!important}
-  .learner-course-app .learner-topbar-progress{
-    min-width:0!important;
-    width:100%!important;
+  .learner-course-back{
+    width:max-content;max-width:100%;min-height:44px!important;
+    padding:9px 11px;font-size:.77rem;
+    justify-self:start;
   }
-  .learner-course-app .learner-topbar-progress div:first-child span{
-    font-size:.69rem!important;
+  .learner-course-heading{min-width:0}
+  .learner-course-heading strong{font-size:.83rem}
+  .learner-course-shell>.learner-mobile-appbar .training-notification-center{
+    justify-self:end;min-width:48px;
   }
-  .learner-course-app .learner-topbar-progress div:first-child strong{
-    font-size:.82rem!important;
+  .learner-course-shell>.learner-mobile-appbar .training-notification-trigger{
+    width:48px!important;min-width:48px!important;height:48px!important;
   }
-  .learner-course-app .learner-topbar-actions{gap:6px!important}
-  .learner-course-app .secondary-action{display:none!important}
-  .learner-course-app .mobile-outline-button{
-    min-width:76px!important;
-    min-height:44px!important;
-    padding:7px 10px!important;
-    display:flex!important;
-    justify-content:center!important;
-    border-radius:13px!important;
-    font-size:.76rem!important;
-  }
-
   .learner-course-hero{
     width:calc(100% - 2 * var(--mobile-page-x))!important;
     min-height:0!important;
@@ -1251,6 +1235,17 @@
 }
 
 @media(max-width:540px){
+  .learner-course-shell>.learner-mobile-appbar{
+    grid-template-columns:44px minmax(0,1fr) 48px!important;
+    gap:7px;
+  }
+  .learner-course-back{
+    width:44px;min-width:44px;height:44px;padding:0;
+    border-radius:12px;
+  }
+  .learner-course-back span{display:none}
+  .learner-course-heading small{display:none}
+  .learner-course-heading strong{font-size:.85rem}
   :root{--mobile-page-x:10px}
 
   .learner-mobile-brand{
@@ -2525,10 +2520,6 @@
   }
 
   /* Course Player */
-  .learner-course-app .learner-topbar{
-    box-shadow:0 4px 16px rgba(12,44,80,.055)!important;
-  }
-
   .stage-context-bar{
     border:1px solid var(--mobile-border)!important;
     border-bottom:0!important;

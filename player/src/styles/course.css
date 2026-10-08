@@ -414,10 +414,6 @@
 
 /* Aula EI · Course workspace
    Single main stage; route and metrics are optional on-demand surfaces. */
-.course-workspace-page .course-topbar-caption{
-  display:block;max-width:min(45vw,460px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  color:#375e86;font-size:.74rem;font-weight:800;
-}
 .course-intro{
   width:min(1680px,calc(100% - 36px));margin:14px auto 12px;padding:20px 24px;
   display:grid;grid-template-columns:minmax(0,1fr) 245px;align-items:center;gap:32px;

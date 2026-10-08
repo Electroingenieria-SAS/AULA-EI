@@ -10,6 +10,7 @@ export function getLegalBlocks(requirement) {
 export default function LegalDocument({ requirement, idBase = 'legal-document', readingMode = false }) {
   if (!requirement) return null
   const titleId = idBase + '-title'
+  const TitleTag = readingMode ? 'h1' : 'h3'
   const blocks = getLegalBlocks(requirement)
 
   return <article className={readingMode ? 'legal-document is-reader' : 'legal-document'} aria-labelledby={titleId}>
@@ -19,7 +20,7 @@ export default function LegalDocument({ requirement, idBase = 'legal-document', 
         <span>{requirement.code}</span>
         <span>Versión {requirement.version}</span>
       </div>
-      <h3 id={titleId}>{requirement.title}</h3>
+      <TitleTag id={titleId}>{requirement.title}</TitleTag>
       <p>
         Vigente desde {formatDate(requirement.effectiveAt)}
         {requirement.isMaterial ? ' · Requiere aceptación expresa.' : ' · Actualización informativa.'}

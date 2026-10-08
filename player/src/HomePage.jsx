@@ -11,9 +11,13 @@ export default function HomePage({ profile, sessionUser }) {
   const [hiddenCount, setHiddenCount] = useState(0)
   const [trainingProfile, setTrainingProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [revision, setRevision] = useState(0)
 
   useEffect(() => {
     let alive = true
+    setLoading(true)
+    setError('')
     ;(async () => {
       try {
         const userId = sessionUser?.id
@@ -23,7 +27,7 @@ export default function HomePage({ profile, sessionUser }) {
           const result = await supabase.rpc('get_my_home_snapshot')
           if (result.error) throw result.error
           return result.data || {}
-        }, { ttl: 45000 })
+        }, { ttl: 45000, force: revision > 0 })
 
         if (!alive) return
         const raw = Array.isArray(snapshot.enrollments) ? snapshot.enrollments : []
@@ -32,13 +36,15 @@ export default function HomePage({ profile, sessionUser }) {
         setHiddenCount(raw.length - visible.length)
         setCertificates(Array.isArray(snapshot.certificates) ? snapshot.certificates : [])
         setTrainingProfile(snapshot.training_profile || null)
+      } catch (cause) {
+        if (alive) setError(cause?.message || 'No pudimos cargar tu información de formación.')
       } finally {
         if (alive) setLoading(false)
       }
     })()
 
     return () => { alive = false }
-  }, [sessionUser?.id])
+  }, [sessionUser?.id, revision])
 
   const firstName = useMemo(() => String(profile?.full_name || 'Colaborador').trim().split(/\s+/)[0] || 'Colaborador', [profile?.full_name])
   const priorities = useMemo(() => learningPriorities(enrollments, certificates), [enrollments, certificates])
@@ -48,8 +54,8 @@ export default function HomePage({ profile, sessionUser }) {
       <div className="home-hero-motion" aria-hidden="true"><i /><i /><i /><i /></div>
       <div>
         <span className="home-hero-pill"><Sparkles size={15} /> Tu espacio de aprendizaje</span>
-        <h1>{loading ? 'Preparando tu formación…' : priorities.next ? 'Tu siguiente paso está listo.' : 'Tu formación, al día.'}</h1>
-        <p>{loading ? 'Estamos organizando tus capacitaciones.' : priorities.next
+        <h1>{loading ? 'Preparando tu formación…' : error && !enrollments.length ? 'No pudimos cargar tu formación.' : priorities.next ? 'Tu siguiente paso está listo.' : 'Tu formación, al día.'}</h1>
+        <p>{loading ? 'Estamos organizando tus capacitaciones.' : error && !enrollments.length ? 'Reintenta la consulta para recuperar tus capacitaciones y certificados.' : priorities.next
           ? `${firstName}, tienes ${priorities.pending} capacitación(es) pendiente(s). Continúa tu formación cuando estés listo.`
           : `${firstName}, no tienes capacitaciones pendientes. Puedes consultar tu historial y certificados.`}</p>
         {!loading && priorities.next && <div className="home-next-course">
@@ -57,7 +63,7 @@ export default function HomePage({ profile, sessionUser }) {
           <span><Clock3 size={15}/>{priorities.nextLabel}</span>
         </div>}
         <div className="home-hero-actions">
-          <button className="home-yellow-button" onClick={() => priorities.next
+          <button className="home-yellow-button" disabled={Boolean(error && !enrollments.length)} onClick={() => priorities.next
             ? openLearnerCourse(priorities.next.course.id)
             : navigateLearner('/catalog')}>
             <PlayCircle size={17}/> {priorities.next ? 'Continuar siguiente capacitación' : 'Ver mis capacitaciones'}
@@ -68,6 +74,8 @@ export default function HomePage({ profile, sessionUser }) {
       </div>
       <div className="home-hero-metric"><strong>{certificates.length}</strong><span>Certificados obtenidos</span></div>
     </section>
+
+    {error && <div className="home-warning" role="alert">No fue posible actualizar la información de Aula EI. <button type="button" onClick={() => setRevision((value) => value + 1)}>Reintentar</button></div>}
 
     {hiddenCount > 0 && <div className="home-warning">Hay {hiddenCount} asignación(es) que todavía no están visibles porque la capacitación no está publicada o no tiene permisos activos.</div>}
 

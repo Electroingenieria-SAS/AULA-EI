@@ -202,3 +202,60 @@
 @media(max-width:480px){
   .intelligence-privacy-controls button{width:100%}
 }
+
+
+/* Fase 6.3 · Un único lenguaje visual para Tutor, Repaso, Insignias y Rutas. */
+.intelligence-page{gap:16px}
+.intelligence-hero{min-height:210px;padding:27px 32px;border-radius:22px}
+.intelligence-hero-meta{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}
+.intelligence-hero-meta span{display:inline-flex;align-items:center;gap:7px;
+  border:1px solid rgba(232,247,255,.22);border-radius:999px;
+  background:rgba(255,255,255,.1);padding:7px 11px;color:#f1f8ff;
+  font-size:.72rem;font-weight:750}
+.intelligence-section-heading{display:grid;gap:5px;padding:2px 1px}
+.intelligence-section-heading>span{font-size:.64rem;font-weight:900;letter-spacing:.095em;color:#6b8aa5}
+.intelligence-section-heading>strong{font-size:1.12rem;line-height:1.35;color:#164b7a}
+.intelligence-tabs{gap:10px}
+.intelligence-tabs button{min-height:90px;padding:15px;border-radius:16px;
+  border-color:#d5e5f0;box-shadow:0 6px 18px rgba(16,62,103,.045);
+  transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.intelligence-tabs button.is-active{border-color:#6baee0;
+  box-shadow:0 0 0 2px rgba(62,145,211,.13),0 10px 21px rgba(16,91,160,.08)}
+.intelligence-tabs button strong{font-size:.84rem}
+.intelligence-tabs button small{font-size:.7rem}
+.intelligence-panel{border-radius:20px;box-shadow:0 9px 30px rgba(17,60,101,.04)}
+.intelligence-panel-heading{gap:14px}
+.intelligence-panel-heading h2{line-height:1.28}
+.intelligence-tutor-answer{box-shadow:0 8px 20px rgba(12,82,143,.06)}
+.intelligence-badge-card{min-width:0;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.intelligence-badge-card.achieved{box-shadow:0 8px 22px rgba(24,109,154,.08)}
+.intelligence-recommendations li{min-width:0;gap:13px;border-radius:15px}
+.intelligence-recommendations li>div{min-width:0;overflow-wrap:anywhere}
+.intelligence-training-status{border-color:#bcd8ed}
+.intelligence-question-form input{font-size:16px}
+@media(max-width:1100px){
+  .intelligence-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .intelligence-hero{padding:20px;min-height:190px}
+  .intelligence-hero-meta{gap:7px;margin-top:12px}
+  .intelligence-hero-meta span{font-size:.66rem;padding:7px 9px}
+  .intelligence-section-heading>strong{font-size:1rem}
+  .intelligence-tabs button{min-height:88px}
+  .intelligence-recommendations li{gap:10px}
+}
+@media(max-width:480px){
+  .intelligence-hero{border-radius:18px}
+  .intelligence-hero-meta{flex-direction:column;align-items:flex-start}
+  .intelligence-tabs button{padding:12px;min-height:102px}
+  .intelligence-tabs button>svg{padding:9px}
+  .intelligence-recommendations li>div{flex-basis:calc(100% - 53px)}
+  .intelligence-recommendations button{width:100%;margin-left:0}
+}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  .intelligence-tabs button:hover:not(.is-active){transform:translateY(-2px)}
+  .intelligence-badge-card:hover{box-shadow:0 9px 24px rgba(13,87,151,.09);transform:translateY(-1px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .intelligence-tabs button,.intelligence-badge-card{transition:none!important;transform:none!important}
+}

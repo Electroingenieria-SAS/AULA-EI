@@ -77,8 +77,9 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
     ;(async () => {
       try {
         const access = await supabase.rpc('get_my_course_route_access', { p_course_id: selectedCourseId })
-        if (access.data?.allowed === false) {
-          throw new Error(access.data.reason || 'La capacitación está bloqueada en tu ruta formativa.')
+        if (access.error) throw access.error
+        if (access.data?.allowed !== true) {
+          throw new Error(access.data?.reason || 'La capacitación no está autorizada en tu ruta formativa.')
         }
         // Never query question banks. Course data is further protected by RLS.
         const result = await supabase.from('courses')

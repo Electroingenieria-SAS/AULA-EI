@@ -72,7 +72,7 @@ Fuente estructurada: `docs/quality/phase85-certification-evidence.json`. Los die
 
 - `npm run test:phase85-readiness` verifica los contratos de seguridad de código y que no se declare una certificación inexistente. **Debe pasar en CI**.
 - `npm run check:phase85-certification` es la puerta de certificación institucional y debe **fallar** mientras existan controles pendientes o pruebas sin evidencia; no usar este comando como condición de construcción hasta tener las cuentas/autorizaciones y respaldo necesarios.
-- Cuando se ejecute cada prueba, conservar referencia interna segura (nunca secreta) en `evidence`, asignar `APROBADO` y adjuntar aprobación externa, sin falsificar fechas, capturas ni firmas. Solo se puede cerrar `certification_status` como `CERTIFICADO` al tener 10/10 evidencias y resolución del riesgo nativo.
+- Cuando se ejecute cada prueba, conservar referencia interna segura (nunca secreta) en `evidence`, asignar `APROBADO` y adjuntar aprobación externa, sin falsificar fechas, capturas ni firmas. Solo se puede cerrar `certification_status` como `CERTIFICADO` al tener 10/10 evidencias y protección nativa aprobada. Si el titular decide mantenerse en un plan sin esa prestación, **solo** el control `admin-auth-leaked-password-protection` puede quedar `ACEPTADO_CON_RIESGO` con acta de riesgo residual firmada, evidencia de los controles compensatorios y `certification_status` igual a `CERTIFICADO_CONDICIONADO`; el resto de controles, incluida la restauración aislada, debe estar **APROBADO** con evidencia. No se permite sustituir una prueba de recuperación ni de roles por una aceptación genérica de riesgo.
 
 ## 7. Acta de aceptación (pendiente)
 

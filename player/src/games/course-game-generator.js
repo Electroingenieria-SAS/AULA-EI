@@ -137,6 +137,36 @@ export function generateCourseReviewGames(course, completedIds = new Set()) {
     }
   }
 
+  // When no authored decisions exist, practice exact published descriptions.
+  // The alternatives are real texts from other completed contents, never
+  // inferred facts or answers retrieved from the final examination.
+  const distinctPairs = pairs.filter((entry, i) =>
+    pairs.findIndex((other) => keyText(other.definition) === keyText(entry.definition)) === i)
+  if (distinctPairs.length >= 3) {
+    distinctPairs.slice(0, 12).forEach((pair, position) => {
+      const distractors = distinctPairs.filter((entry) => entry !== pair)
+        .slice(position + 1).concat(distinctPairs.filter((entry) => entry !== pair).slice(0, position + 1))
+        .slice(0, 2)
+      if (distractors.length < 2) return
+      const options = [pair.definition, ...distractors.map((entry) => entry.definition)]
+      const shift = position % options.length
+      const rotated = [...options.slice(shift), ...options.slice(0, shift)]
+      bucket.get('decision').push({
+        id: 'description-' + position,
+        title: 'La descripción correcta',
+        source: 'generated',
+        sourceLabel: 'Opciones extraídas de descripciones oficiales ya estudiadas',
+        content: {
+          gameType: 'decision',
+          instructions: 'Identifica la descripción textual publicada para el tema. No es una pregunta del examen.',
+          prompt: '¿Qué descripción aparece en la capacitación para «' + pair.term + '»?',
+          options: rotated,
+          correctIndex: rotated.indexOf(pair.definition),
+        },
+      })
+    })
+  }
+
   for (const phase of phases) for (const block of phase.blocks) {
     if (block.type !== 'validation') continue
     const content = block.content || {}

@@ -53,6 +53,19 @@ invented.certification_status='CERTIFICADO'
 assert.equal(certificationCheck(invented).valid,false,'Changing headline cannot bypass evidence')
 invented.controls['formal-acceptance'].status='APROBADO'
 assert.equal(certificationCheck(invented).valid,false,'Approval without evidence cannot certify')
+const modeled = JSON.parse(JSON.stringify(evidence))
+for(const control of Object.values(modeled.controls)) {
+  control.status='APROBADO'
+  control.evidence='Acta-interna-de-prueba' // synthetic fixture, never real approval
+}
+modeled.certification_status='CERTIFICADO'
+assert.equal(certificationCheck(modeled).valid,true)
+modeled.controls['admin-auth-leaked-password-protection'].status='ACEPTADO_CON_RIESGO'
+assert.equal(certificationCheck(modeled).valid,false,'Paid feature risk cannot masquerade as full certification')
+modeled.certification_status='CERTIFICADO_CONDICIONADO'
+assert.equal(certificationCheck(modeled).valid,true,'Signed risk acceptance permits only conditional status')
+modeled.controls['isolated-restore-drill'].status='ACEPTADO_CON_RIESGO'
+assert.equal(certificationCheck(modeled).valid,false,'Restore drill must never be waived')
 assert.match(JSON.parse(pkg).scripts.build,/npm run test:phase85-readiness/)
 assert.match(JSON.parse(pkg).scripts['check:phase85-certification'],/phase85-certification-status/)
 console.log('Fase 8.5: auditoría SQL de solo lectura, guardas de Auth, MFA, HIBP Edge y certificación no falsa: OK.')

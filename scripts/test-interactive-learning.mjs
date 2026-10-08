@@ -52,6 +52,7 @@ for (const sheet of [cssGames,cssStudy]) {
   assert.match(sheet, /@media\(max-width:/)
   assert.match(sheet, /:focus-visible/)
 }
-assert.match(main, /styles\/games\.css/)
+assert.match(game, /import '\.\.\/styles\/games\.css'/, 'The game stylesheet must load with its lazy game component.')
+assert.doesNotMatch(main, /styles\/games\.css/, 'Games must not increase the initial global CSS budget.')
 assert.match(main, /styles\/study\.css/)
 console.log('Phase 2 interactive games, editor roundtrip, browser-local review and accessibility contracts passed.')

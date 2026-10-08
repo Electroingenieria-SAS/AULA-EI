@@ -8,6 +8,7 @@ import { clearDataCache } from './data-cache.js'
 import { withTimeout } from './async-utils.js'
 import { AccessError, LoginPage, PasswordGate, Startup } from './auth/AuthScreens.jsx'
 import { supabase } from './supabase.js'
+import PostLoginSplash from './branding/PostLoginSplash.jsx'
 
 const loadCertificateApp = () => import('../certificate/src/CertificateApp.jsx')
 const loadLearnerApp = () => import('../player/src/LearnerApp.jsx')
@@ -35,6 +36,13 @@ export default function App() {
   const [profileBusy, setProfileBusy] = useState(false)
   const [authError, setAuthError] = useState('')
   const [recoveryMode, setRecoveryMode] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try { return window.sessionStorage.getItem('aula-ei-brand-welcome-v1') === 'pending' } catch { return false }
+  })
+  useEffect(() => {
+    if (!showWelcome) return
+    try { window.sessionStorage.removeItem('aula-ei-brand-welcome-v1') } catch {}
+  }, [showWelcome])
 
   useEffect(() => {
     let alive = true
@@ -147,12 +155,14 @@ export default function App() {
       : <LearnerApp profile={profile} sessionUser={session.user} />
     return <LegalGate profile={profile} sessionUser={session.user}>
       <AdminMfaGate profile={profile}>
-        <Suspense fallback={<Startup title="Cargando módulo…" />}>
-          {securedContent}
-        </Suspense>
+        {showWelcome && !route.isCertificate
+          ? <PostLoginSplash onComplete={() => setShowWelcome(false)} />
+          : <Suspense fallback={<Startup title="Cargando módulo…" />}>
+              {securedContent}
+            </Suspense>}
       </AdminMfaGate>
     </LegalGate>
-  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError])
+  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError, showWelcome])
 
   return <>
     <MobileViewportSync />

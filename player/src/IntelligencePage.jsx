@@ -75,7 +75,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
       try {
         const gate=await supabase.rpc('get_my_course_route_access',{p_course_id:selected})
         if (gate.error) throw gate.error
-        if (gate.data?.allowed === false) throw new Error('Tu ruta aún no permite consultar esta capacitación.')
+        if (gate.data?.allowed !== true) throw new Error(gate.data?.reason || 'Tu ruta no autoriza consultar esta capacitación.')
         const x=await supabase.from('courses')
           .select('id,title,status,phases:course_phases(id,title,sort_order,blocks:content_blocks(id,title,type,description,status,sort_order,content))')
           .eq('id',selected).single()

@@ -68,9 +68,9 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     let refreshing = false
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing || sessionStorage.getItem('aula-ei-pwa-refresh-v5') === '1') return
+      if (refreshing || sessionStorage.getItem('aula-ei-pwa-refresh-v6') === '1') return
       refreshing = true
-      sessionStorage.setItem('aula-ei-pwa-refresh-v5', '1')
+      sessionStorage.setItem('aula-ei-pwa-refresh-v6', '1')
       window.location.reload()
     })
 

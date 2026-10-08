@@ -4,9 +4,10 @@ import {
   ArrowLeft, ArrowRight, ExternalLink, Images, Maximize2, Minimize2, RotateCcw, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import { exitBrowserFullscreen, runViewerNavigation } from './immersive-navigation.js'
+import GalleryMediaContent from './GalleryMediaContent.jsx'
 import '../styles/gallery.css'
 
-export default function ImageGallery({ src, alt, originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false }) {
+export default function ImageGallery({ src, assetError = '', alt, description = '', originalUrl, close, previousTitle, nextTitle, canPrevious, canNext, previous, next, mediaType = 'image', isExternalEmbed = false, fallbackText = '', practiceStep = false, practiceNode = null }) {
   const viewerRef = useRef(null)
   const stageRef = useRef(null)
   const imageRef = useRef(null)
@@ -147,11 +148,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
     close()
   }
 
-  const navigateFromViewer = (action) => runViewerNavigation({
-    action,
-    navigationBusyRef,
-    close,
-  })
+  const navigateFromViewer = (action) => runViewerNavigation({ action, navigationBusyRef })
 
   useEffect(() => {
     document.body.classList.add('aula-media-viewer-open')
@@ -159,6 +156,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
 
     const onKey = (event) => {
       if (event.key === 'Escape' && !(document.fullscreenElement || document.webkitFullscreenElement)) close()
+      if (practiceStep || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement?.tagName)) return
       if (event.key === 'ArrowLeft' && canPrevious) {
         event.preventDefault()
         void navigateFromViewer(previous)
@@ -189,7 +187,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
       document.removeEventListener('webkitfullscreenchange', syncFullscreen)
       document.body.classList.remove('aula-media-viewer-open')
     }
-  }, [src, canPrevious, canNext, previous, next, close])
+  }, [src, canPrevious, canNext, previous, next, close, practiceStep])
 
   useEffect(() => {
     pointersRef.current.clear()
@@ -353,67 +351,54 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
     className={'image-lightbox gallery-viewer-v7 immersive-media-viewer media-' + mediaType}
     role="dialog"
     aria-modal="true"
-    aria-label={'Contenido inmersivo: ' + alt}
+    aria-label={practiceStep ? 'Pregunta de transición de la capacitación' : 'Contenido inmersivo: ' + alt}
   >
     <div className="lightbox-toolbar gallery-toolbar">
-      <div className="gallery-toolbar-title"><Images size={17} /><strong>{alt}</strong></div>
+      <div className="gallery-toolbar-title"><Images size={17} /><strong>{practiceStep ? 'Pregunta rápida' : alt}</strong></div>
       <div className="gallery-toolbar-actions">
-        {mediaType === 'image' && <button type="button" onClick={() => zoomAt(viewRef.current.scale - .5)} title="Alejar" aria-label="Alejar imagen"><ZoomOut size={18} /></button>}
-        {mediaType === 'image' && <span className="gallery-zoom-badge">{Math.round(view.scale * 100)}%</span>}
-        {mediaType === 'image' && <button type="button" onClick={() => zoomAt(viewRef.current.scale + .5)} title="Acercar" aria-label="Acercar imagen"><ZoomIn size={18} /></button>}
-        {mediaType === 'image' && <button type="button" onClick={resetView} title="Restablecer zoom" aria-label="Restablecer imagen"><RotateCcw size={17} /></button>}
+        {mediaType === 'image' && !practiceStep && <button type="button" onClick={() => zoomAt(viewRef.current.scale - .5)} title="Alejar" aria-label="Alejar imagen"><ZoomOut size={18} /></button>}
+        {mediaType === 'image' && !practiceStep && <span className="gallery-zoom-badge">{Math.round(view.scale * 100)}%</span>}
+        {mediaType === 'image' && !practiceStep && <button type="button" onClick={() => zoomAt(viewRef.current.scale + .5)} title="Acercar" aria-label="Acercar imagen"><ZoomIn size={18} /></button>}
+        {mediaType === 'image' && !practiceStep && <button type="button" onClick={resetView} title="Restablecer zoom" aria-label="Restablecer imagen"><RotateCcw size={17} /></button>}
         <button type="button" onClick={toggleBrowserFullscreen} title={browserFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'} aria-label={browserFullscreen ? 'Salir de pantalla completa' : 'Abrir pantalla completa'}>{browserFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
-        {originalUrl && <a href={originalUrl} target="_blank" rel="noreferrer" title="Abrir original" aria-label="Abrir imagen original"><ExternalLink size={17} /></a>}
+        {originalUrl && !practiceStep && <a href={originalUrl} target="_blank" rel="noreferrer" title="Abrir original" aria-label="Abrir imagen original"><ExternalLink size={17} /></a>}
         <button type="button" className="gallery-close-button" onClick={closeViewer} title="Cerrar" aria-label="Cerrar visor"><X size={20} /></button>
       </div>
     </div>
 
     <div
       ref={stageRef}
-      className={'lightbox-canvas touch-zoom-canvas gallery-stage ' + (view.scale > 1.001 ? 'is-zoomed' : 'is-fitted')}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
+      className={'lightbox-canvas touch-zoom-canvas gallery-stage ' + (practiceStep ? 'gallery-step-question' : (view.scale > 1.001 ? 'is-zoomed' : 'is-fitted'))}
+      onPointerDown={practiceStep ? undefined : onPointerDown}
+      onPointerMove={practiceStep ? undefined : onPointerMove}
+      onPointerUp={practiceStep ? undefined : onPointerUp}
+      onPointerCancel={practiceStep ? undefined : onPointerCancel}
       onDoubleClick={(event) => {
-        if (window.matchMedia('(min-width: 901px) and (pointer: fine)').matches) {
+        if (!practiceStep && window.matchMedia('(min-width: 901px) and (pointer: fine)').matches) {
           event.preventDefault()
           void toggleBrowserFullscreen()
         }
       }}
       onContextMenu={(event) => event.preventDefault()}
     >
-      {mediaType === 'image' && <img
-        ref={imageRef}
+      {practiceStep ? <div className="gallery-question-stage">{practiceNode}</div> : <>
+      <GalleryMediaContent
+        mediaType={mediaType}
         src={src}
+        assetError={assetError}
         alt={alt}
-        draggable="false"
-        decoding="async"
-        onLoad={() => applyView(viewRef.current)}
-        style={{
-          '--gallery-x': view.x + 'px',
-          '--gallery-y': view.y + 'px',
-          '--gallery-scale': String(view.scale),
-        }}
-      />}
-
-      {mediaType === 'video' && <div className="immersive-video-frame">
-        {isExternalEmbed
-          ? <iframe src={src} title={alt} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
-          : <video src={src} controls autoPlay playsInline />}
-      </div>}
-
-      {mediaType === 'presentation' && <div className="immersive-presentation-frame">
-        <iframe src={src} title={alt} allowFullScreen />
-      </div>}
-
-      {showHint && mediaType === 'image' && <div className="gallery-gesture-hint" role="status">
-        <strong>Pellizca para ampliar</strong>
-        <span>Arrastra para recorrer · doble toque para zoom · desliza a los lados para avanzar.</span>
-      </div>}
+        description={description}
+        fallbackText={fallbackText}
+        isExternalEmbed={isExternalEmbed}
+        imageRef={imageRef}
+        view={view}
+        onImageLoad={() => applyView(viewRef.current)}
+        showHint={showHint}
+      />
+      </>}
     </div>
 
-    <nav className="lightbox-course-nav gallery-course-nav" aria-label="Navegación de la capacitación">
+    {!practiceStep && <nav className="lightbox-course-nav gallery-course-nav" aria-label="Navegación de la capacitación">
       <button
         type="button"
         className="gallery-nav-button gallery-nav-previous"
@@ -438,7 +423,7 @@ export default function ImageGallery({ src, alt, originalUrl, close, previousTit
         <span><small>Siguiente</small><strong>{nextTitle}</strong></span>
         <ArrowRight size={24} />
       </button>
-    </nav>
+    </nav>}
   </div>
 
   return createPortal(viewer, document.body)

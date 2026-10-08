@@ -140,8 +140,8 @@ if (/fetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/.test(runtimeDiagnostics)) 
 }
 
 const courseContent = await readFile(path.join(root,'player/src/course-player/CourseContentViews.jsx'),'utf8')
-if (!courseContent.includes("const originalUrl = externalUrl ? safeExternalUrl(externalUrl) : assetUrl")) {
-  throw new Error('Las URLs originales de contenido externo deben pasar por safeExternalUrl().')
+if (!courseContent.includes("originalUrl: externalUrl ? safeExternalUrl(externalUrl) : asset.url")) {
+  throw new Error('El hook de recursos debe sanear las URLs originales mediante safeExternalUrl().')
 }
 
 const workflowFiles = (await readdir(workflowRoot)).filter((name) => /\.ya?ml$/i.test(name))

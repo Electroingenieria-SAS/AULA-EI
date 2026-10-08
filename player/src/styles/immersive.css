@@ -13,7 +13,7 @@
 .immersive-image-preview-canvas{
   position:relative;
   width:100%;
-  min-height:clamp(460px,64vh,760px);
+  min-height:clamp(520px,76vh,960px);
   border:1px solid #d7e2ed;
   border-radius:20px;
   display:grid;
@@ -35,7 +35,7 @@
   width:auto;
   height:auto;
   max-width:100%;
-  max-height:min(70vh,760px);
+  max-height:min(82vh,960px);
   object-fit:contain;
   display:block;
 }
@@ -211,25 +211,6 @@
   cursor:default;
 }
 
-/* Pregunta rápida dentro del mismo contexto inmersivo */
-body.aula-media-viewer-open .practice-gate-backdrop{
-  z-index:5200!important;
-  background:rgba(1,6,12,.72)!important;
-  backdrop-filter:blur(16px)!important;
-  -webkit-backdrop-filter:blur(16px)!important;
-}
-
-body.aula-media-viewer-open .practice-gate-modal{
-  width:min(760px,calc(100vw - 40px));
-  max-height:min(88dvh,820px);
-  border-color:rgba(209,226,243,.92);
-  box-shadow:0 34px 120px rgba(0,0,0,.48);
-}
-
-body.aula-media-viewer-open .practice-gate-header{
-  background:linear-gradient(180deg,#fff,#f8fbff);
-}
-
 @media(max-width:900px){
   .immersive-image-preview-canvas{
     min-height:240px;
@@ -237,7 +218,7 @@ body.aula-media-viewer-open .practice-gate-header{
   }
 
   .immersive-image-preview-canvas img{
-    max-height:62dvh;
+    max-height:74dvh;
   }
 
   .immersive-image-preview-badge{
@@ -312,10 +293,6 @@ body.aula-media-viewer-open .practice-gate-header{
     padding:0!important;
   }
 
-  body.aula-media-viewer-open .practice-gate-modal{
-    width:100%;
-    max-height:92dvh;
-  }
 }
 
 @media(max-width:520px){

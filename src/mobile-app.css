@@ -1217,7 +1217,7 @@
   }
   .user-create-modal,
   .user-detail-drawer,
-  .practice-gate-modal{
+  .practice-gate-backdrop > .practice-gate-modal{
     width:100%!important;
     max-width:none!important;
     max-height:calc(var(--mobile-vh,100dvh) - 18px)!important;
@@ -1601,7 +1601,7 @@
   body.aula-ios-runtime :where(
     .modal,
     .drawer,
-    .practice-gate-modal,
+    .practice-gate-backdrop > .practice-gate-modal,
     .training-notification-panel,
     .lightbox-canvas.touch-zoom-canvas
   ){
@@ -1636,7 +1636,7 @@
   body.aula-ios-runtime :where(
     .modal,
     .drawer,
-    .practice-gate-modal,
+    .practice-gate-backdrop > .practice-gate-modal,
     .course-create-modal,
     .user-detail-drawer,
     .certificate-detail-drawer
@@ -2144,7 +2144,7 @@
   .user-create-modal,
   .user-detail-drawer,
   .certificate-detail-drawer,
-  .practice-gate-modal{
+  .practice-gate-backdrop > .practice-gate-modal{
     width:100%!important;
     max-width:none!important;
     max-height:min(94dvh,calc(var(--mobile-vh,100dvh) - 4px))!important;
@@ -2657,7 +2657,7 @@
   .user-create-modal,
   .user-detail-drawer,
   .certificate-detail-drawer,
-  .practice-gate-modal{
+  .practice-gate-backdrop > .practice-gate-modal{
     max-height:calc(var(--mobile-vh,100dvh) - 2px)!important;
     border-radius:20px 20px 0 0!important;
   }
@@ -2688,7 +2688,7 @@
   body.aula-ios-runtime .user-create-modal,
   body.aula-ios-runtime .user-detail-drawer,
   body.aula-ios-runtime .certificate-detail-drawer,
-  body.aula-ios-runtime .practice-gate-modal{
+  body.aula-ios-runtime .practice-gate-backdrop > .practice-gate-modal{
     max-height:calc(var(--mobile-vh,100dvh) - max(2px,var(--mobile-offset-top,0px)))!important;
   }
 
@@ -2697,7 +2697,7 @@
     .user-create-modal,
     .user-detail-drawer,
     .certificate-detail-drawer,
-    .practice-gate-modal
+    .practice-gate-backdrop > .practice-gate-modal
   ){
     max-height:var(--mobile-vh,100dvh)!important;
   }

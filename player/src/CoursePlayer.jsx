@@ -9,8 +9,11 @@ import {
   ExamExperience,
   ExamResult,
   PracticeGateModal,
+  PracticeGateContent,
 } from './course-player/CoursePlayerViews.jsx'
-import { ContentExperience, CourseOutline } from './course-player/CourseContentViews.jsx'
+import { ContentExperience, CourseOutline, useCourseAsset } from './course-player/CourseContentViews.jsx'
+import ImageGallery from './course-player/ImageGallery.jsx'
+import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
 import { appUrl, navigateLearner } from './navigation.js'
 import { invalidateCache } from '../../src/data-cache.js'
 import { supabase } from './supabase.js'
@@ -33,6 +36,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [outlineOpen, setOutlineOpen] = useState(false)
+  const [immersiveOpen, setImmersiveOpen] = useState(false)
   const [examQuestions, setExamQuestions] = useState(null)
   const [examAnswers, setExamAnswers] = useState({})
   const [examResult, setExamResult] = useState(null)
@@ -51,9 +55,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     const match = window.location.hash.match(/^#\/course\/([^/?#]+)/)
     return match?.[1] ? decodeURIComponent(match[1]) : ''
   }, [])
-
-  useEffect(() => {
-  }, [currentBlockId])
 
   const load = async () => {
     setLoading(true)
@@ -123,6 +124,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const requiredBlocks = useMemo(() => allBlocks.filter((block) => block.required && block.status !== 'draft'), [allBlocks])
   const currentIndex = allBlocks.findIndex((block) => block.id === currentBlockId)
   const currentBlock = currentIndex >= 0 ? allBlocks[currentIndex] : null
+  const mediaAsset = useCourseAsset(currentBlock)
   const currentPhase = course?.phases.find((phase) => (phase.blocks || []).some((block) => block.id === currentBlockId)) || null
   const requiredCompleted = requiredBlocks.filter((block) => completed.has(block.id)).length
   const courseCompletedCount = allBlocks.filter((block) => completed.has(block.id)).length
@@ -210,7 +212,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setExamResult(null)
     setCurrentBlockId(blockId)
     setOutlineOpen(false)
-    window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    if (!immersiveOpen) window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   const completeBlock = async (blockId, data = {}) => {
@@ -254,12 +256,21 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   }
 
   const goNext = async () => {
-    if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy) return
+    if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy || practiceGateOpen) return
     const next = allBlocks[currentIndex + 1] || null
-
+    if (completed.has(currentBlockId)) {
+      if (next) selectBlock(next.id)
+      else await startExam()
+      return
+    }
     setPracticeNextBlockId(next?.id || null)
     setPracticeGateOpen(true)
-    await loadPracticeQuestion(crypto.randomUUID())
+    try {
+      await loadPracticeQuestion(crypto.randomUUID())
+    } catch {
+      setPracticeLoading(false)
+      setPracticeQuestion(null)
+    }
   }
 
   const continueAfterPractice = async () => {
@@ -271,12 +282,13 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     // The quick question is a transition checkpoint, not an exam attempt.
     // Any selected option allows progression; the answer is stored only as
     // context for the completed content and never graded here.
-    await completeBlock(currentBlockId, {
+    const saved = await completeBlock(currentBlockId, {
       transition_practice: true,
       practice_question_id: practiceQuestion?.id || null,
       practice_option_id: practiceAnswer,
       practice_correct: typeof practiceVerdict === 'boolean' ? practiceVerdict : null,
     })
+    if (!saved) { setPracticeAdvanceBusy(false); return }
 
     const target = practiceNextBlockId
     setPracticeGateOpen(false)
@@ -288,17 +300,18 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setPracticeAdvanceBusy(false)
 
     if (target) selectBlock(target)
-    else window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    else if (!immersiveOpen) window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   const continueWithoutPractice = async () => {
     if (!currentBlockId || practiceAdvanceBusy) return
 
     setPracticeAdvanceBusy(true)
-    await completeBlock(currentBlockId, {
+    const saved = await completeBlock(currentBlockId, {
       transition_practice: true,
       practice_unavailable: true,
     })
+    if (!saved) { setPracticeAdvanceBusy(false); return }
 
     const target = practiceNextBlockId
     setPracticeGateOpen(false)
@@ -310,7 +323,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setPracticeAdvanceBusy(false)
 
     if (target) selectBlock(target)
-    else window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    else if (!immersiveOpen) window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   const goPrevious = () => {
@@ -323,6 +336,9 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       setMessage('Completa primero todos los contenidos obligatorios.')
       return
     }
+    await exitBrowserFullscreen()
+    setImmersiveOpen(false)
+    setOutlineOpen(false)
     setExamLoading(true)
     setMessage('')
     setExamResult(null)
@@ -364,53 +380,58 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   if (loading) return <CourseTransitionState loading />
   if (!course) return <CourseTransitionState error message={message || 'No encontramos información disponible.'} />
 
-  return <main className="learner-course-app">
+  const openImmersive = async ({ fullscreen = false } = {}) => {
+    if (!currentBlock || !['image', 'video', 'presentation'].includes(currentBlock.type)) return
+    // Keep the same viewer mounted for every block and its quick question.
+    setImmersiveOpen(true)
+    if (fullscreen && window.matchMedia('(min-width: 901px) and (pointer: fine)').matches) {
+      try {
+        const root = document.documentElement
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+          if (root.requestFullscreen) await root.requestFullscreen({ navigationUI: 'hide' })
+          else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen()
+        }
+      } catch {}
+    }
+  }
+
+  const questionProps = {
+    question: practiceQuestion,
+    selected: practiceAnswer,
+    verdict: practiceVerdict,
+    checking: practiceChecking,
+    selectAnswer: checkPracticeAnswer,
+    loading: practiceLoading,
+    advancing: practiceAdvanceBusy,
+    targetTitle: allBlocks.find((block) => block.id === practiceNextBlockId)?.title || 'Examen final',
+    retry: () => loadPracticeQuestion(crypto.randomUUID()),
+    continueForward: continueAfterPractice,
+    continueWithoutQuestion: continueWithoutPractice,
+  }
+
+  return <main className="learner-course-app course-workspace-page">
     <LearnerTopbar
-      center={<div className="learner-topbar-progress">
-        <div><span>Progreso obligatorio</span><strong>{progress}%</strong></div>
-        <div className="topbar-progress-track"><span style={{ width: progress + '%' }} /></div>
-      </div>}
-      mobileAction={<button className="mobile-outline-button" onClick={() => setOutlineOpen(true)}><Menu size={18} /> Ruta</button>}
+      center={<span className="course-topbar-caption">{course.title}</span>}
       actions={<button className="secondary-action" onClick={() => navigateLearner('/catalog')}><ArrowLeft size={17} /> Mis capacitaciones</button>}
     />
 
-    <section className="learner-course-hero">
-      <div className="hero-motion-field" aria-hidden="true">
-        {Array.from({ length: 9 }).map((_, index) => <i key={index} style={{ '--i': index }} />)}
-        <span className="hero-motion-orbit orbit-a" />
-        <span className="hero-motion-orbit orbit-b" />
-        <span className="hero-motion-spark spark-a" />
-        <span className="hero-motion-spark spark-b" />
+    <header className="course-intro">
+      <div className="course-intro-copy">
+        <span className="course-intro-label"><BookOpen size={15} /> Capacitación Aula EI {enrollment?.due_at ? ' · Hasta ' + dateLabel(enrollment.due_at) : ''}</span>
+        <h1>{course.title}</h1>
+        {course.description && <p>{course.description}</p>}
       </div>
-
-      <div className="learner-hero-content">
-        <div className="learner-hero-copy">
-          <div className="hero-chip-row">
-            <span className="hero-learning-chip"><BookOpen size={14} /> Capacitación Aula EI</span>
-            {enrollment?.due_at && <span className="hero-learning-chip soft"><Clock3 size={14} /> Hasta {dateLabel(enrollment.due_at)}</span>}
-          </div>
-
-          <h1>{course.title}</h1>
-          <p>{course.description || 'Continúa tu ruta de aprendizaje y completa cada actividad a tu ritmo.'}</p>
-
-          <div className="hero-progress-inline" aria-label={`Progreso de la capacitación: ${progress}%`}>
-            <div><span style={{ width: progress + '%' }} /></div>
-            <strong>{progress}% completado</strong>
-            <small>{requiredCompleted} de {requiredBlocks.length} contenidos obligatorios</small>
-          </div>
-
-          <div className="learner-hero-actions">
-            {currentBlock && <button className="hero-primary-button" onClick={() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><PlayCircle size={18} /> {progress ? 'Continuar donde quedé' : 'Comenzar capacitación'}</button>}
-            <span>{examUnlocked ? 'Examen final desbloqueado' : 'Tu progreso se guarda automáticamente al avanzar'}</span>
-          </div>
-        </div>
+      <div className="course-intro-progress" aria-label={`Progreso obligatorio ${progress}%`}>
+        <span><strong>{progress}%</strong> completado</span>
+        <div className="course-intro-track"><i style={{ width: progress + '%' }} /></div>
+        <small>{requiredCompleted} de {requiredBlocks.length} contenidos obligatorios</small>
       </div>
-    </section>
+    </header>
 
     {message && <div className="learner-inline-message"><CircleAlert size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={15} /></button></div>}
 
-    <div className="learner-course-layout">
-      <CourseOutline
+    <div className="course-workspace">
+      {outlineOpen && <CourseOutline
         course={course}
         allBlocks={allBlocks}
         currentBlockId={currentBlockId}
@@ -423,18 +444,19 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         startExam={startExam}
         open={outlineOpen}
         close={() => setOutlineOpen(false)}
-      />
+      />}
 
-      <section className="learner-stage-column" ref={stageRef}>
-        <div className="stage-context-bar">
-          <div>
-            <span>{currentPhase ? currentPhase.title : examQuestions || examResult ? 'Evaluación final' : 'Capacitación'}</span>
-            {currentBlock && <strong>{currentIndex + 1} de {allBlocks.length}</strong>}
+      <section className="course-main" ref={stageRef}>
+        <div className="course-stage-toolbar">
+          <div className="course-stage-location">
+            <strong>{currentPhase?.title || (examQuestions || examResult ? 'Evaluación final' : 'Capacitación')}</strong>
+            {currentBlock && <span>{currentIndex + 1} de {allBlocks.length}</span>}
           </div>
           {currentBlock && <div className="stage-context-progress"><span style={{ width: allBlocks.length ? ((currentIndex + 1) / allBlocks.length) * 100 + '%' : '0%' }} /></div>}
+          <button type="button" className="course-route-trigger" onClick={() => setOutlineOpen(true)}><Menu size={17} /> Ver ruta</button>
         </div>
 
-        <div className="learner-stage-card" key={examQuestions ? 'exam' : examResult ? 'result' : currentBlockId || 'empty'}>
+        <div className="course-stage-card" key={examQuestions ? 'exam' : examResult ? 'result' : currentBlockId || 'empty'}>
           {examQuestions ? (
             <ExamExperience
               questions={examQuestions}
@@ -450,12 +472,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
             <ContentExperience
               block={currentBlock}
               completed={completed.has(currentBlock.id)}
-              previousTitle={allBlocks[currentIndex - 1]?.title || 'Inicio'}
-              nextTitle={allBlocks[currentIndex + 1]?.title || 'Examen final'}
-              canPrevious={currentIndex > 0}
-              canNext={true}
-              previous={goPrevious}
-              next={goNext}
+              asset={mediaAsset}
+              openImmersive={openImmersive}
             />
           ) : (
             <div className="learner-empty-stage"><BookOpen size={38} /><h2>Esta capacitación aún no tiene contenido visible.</h2><p>Cuando el equipo publique contenidos aparecerán aquí.</p></div>
@@ -463,80 +481,66 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         </div>
 
         {!examQuestions && !examResult && currentBlock && (
-          <div className="learner-stage-nav">
-            <button className="stage-nav-button previous" disabled={currentIndex <= 0} onClick={goPrevious}><ArrowLeft size={18} /><span><small>Anterior</small><strong>{allBlocks[currentIndex - 1]?.title || 'Inicio'}</strong></span></button>
-            <div className="stage-nav-center">
-              {completed.has(currentBlock.id)
-                ? <span className="stage-completed-indicator"><CheckCircle2 size={16} /> Este paso ya cuenta en tu progreso</span>
-                : <span className="stage-pending-indicator"><BrainCircuit size={14} /> Siguiente abrirá una pregunta rápida</span>}
-            </div>
-            <button className="stage-nav-button next" disabled={practiceLoading || practiceAdvanceBusy} onClick={goNext}><span><small>{currentIndex >= allBlocks.length - 1 ? 'Finalizar contenido' : 'Siguiente'}</small><strong>{allBlocks[currentIndex + 1]?.title || 'Examen final'}</strong></span><ArrowRight size={18} /></button>
-          </div>
+          <nav className="course-flow-nav" aria-label="Navegación por contenidos">
+            <button type="button" className="course-flow-button previous" disabled={currentIndex <= 0 || practiceGateOpen} onClick={goPrevious}><ArrowLeft size={17} /> Anterior</button>
+            <span className="course-nav-progress">{currentIndex + 1} / {allBlocks.length}</span>
+            <button type="button" className="course-flow-button next" disabled={practiceLoading || practiceAdvanceBusy || practiceGateOpen} onClick={goNext}>
+              {currentIndex === allBlocks.length - 1 && completed.has(currentBlockId) ? 'Presentar examen' : 'Siguiente'} <ArrowRight size={17} />
+            </button>
+          </nav>
         )}
 
-        {!examQuestions && !examResult && examUnlocked && currentIndex === allBlocks.length - 1 && (
-          <button className="exam-callout" onClick={startExam} disabled={examLoading}>
-            <span><GraduationCap size={24} /></span>
-            <div><strong>¡Ruta de contenidos completada!</strong><small>Ya puedes presentar el examen final. Debes obtener mínimo {course.passing_score || 80}%.</small></div>
-            <ArrowRight size={20} />
-          </button>
-        )}
       </section>
 
-      <aside className="learner-progress-panel">
-        <section className="learner-side-card">
-          <div className="side-card-title"><Trophy size={18} /><div><strong>Tus logros</strong><small>{unlockedAchievements.length} de {ACHIEVEMENTS.length} desbloqueados</small></div></div>
-          <div className="achievement-mini-grid">
-            {ACHIEVEMENTS.map((achievement) => {
-              const unlocked = achievement.unlock(achievementContext)
-              const Icon = achievement.icon
-              return <article key={achievement.key} className={unlocked ? 'unlocked' : 'locked'} title={achievement.description}>
-                <span>{unlocked ? <Icon size={18} /> : <LockKeyhole size={16} />}</span>
-                <div><strong>{achievement.title}</strong><small>{unlocked ? achievement.description : 'Sigue avanzando para desbloquearlo.'}</small></div>
-              </article>
-            })}
-          </div>
-        </section>
-
-        <section className="learner-side-card phase-progress-card">
-          <div className="side-card-title"><ShieldCheck size={18} /><div><strong>Progreso por fase</strong><small>Tu recorrido de aprendizaje</small></div></div>
-          <div className="phase-mini-progress">
-            {course.phases.map((phase, index) => {
+      <details className="course-insights">
+        <summary>
+          <span><Trophy size={17} /> Tus logros <strong>{unlockedAchievements.length}/{ACHIEVEMENTS.length}</strong></span>
+          <span><ShieldCheck size={17} /> Progreso por fase <strong>{course.phases.filter((phase) => phaseStats(phase).complete).length}/{course.phases.length}</strong></span>
+          <span className="course-insights-hint">Ver detalles</span>
+        </summary>
+        <div className="course-insights-grid">
+          <section>
+            <h3>Logros de aprendizaje</h3>
+            <ul>{ACHIEVEMENTS.map((achievement) => <li key={achievement.key}>
+              {achievement.unlock(achievementContext) ? <CheckCircle2 size={16} /> : <LockKeyhole size={16} />}
+              <span>{achievement.title}</span>
+            </li>)}</ul>
+          </section>
+          <section>
+            <h3>Fases de la capacitación</h3>
+            <ul>{course.phases.map((phase) => {
               const stats = phaseStats(phase)
-              return <button key={phase.id} onClick={() => {
-                const first = stats.blocks.find((block) => {
-                  const blockIndex = allBlocks.findIndex((item) => item.id === block.id)
-                  return blockIndex >= 0 && !isLockedAtIndex(blockIndex)
-                })
-                if (first) selectBlock(first.id)
-              }}>
-                <span className={stats.complete ? 'done' : ''}>{stats.complete ? <Check size={12} /> : index + 1}</span>
-                <div><strong>{phase.title}</strong><div><i style={{ width: stats.percent + '%' }} /></div><small>{stats.percent}%</small></div>
-              </button>
-            })}
-          </div>
-        </section>
+              return <li key={phase.id}>
+                {stats.complete ? <CheckCircle2 size={16} /> : <BookOpen size={16} />}
+                <span>{phase.title}</span><strong>{stats.percent}%</strong>
+              </li>
+            })}</ul>
+          </section>
+        </div>
+      </details>
 
-        <section className="learner-side-card motivation-card">
-          <Sparkles size={20} />
-          <div><strong>{progress >= 100 ? 'Excelente trabajo.' : progress >= 50 ? 'Vas muy bien.' : progress > 0 ? 'Buen comienzo.' : 'Tu ruta comienza aquí.'}</strong><span>{progress >= 100 ? 'Ya completaste el contenido obligatorio. Presenta el examen cuando estés listo.' : progress >= 50 ? 'Ya recorriste más de la mitad de la capacitación.' : progress > 0 ? 'Cada contenido completado te acerca a la certificación.' : 'Avanza paso a paso. Aula EI guardará tu progreso.'}</span></div>
-        </section>
-      </aside>
     </div>
 
-    {practiceGateOpen && (
-      <PracticeGateModal
-        question={practiceQuestion}
-        selected={practiceAnswer}
-        verdict={practiceVerdict}
-        checking={practiceChecking}
-        selectAnswer={checkPracticeAnswer}
-        loading={practiceLoading}
-        advancing={practiceAdvanceBusy}
-        targetTitle={allBlocks.find((block) => block.id === practiceNextBlockId)?.title || 'Examen final'}
-        retry={() => loadPracticeQuestion(crypto.randomUUID())}
-        continueForward={continueAfterPractice}
-        continueWithoutQuestion={continueWithoutPractice}
+    {practiceGateOpen && !immersiveOpen && <PracticeGateModal {...questionProps} />}
+    {immersiveOpen && currentBlock && (
+      <ImageGallery
+        src={mediaAsset.displayUrl}
+        assetError={mediaAsset.assetError}
+        alt={currentBlock.title}
+        description={currentBlock.description || ''}
+        originalUrl={mediaAsset.originalUrl}
+        mediaType={currentBlock.type}
+        isExternalEmbed={mediaAsset.isExternalEmbed}
+        fallbackText={String(currentBlock.content?.html ?? currentBlock.content?.text ?? '')}
+        close={() => setImmersiveOpen(false)}
+        previousTitle={allBlocks[currentIndex - 1]?.title || 'Inicio'}
+        nextTitle={allBlocks[currentIndex + 1]?.title || 'Examen final'}
+        canPrevious={currentIndex > 0 && !practiceGateOpen}
+        canNext={!practiceLoading && !practiceAdvanceBusy && !practiceGateOpen}
+        previous={goPrevious}
+        next={goNext}
+        practiceStep={practiceGateOpen}
+        practiceNode={practiceGateOpen ? <PracticeGateContent {...questionProps} embedded /> : null}
       />
     )}
 

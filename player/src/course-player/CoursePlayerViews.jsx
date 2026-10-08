@@ -18,12 +18,11 @@ export function ReadingContent({ value }) {
 }
 
 
-export function PracticeGateModal({ question, selected, verdict, checking, selectAnswer, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion }) {
+export function PracticeGateContent({ question, selected, verdict, checking, selectAnswer, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion, embedded = false }) {
   const resolved = verdict === true || verdict === false
   const unavailable = verdict === 'unavailable'
 
-  const modal = <div className="practice-gate-backdrop" role="presentation">
-    <section className="practice-gate-modal" role="dialog" aria-modal="true" aria-labelledby="practice-gate-title">
+  return <section className="practice-gate-modal" role={embedded ? 'group' : 'dialog'} aria-modal={embedded ? undefined : true} aria-labelledby="practice-gate-title">
       <div className="practice-gate-accent" />
 
       <header className="practice-gate-header">
@@ -107,11 +106,16 @@ export function PracticeGateModal({ question, selected, verdict, checking, selec
           </div>
         </div>
       )}
-    </section>
-  </div>
-
-  return createPortal(modal, document.body)
+  </section>
 }
+
+export function PracticeGateModal(props) {
+  return createPortal(
+    <div className="practice-gate-backdrop" role="presentation"><PracticeGateContent {...props} /></div>,
+    document.body,
+  )
+}
+
 export function ExamExperience({ questions, answers, setAnswers, passingScore, submit, loading }) {
   const answered = Object.keys(answers).length
   return <section className="exam-experience">

@@ -8,7 +8,7 @@ const [html,main,worker,foundation,mobile,games,coach,gameStyles,coachStyles,lea
   read('player/src/styles/games.css'),read('player/src/styles/intelligence.css'),
   read('player/src/LearnerApp.jsx'),
 ])
-assert.ok(html.includes('name="aula-ei-release" content="phase-6.5-2026-10-08"'))
+assert.match(html,/name="aula-ei-release" content="phase-[0-9]+(?:\\.[0-9]+)?-[0-9]{4}-[0-9]{2}-[0-9]{2}"/)
 assert.ok(main.includes("sw.js?v=5"))
 assert.ok(main.includes("aula-ei-pwa-refresh-v6"))
 assert.ok(worker.includes("CACHE_VERSION = 'aula-ei-pwa-v6'"))

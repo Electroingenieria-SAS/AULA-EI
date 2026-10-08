@@ -81,7 +81,7 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
         }
         // Never query question banks. Course data is further protected by RLS.
         const result = await supabase.from('courses')
-          .select('id,title,status,phases:course_phases(id,title,status,sort_order,blocks:content_blocks(id,title,type,description,status,sort_order,content))')
+          .select('id,title,status,phases:course_phases(id,title,sort_order,blocks:content_blocks(id,title,type,description,status,sort_order,content))')
           .eq('id', selectedCourseId)
           .single()
         if (result.error) throw result.error

@@ -1,0 +1,65 @@
+/* Personal, browser-local study materials; not part of formal assessment. */
+.study-review-panel{
+  grid-column:1/-1;min-width:0;overflow:hidden;border:1px solid #d8e7f3;
+  border-radius:17px;background:#fff;box-shadow:0 9px 24px rgba(15,49,86,.05)
+}
+.study-review-panel>summary{
+  display:flex;align-items:center;gap:11px;min-height:59px;padding:13px 18px;
+  list-style:none;cursor:pointer;color:#14548f
+}
+.study-review-panel>summary::-webkit-details-marker{display:none}
+.study-review-panel>summary strong{font-size:.85rem}
+.study-review-panel>summary span{font-size:.71rem;color:#748ca2;flex:1;text-align:right}
+.study-review-panel[open]>summary{border-bottom:1px solid #e5edf5;background:#f8fbff}
+.study-review-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:17px}
+.study-flashcards,.study-notes{
+  display:grid;align-content:start;gap:12px;padding:18px;
+  border:1px solid #dce8f4;border-radius:15px;background:#fff
+}
+.study-flashcards>header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.study-flashcards>header>div span{color:#1a69af;font-size:.62rem;letter-spacing:.06em;font-weight:900}
+.study-flashcards h3,.study-notes h3{margin:4px 0 0;color:#164575;font-size:.98rem}
+.study-flashcards>header small{font-size:.65rem;color:#60809a}
+.study-flashcard{
+  display:grid;place-content:center;justify-items:center;gap:12px;min-height:208px;
+  width:100%;padding:18px;border:1px solid #b9d7f4;border-radius:17px;
+  background:linear-gradient(140deg,#eaf4ff,#fff);color:#154575;
+  text-align:center;cursor:pointer
+}
+.study-flashcard small{font-size:.66rem;letter-spacing:.09em;font-weight:900;color:#3473b0}
+.study-flashcard strong{font-size:clamp(.85rem,1.6vw,1.06rem);line-height:1.65;overflow-wrap:anywhere}
+.study-flashcard span{font-size:.7rem;color:#5c7e9b}
+.study-flash-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.study-flash-controls button{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-width:42px;min-height:42px;padding:9px 12px;border:1px solid #d0e1f1;
+  border-radius:11px;background:#f4f9ff;color:#16548e;
+  font-size:.73rem;font-weight:900;cursor:pointer
+}
+.study-flash-controls button:disabled{opacity:.4;cursor:not-allowed}
+.study-flash-controls button.is-remembered{background:#e8f8ed;border-color:#abd9c1;color:#196a45}
+.study-flash-controls span{font-size:.72rem;color:#64819a}
+.study-empty,.study-local-note{margin:0;color:#6a849c;font-size:.72rem;line-height:1.6}
+.study-notes header{display:flex;align-items:center;gap:9px;color:#17609f}
+.study-notes label{font-size:.74rem;font-weight:800;color:#315778}
+.study-notes textarea{
+  width:100%;min-width:0;resize:vertical;min-height:150px;padding:13px;
+  border:1px solid #cfdfef;border-radius:12px;background:#fbfdff;
+  font:inherit;font-size:.8rem;line-height:1.65;color:#173f6b;box-sizing:border-box
+}
+.study-notes>small{color:#748da3;font-size:.65rem;line-height:1.4}
+.study-clear{
+  justify-self:start;display:inline-flex;align-items:center;gap:8px;
+  min-height:40px;padding:9px 11px;border:1px solid #d7e2ec;border-radius:10px;
+  background:#fff;color:#365e80;font-size:.71rem;font-weight:800;cursor:pointer
+}
+.study-review-panel button:focus-visible,.study-notes textarea:focus-visible,.study-review-panel>summary:focus-visible{
+  outline:3px solid #4294d8;outline-offset:2px
+}
+@media(max-width:980px){.study-review-content{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){
+  .study-review-panel>summary{padding:12px}
+  .study-review-panel>summary span{display:none}
+  .study-review-content{padding:9px;gap:9px}
+  .study-flashcards,.study-notes{padding:12px}
+}

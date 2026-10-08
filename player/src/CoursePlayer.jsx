@@ -12,6 +12,7 @@ import {
 } from './course-player/CoursePlayerViews.jsx'
 import { ContentExperience, CourseOutline, useCourseAsset } from './course-player/CourseContentViews.jsx'
 import ImageGallery from './course-player/ImageGallery.jsx'
+import StudyReview from './course-player/StudyReview.jsx'
 import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
 import { appUrl, navigateLearner } from './navigation.js'
 import { invalidateCache } from '../../src/data-cache.js'
@@ -485,6 +486,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         )}
 
       </section>
+
+      {!examQuestions && !examResult && <StudyReview course={course} blocks={allBlocks} completed={completed} userId={sessionUser?.id || suppliedSessionUser?.id} />}
 
       <details className="course-insights">
         <summary>

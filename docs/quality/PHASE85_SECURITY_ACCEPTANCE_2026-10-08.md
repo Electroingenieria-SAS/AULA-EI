@@ -21,6 +21,8 @@ Auditoría de metadatos *en vivo y sin cambios* de PostgreSQL: privilegios EXECU
 | Tablas con RLS sin políticas | 19 | Familias `dt_*` y `helpdesk_*` no relacionadas directamente con las pantallas de Aula EI |
 | Entre esas 19, con grants de lectura `anon` o `authenticated` | 0 | Diseño cerrado por defecto, no abrirlo automáticamente |
 
+**Segundo control de RLS realizado:** las 11 tablas principales de Aula EI inspeccionadas (`profiles`, `courses`, `enrollments`, `content_blocks`, `certificates`, `exam_attempts`, `learning_paths`, `training_notifications`, `legal_acceptances`, `privacy_requests` y `audit_logs`) tienen RLS activo y ninguna concede `SELECT` directo a `anon`. Las políticas SELECT de certificados y exámenes exigen pertenencia del usuario y actividad, o el helper administrativo; las de privacidad/aceptaciones vinculan al solicitante. Esto verifica el diseño de las políticas, **no** su comportamiento ante sesiones reales de distintos usuarios.
+
 Las cifras son una instantánea del **2026-10-08**, no garantías perpetuas. Los asesores de Supabase también reportaron 37 índices sin uso observado. Mantenerlos hasta medir uso operativo y costo real.
 
 Remediación de referencia: [funciones privilegiadas](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [RLS sin políticas](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy), [índices sin uso](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index).

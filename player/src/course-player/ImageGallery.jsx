@@ -368,7 +368,7 @@ export default function ImageGallery({ src, alt, description = '', originalUrl, 
 
     <div
       ref={stageRef}
-      className={'lightbox-canvas touch-zoom-canvas gallery-stage ' + (view.scale > 1.001 ? 'is-zoomed' : 'is-fitted')}
+      className={'lightbox-canvas touch-zoom-canvas gallery-stage ' + (practiceStep ? 'gallery-step-question' : (view.scale > 1.001 ? 'is-zoomed' : 'is-fitted'))}
       onPointerDown={practiceStep ? undefined : onPointerDown}
       onPointerMove={practiceStep ? undefined : onPointerMove}
       onPointerUp={practiceStep ? undefined : onPointerUp}

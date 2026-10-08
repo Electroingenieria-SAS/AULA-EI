@@ -8,12 +8,13 @@ import { clearDataCache } from './data-cache.js'
 import { withTimeout } from './async-utils.js'
 import { AccessError, LoginPage, PasswordGate, Startup } from './auth/AuthScreens.jsx'
 import { supabase } from './supabase.js'
-import PostLoginSplash from './branding/PostLoginSplash.jsx'
 
 const loadCertificateApp = () => import('../certificate/src/CertificateApp.jsx')
 const loadLearnerApp = () => import('../player/src/LearnerApp.jsx')
+const loadPostLoginSplash = () => import('./branding/PostLoginSplash.jsx')
 const CertificateApp = lazy(loadCertificateApp)
 const LearnerApp = lazy(loadLearnerApp)
+const PostLoginSplash = lazy(loadPostLoginSplash)
 
 function routeInfo() {
   const hash = window.location.hash || '#/'
@@ -156,7 +157,7 @@ export default function App() {
     return <LegalGate profile={profile} sessionUser={session.user}>
       <AdminMfaGate profile={profile}>
         {showWelcome && !route.isCertificate
-          ? <PostLoginSplash onComplete={() => setShowWelcome(false)} />
+          ? <Suspense fallback={<Startup title="Preparando tu acceso…" />}><PostLoginSplash onComplete={() => setShowWelcome(false)} /></Suspense>
           : <Suspense fallback={<Startup title="Cargando módulo…" />}>
               {securedContent}
             </Suspense>}

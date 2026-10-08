@@ -1,9 +1,10 @@
 import React from 'react'
 import {
   Activity, AlertTriangle, BadgeCheck, BookOpen, Briefcase, CheckCircle2,
-  ChevronRight, Clock3, Layers3, Link2, Loader2, Plus, RefreshCw,
+  ChevronRight, Clock3, Download, Layers3, Link2, Loader2, Plus, RefreshCw,
   Search, Settings2, ShieldCheck, Sparkles, Target, UserCheck, Users, X,
 } from 'lucide-react'
+import { complianceCsv } from './analytics-model.js'
 
 const STATE_LABELS = {
   compliant: ['Al día', 'green'],
@@ -296,7 +297,19 @@ export function AutomationPanel({ rules, toggleAutomation, busy, syncEngine, syn
   </div>
 }
 
-export function CompliancePanel({ rows, query, setQuery, snapshot }) {
+export function CompliancePanel({ rows, query, setQuery, snapshot, statusFilter, setStatusFilter }) {
+  const exportRows = () => {
+    if (!rows.length || !window.confirm('Este archivo contiene datos personales de colaboradores. ¿Descargar la matriz filtrada para uso administrativo autorizado?')) return
+    const data = complianceCsv(rows)
+    const url = URL.createObjectURL(new Blob([data], { type: 'text/csv;charset=utf-8;' }))
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'aula-ei-cumplimiento-' + new Date().toISOString().slice(0,10) + '.csv'
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
   return <div className="compliance-matrix">
     <section className="panel-card compliance-matrix-head">
       <div>
@@ -311,7 +324,19 @@ export function CompliancePanel({ rows, query, setQuery, snapshot }) {
       </div>
     </section>
 
-    <label className="search-field compliance-matrix-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar persona, cargo, ruta o capacitación…" /></label>
+    <div className="compliance-matrix-controls">
+      <label className="search-field compliance-matrix-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar persona, cargo, ruta o capacitación…" /></label>
+      <label className="compliance-matrix-filter">Estado
+        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+          <option value="all">Todos</option>
+          {Object.entries(STATE_LABELS).map(([code, info]) => <option key={code} value={code}>{info[0]}</option>)}
+        </select>
+      </label>
+      <button type="button" className="secondary-button compact" disabled={!rows.length} onClick={exportRows}>
+        <Download size={16}/> Exportar {rows.length} fila(s)
+      </button>
+    </div>
+    <p className="compliance-matrix-confidential">Exportación con confirmación · Contiene datos personales · Protege el archivo y compártelo solo con personal autorizado.</p>
 
     <div className="compliance-table-wrap">
       <table className="compliance-table">

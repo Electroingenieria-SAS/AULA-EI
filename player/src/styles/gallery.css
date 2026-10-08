@@ -524,3 +524,41 @@ body.aula-media-viewer-open :where(
     animation:none!important;
   }
 }
+
+/* A checkpoint is a step inside the gallery, never a second fullscreen layer. */
+.gallery-stage.gallery-step-question{
+  display:block!important;overflow-y:auto!important;overflow-x:hidden!important;
+  touch-action:pan-y!important;cursor:default!important;overscroll-behavior:contain!important;
+  background:linear-gradient(145deg,#071529,#102b4d)!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+.gallery-question-stage{
+  position:relative;z-index:3;box-sizing:border-box;min-height:100%;
+  width:100%;padding:clamp(72px,10vh,110px) max(16px,4vw) clamp(84px,12vh,130px);
+  display:flex;align-items:center;justify-content:center;
+}
+.gallery-question-stage .practice-gate-modal{
+  margin:auto;width:min(710px,100%)!important;max-width:100%;max-height:none!important;
+  overflow:visible!important;border:1px solid #dbe6f2;border-radius:22px;
+  box-shadow:0 22px 75px rgba(0,0,0,.28);background:#fff;
+}
+.gallery-question-stage .practice-gate-header{border-radius:22px 22px 0 0}
+.gallery-media-loading{
+  color:#d7e5f3;min-height:220px;display:grid;place-items:center;
+  text-align:center;font-size:.9rem;font-weight:700;
+}
+.gallery-other-content{
+  width:min(850px,calc(100% - 130px));max-height:calc(100dvh - 170px);
+  overflow-y:auto;padding:26px;border-radius:16px;background:#fff;color:#1d3a5c;
+}
+.gallery-other-content h2{margin:0 0 8px;font-size:1.35rem}
+.gallery-other-content p{color:#58748e;line-height:1.55}
+.gallery-other-content .reading-experience{max-width:none}
+@media(max-width:760px){
+  .gallery-question-stage{
+    display:block;min-height:100%;padding:max(70px,env(safe-area-inset-top,0px) + 64px) 12px
+      max(86px,env(safe-area-inset-bottom,0px) + 70px);
+  }
+  .gallery-question-stage .practice-gate-modal{border-radius:17px}
+  .gallery-other-content{width:calc(100% - 24px);max-height:calc(100dvh - 140px);padding:17px}
+}

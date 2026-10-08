@@ -257,3 +257,64 @@
   .games-source-row button{align-self:flex-start}
   .games-course-selector select{font-size:16px}
 }
+
+
+/* Fase 6.3 · Sistema visual del laboratorio. Mismo azul institucional, densidad y jerarquía. */
+.learner-games-page{font-family:"Century Gothic","Segoe UI",sans-serif}
+.games-lab{gap:16px}
+.games-lab-picker{gap:9px}
+.games-lab-picker>button{min-height:82px;padding:13px 14px;border-radius:15px;
+  border-color:#d7e6f2;box-shadow:0 5px 15px rgba(18,62,109,.035);
+  transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease}
+.games-lab-picker>button.active{border-color:#4f9ad2;box-shadow:0 0 0 2px rgba(50,143,209,.13),0 10px 20px rgba(10,79,142,.09)}
+.games-lab-picker button>strong{font-size:.83rem;line-height:1.35}
+.games-lab-picker button>small{font-size:.69rem}
+.games-picker-available{color:#236b9d!important}
+.games-picker-unavailable{color:#7b8797!important}
+.games-stage-context{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-width:0;padding:13px 17px;border:1px solid #dce8f2;border-radius:15px;
+  background:linear-gradient(115deg,#edf6ff,#fff 78%)}
+.games-stage-context>div{min-width:0;display:grid;gap:5px}
+.games-stage-context small{font-size:.62rem;color:#667f95;font-weight:900;letter-spacing:.08em}
+.games-stage-context strong{font-size:.93rem;color:#174d7d;line-height:1.3}
+.games-stage-context>span{flex:0 0 auto;max-width:45%;padding:8px 11px;
+  border-radius:999px;background:#e1effb;color:#145990;font-size:.72rem;font-weight:850;text-align:center}
+.games-coach-cta{background:linear-gradient(112deg,#e6f3ff 0%,#f6fbff 55%,#fff 100%);
+  border-color:#a7cfe9;box-shadow:0 12px 28px rgba(15,80,142,.09)}
+.games-coach-cta-copy strong{font-size:1.04rem}
+.games-coach-cta>button{box-shadow:0 5px 12px rgba(9,98,173,.13)}
+.games-generated-heading{gap:15px}
+.games-generated-heading h2{overflow-wrap:anywhere}
+.learning-game{border-color:#d8e6f1;border-radius:19px;box-shadow:0 12px 30px rgba(12,57,105,.06)}
+.learning-game-round{background:linear-gradient(180deg,#fff,#fbfdff)}
+.game-match-grid{gap:11px}
+.game-match-column{gap:8px;grid-auto-rows:minmax(66px,auto)}
+.game-match-column button,.game-choice-grid button{border-radius:12px;transition:background .14s ease,border-color .14s ease,box-shadow .14s ease}
+.game-match-column button.selected,.game-choice-grid button.selected{box-shadow:inset 4px 0 #1373b7,0 4px 12px rgba(18,102,167,.07)}
+.game-match-column button.correct{background:#e9f8f0;border-color:#93d4b3}
+.game-result.is-complete{box-shadow:inset 4px 0 #35a26d}
+.games-empty-type{min-height:230px}
+@media(max-width:1040px){
+  .games-lab-picker>button{min-height:90px}
+  .games-lab-picker button>strong{font-size:.79rem}
+}
+@media(max-width:650px){
+  .games-lab{gap:11px}
+  .games-lab-picker{gap:8px}
+  .games-lab-picker>button{min-height:100px;padding:12px}
+  .games-stage-context{align-items:flex-start;padding:12px;flex-wrap:wrap}
+  .games-stage-context>span{max-width:100%;flex:0 0 auto}
+  .game-match-grid{grid-template-columns:1fr}
+  .games-coach-cta{border-radius:16px}
+}
+@media(max-width:380px){
+  .games-lab-picker button>small{font-size:.64rem}
+  .games-stage-context strong{font-size:.85rem}
+  .games-stage-context>span{font-size:.67rem}
+}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  .games-lab-picker>button:hover:not(.active){transform:translateY(-2px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .learner-games-page button{transition:none!important;transform:none!important}
+}

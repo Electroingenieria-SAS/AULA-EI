@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { BookOpen, CheckCircle2, ChevronDown, Clock3, ExternalLink, FileCheck2, RefreshCw, Send, ShieldCheck } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronDown, Clock3, ExternalLink, Eye, FileCheck2, RefreshCw, Send, ShieldCheck } from 'lucide-react'
 import { appUrl } from '../../src/paths.js'
 import { parseLegalMarkdown, stripLegalMarkdown } from '../../src/legal/legal-markdown.js'
 import {
@@ -18,7 +18,8 @@ const REQUEST_TYPES = [
   ['reclamo','Reclamo de protección de datos'],
 ]
 
-export default function PrivacyCenter() {
+export default function PrivacyCenter({ profile }) {
+  const canPreview = ['admin','super_admin'].includes(String(profile?.role || ''))
   const [acceptances,setAcceptances]=useState([])
   const [requirements,setRequirements]=useState([])
   const [requests,setRequests]=useState([])
@@ -83,6 +84,10 @@ export default function PrivacyCenter() {
     <div className="privacy-grid">
       <section className="privacy-card">
         <div className="privacy-card-title"><FileCheck2 size={20}/><div><h2>Documentos vigentes</h2><p>Versiones que actualmente aplican a tu cuenta.</p></div></div>
+        {canPreview && <div className="privacy-admin-preview">
+          <div><strong>Vista de administrador</strong><span>Comprueba cómo se muestran los documentos al iniciar sesión por primera vez, sin borrar tus aceptaciones.</span></div>
+          <a className="privacy-preview-action" href={appUrl('/legal/preview')}><Eye size={17}/> Simular primer ingreso</a>
+        </div>}
         {loading?<p>Cargando…</p>:requirements.length===0?<p>No hay documentos vigentes asociados.</p>:
           <div className="privacy-document-list">{requirements.map((item)=><details className="privacy-document-row" key={item.versionId}>
             <summary>

@@ -5,6 +5,7 @@ import {
   Search, Settings2, ShieldCheck, Sparkles, Target, UserCheck, Users, X,
 } from 'lucide-react'
 import { complianceCsv } from './analytics-model.js'
+import '../styles/compliance-report.css'
 
 const STATE_LABELS = {
   compliant: ['Al día', 'green'],

@@ -29,6 +29,38 @@ for(const token of ['legal-consent-overlay','aria-modal="true"','acceptLegalDocu
   if(!legalGate.includes(token)) throw new Error('Gate legal obligatorio incompleto: falta '+token)
 }
 
+// Document experience: reading opens a separate authenticated tab; consent stays version-scoped.
+const reader=await mustRead('src/legal/LegalDocumentReader.jsx')
+const requirementCard=await mustRead('src/legal/LegalRequirementCard.jsx')
+const legalDocument=await mustRead('src/legal/LegalDocument.jsx')
+const legalCss=await mustRead('src/legal/legal.css')
+const privacy=await mustRead('player/src/PrivacyCenter.jsx')
+for(const token of [
+  'readerId',
+  'LegalDocumentReader',
+  'LegalRequirementCard',
+  'checked[item.versionId]',
+  'acceptLegalDocuments(pending)',
+]) {
+  if(!legalGate.includes(token)) throw new Error('Gate documental perdió aceptación por versión o lector autenticado: '+token)
+}
+if(!app.includes('route.hash')) throw new Error('El cambio de ruta a lector legal debe actualizar App.')
+for(const token of ["target=\"_blank\"",'rel="noopener noreferrer"','reviewed','disabled={busy || !reviewed}']) {
+  if(!requirementCard.includes(token)) throw new Error('El documento debe abrirse en nueva pestaña con aceptación explícita posterior: '+token)
+}
+for(const token of ['getLegalBlocks(requirement)','LegalDocument requirement={requirement}','window.print()','reader-section-']) {
+  if(!reader.includes(token)) throw new Error('Plantilla documental incompleta: '+token)
+}
+for(const token of ['getLegalBlocks','renderInline','sectionId','readingMode']) {
+  if(!legalDocument.includes(token)) throw new Error('Texto vigente/encabezados del lector incompletos: '+token)
+}
+for(const token of ['@media print','@media(max-width:900px)','@media(max-width:560px)','.legal-reader-paper','.legal-policy-card']) {
+  if(!legalCss.includes(token)) throw new Error('El diseño documental no cubre impresión, escritorio, tablet y móvil: '+token)
+}
+if(!privacy.includes("appUrl('/legal/read/'")||!privacy.includes('privacy-document-row')) {
+  throw new Error('La biblioteca de privacidad debe abrir la versión íntegra vigente.')
+}
+
 const legalApi=await mustRead('src/legal/legal-api.js')
 for(const token of ['aula-ei-legal-receipt:v1:','localStorage.setItem','acceptLegalDocuments']){
   if(!legalApi.includes(token)) throw new Error('Recibo local legal incompleto: falta '+token)

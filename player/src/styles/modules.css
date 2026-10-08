@@ -632,3 +632,22 @@ html,#root{
 /* ========================================================================== */
 
 
+
+/* Home's single Phase 3 entry lives in the canonical initial home stylesheet. */
+.home-development-entry{
+  display:flex;align-items:center;gap:16px;margin:18px 0;padding:17px;
+  border:1px solid #d3e5f4;border-radius:18px;
+  background:linear-gradient(108deg,#edf6ff,#fff);color:#1e4d79
+}
+.home-development-entry-mark{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:15px;background:#dcefff;color:#1663a5}
+.home-development-entry>div:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.home-development-entry strong{font-size:.83rem;color:#194d7c}
+.home-development-entry span{font-size:.71rem;line-height:1.55;color:#68869f}
+.home-development-entry button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:10px 14px;border:1px solid #0a5ea6;border-radius:12px;
+  background:#0a5ea6;color:#fff;font-size:.76rem;font-weight:900;cursor:pointer
+}
+.home-development-entry button:focus-visible{outline:3px solid #3e93d8;outline-offset:3px}
+@media(max-width:760px){.home-development-entry{padding:13px;gap:11px;align-items:flex-start;flex-wrap:wrap}.home-development-entry button{margin-left:auto}}
+@media(max-width:480px){.home-development-entry-mark{width:39px;height:39px}.home-development-entry button{width:100%;margin-left:0}}

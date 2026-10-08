@@ -292,34 +292,3 @@
   .analytics-metrics{grid-template-columns:1fr 1fr}
   .compliance-table.analytics-table{min-width:760px}
 }
-
-
-/* Phase 4: one responsive control row for filtered compliance evidence. */
-.compliance-matrix-controls{
-  display:grid;grid-template-columns:minmax(230px,1fr) minmax(150px,220px) auto;
-  align-items:end;gap:12px;margin:12px 0 5px
-}
-.compliance-matrix-controls .compliance-matrix-search{margin:0;min-width:0;align-self:end}
-.compliance-matrix-filter{display:grid;gap:6px;min-width:0;color:#436480;font-size:.67rem;font-weight:900}
-.compliance-matrix-filter select{
-  width:100%;min-height:42px;box-sizing:border-box;padding:9px 11px;
-  border:1px solid #cfdce9;border-radius:10px;background:#fff;color:#265678;
-  font:inherit;font-size:.75rem;font-weight:800
-}
-.compliance-matrix-controls>button{
-  display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  min-height:42px;font-size:.73rem;font-weight:900
-}
-.compliance-matrix-controls>button:disabled{opacity:.4;cursor:not-allowed}
-.compliance-matrix-confidential{margin:0 0 12px;color:#7b8797;font-size:.65rem;line-height:1.5}
-.compliance-matrix-filter select:focus-visible,.compliance-matrix-controls button:focus-visible{
-  outline:3px solid #4b9ada;outline-offset:2px
-}
-@media(max-width:900px){
- .compliance-matrix-controls{grid-template-columns:minmax(0,1fr) minmax(160px,.45fr)}
- .compliance-matrix-controls>button{grid-column:1/-1;justify-self:start}
-}
-@media(max-width:580px){
- .compliance-matrix-controls{grid-template-columns:minmax(0,1fr)}
- .compliance-matrix-controls>button{grid-column:auto;width:100%}
-}

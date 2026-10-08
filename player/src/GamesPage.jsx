@@ -181,11 +181,15 @@ export default function GamesPage({ sessionUser, initialCourseId = '' }) {
               onClick={() => chooseType(group.type)}>
               <span><Icon size={21}/></span>
               <strong>{group.label}</strong>
-              <small>{group.rounds.length ? group.rounds.length + ' ronda(s) generadas' : 'Sin material suficiente'}</small>
+              <small className={group.rounds.length ? "games-picker-available" : "games-picker-unavailable"}>{group.rounds.length ? group.rounds.length + (group.rounds.length === 1 ? " ronda disponible" : " rondas disponibles") : "Aún sin material"}</small>
             </button>
           })}
         </nav>
         <div className="games-lab-stage">
+          {activeGroup && <div className="games-stage-context" aria-live="polite">
+            <div><small>LABORATORIO DE PRÁCTICA</small><strong>{activeGroup.label}</strong></div>
+            <span>{activeGroup.rounds.length ? 'Ronda ' + (round % activeGroup.rounds.length + 1) + ' de ' + activeGroup.rounds.length : 'Sin rondas preparadas'}</span>
+          </div>}
           {activeRound ? <>
             <div className="games-source-row">
               <span><ShieldCheck size={15}/>{activeRound.sourceLabel}</span>

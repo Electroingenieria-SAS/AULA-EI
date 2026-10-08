@@ -35,11 +35,11 @@ export default function DeveloperCreditsPage() {
             <span className="dev-credit-card-label">CRÉDITOS DE DESARROLLO</span>
             <h2>Juan E. Pérez</h2>
             <p>Software y soluciones digitales</p>
-            {expanded && <div className="dev-credit-card-details" id="dev-credit-details">
+            <div className="dev-credit-card-details" id="dev-credit-details" hidden={!expanded}>
               <strong>Reconocimiento de contribuciones</strong>
               <p>Crédito por las contribuciones de diseño, programación, arquitectura, integración y mejora de software que correspondan a su participación efectiva y verificable.</p>
               <small>El reconocimiento de derechos morales de autoría no determina por sí solo la titularidad ni cesión de derechos patrimoniales.</small>
-            </div>}
+            </div>
             <button type="button" aria-expanded={expanded} aria-controls="dev-credit-details"
               onClick={() => setExpanded((value) => !value)}>
               {expanded ? 'Ocultar detalles' : 'Ver contribuciones y atribución'}

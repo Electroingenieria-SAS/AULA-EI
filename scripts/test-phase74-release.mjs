@@ -12,7 +12,7 @@ const [main,sw,html,learner,plan,shell,notices,model,studio,panels,smoke,pwa,pkg
   read('scripts/verify-pwa.mjs'), read('package.json'),
  ])
 assert.match(html,/name="aula-ei-release" content="phase-8\.4-2026-10-08"/)
-assert.match(main,/sw\.js\?v=6/)
+assert.match(main,/sw\.js\?v=7/)
 assert.match(main,/aula-ei-pwa-refresh-v7/)
 assert.match(sw,/CACHE_VERSION = 'aula-ei-pwa-v7'/)
 assert.match(pwa,/aula-ei-pwa-v7/)

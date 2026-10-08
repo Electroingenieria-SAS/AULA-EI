@@ -113,9 +113,14 @@ export default function IntelligencePage({ profile, sessionUser }) {
         <h1>Tu aprendizaje, a tu ritmo.</h1>
         <p>{firstName}, explora tus temas, practica tus retos, desbloquea insignias y descubre el siguiente paso de tu ruta formativa.</p>
         <span className="intelligence-trust"><ShieldCheck size={17}/> Contenidos autorizados · Sin IA externa · Sin afectar tus notas</span>
+        <div className="intelligence-hero-meta" aria-label="Resumen de materiales del entrenador">
+          <span><GraduationCap size={15}/>{enrollmentOptions.length} capacitaciones</span>
+          <span><BookOpenCheck size={15}/>{cards.length} temas estudiados disponibles</span>
+        </div>
       </div>
       <div className="intelligence-hero-art" aria-hidden="true"><BrainCircuit size={78}/><span>EI</span></div>
     </section>
+    <div className="intelligence-section-heading"><span>MI ESPACIO DE APRENDIZAJE</span><strong>Elige cómo quieres entrenar hoy</strong></div>
     <nav className="intelligence-tabs" aria-label="Elegir función del entrenador">
       {OPTIONS.map(({id,title,detail,icon:Icon})=><button key={id} type="button"
         className={tab===id?'is-active':''} aria-current={tab===id?'page':undefined}

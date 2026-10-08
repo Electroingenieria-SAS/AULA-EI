@@ -167,7 +167,7 @@ for (const marker of [
   if (!shellStyles.includes(marker)) throw new Error('Falta distribución de cabecera de escritorio: ' + marker)
 }
 for (const marker of [
-  '.learner-app-shell:not(.learner-course-shell) .learner-mobile-appbar .training-notification-center',
+  '.learner-app-shell:not(.learner-course-shell)>.learner-mobile-appbar .training-notification-center',
   '.learner-course-shell>.learner-mobile-appbar',
   'grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px!important',
 ]) {

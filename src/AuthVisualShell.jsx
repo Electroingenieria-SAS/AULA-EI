@@ -1,6 +1,7 @@
 import React from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { assetUrl } from './paths.js'
+import './branding/developer-signature.css'
 
 export default function AuthVisualShell({
   children,
@@ -38,6 +39,10 @@ export default function AuthVisualShell({
         <span><strong>01</strong><small>Rutas y competencias</small></span>
         <span><strong>02</strong><small>Certificación trazable</small></span>
         <span><strong>03</strong><small>Seguridad con RLS + MFA</small></span>
+      </div>
+      <div className="dev-auth-signature" aria-label="Créditos de desarrollo">
+        <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt="" width="34" height="53"/>
+        <span><strong>Juan E. Pérez</strong><small>Créditos de diseño y desarrollo</small></span>
       </div>
     </section>
 

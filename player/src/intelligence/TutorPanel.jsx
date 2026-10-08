@@ -19,7 +19,8 @@ export default function TutorPanel({ cards, courseTitle }) {
     <div className="intelligence-tutor-body">
       <p className="intelligence-source-label"><ShieldCheck size={16}/> Fuente: {courseTitle || 'selecciona una capacitación'}</p>
       {cards.length ? <>
-        <div className="intelligence-suggestions">
+        <div className="intelligence-suggestions" aria-label="Temas sugeridos para consultar">
+          <strong className="intelligence-suggestions-heading">Explora un tema de tu capacitación</strong>
           {cards.slice(0,5).map((card) => <button type="button" key={card.id}
             onClick={() => ask(card.title)}>{card.title}</button>)}
         </div>
@@ -44,7 +45,7 @@ export default function TutorPanel({ cards, courseTitle }) {
         <strong>Tu tutor se activa con contenidos estudiados</strong>
         <p>Selecciona una capacitación y completa bloques que tengan descripciones. No se interpretan automáticamente imágenes o videos sin explicación escrita.</p>
       </div>}
-      <p className="intelligence-disclaimer">Guía de consulta basada en búsqueda textual, sin IA generativa ni conexión con servicios externos. Comprueba siempre el documento institucional original.</p>
+      <p className="intelligence-disclaimer"><ShieldCheck size={15} aria-hidden="true"/> Guía de consulta basada en búsqueda textual, sin IA generativa ni conexión con servicios externos. Comprueba siempre el documento institucional original.</p>
     </div>
   </section>
 }

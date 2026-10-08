@@ -36,8 +36,8 @@
 .course-preview-head>button,.course-preview-nav button,.course-preview-state button{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   min-height:44px;padding:10px 15px;border:1px solid #d2e2f1;border-radius:11px;
-  background:#f1f7ff;color:#195a96;font:inherit;font-size:.75rem;font-weight:800;
-  cursor:pointer
+  background:#f1f7ff;color:#195a96;font:inherit;font-size:.8rem;font-weight:900;
+  line-height:1.35;letter-spacing:.008em;cursor:pointer
 }
 .course-preview-notice{
   display:flex;align-items:center;gap:12px;padding:11px 15px;
@@ -80,7 +80,7 @@
   border-top:1px solid #e4edf6;padding:13px 17px;background:#fbfdff
 }
 .course-preview-nav span{font-variant-numeric:tabular-nums;font-size:.75rem;color:#607d96}
-.course-preview-nav button:last-child{background:#0b5cac;color:#fff;border-color:#0b5cac}
+.course-preview-nav button:last-child{background:#0b5cac;color:#fff;border-color:#0b5cac;font-weight:900}
 .course-preview-nav button:disabled{opacity:.38;cursor:not-allowed}
 .course-preview-empty,.course-preview-state{
   display:grid;place-items:center;gap:10px;text-align:center;

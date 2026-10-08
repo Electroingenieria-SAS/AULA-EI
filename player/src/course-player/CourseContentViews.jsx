@@ -21,6 +21,12 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
   }, [])
 
   useEffect(() => {
+    if (!compactRoute) return undefined
+    document.body.classList.add('course-route-open')
+    return () => document.body.classList.remove('course-route-open')
+  }, [compactRoute])
+
+  useEffect(() => {
     const previousFocus = document.activeElement
     closeRef.current?.focus()
     const onKeyDown = (event) => {

@@ -48,7 +48,7 @@ export function CourseOutline({ course, allBlocks, currentBlockId, completed, ex
     }
   }, [compactRoute])
 
-  const panel = <aside ref={drawerRef} className="course-route-drawer" role={compactRoute ? 'dialog' : 'complementary'} aria-modal={compactRoute ? true : undefined} aria-label="Ruta de capacitación">
+  const panel = <aside id="course-route-navigation" ref={drawerRef} className="course-route-drawer" role={compactRoute ? 'dialog' : 'complementary'} aria-modal={compactRoute ? true : undefined} aria-label="Ruta de capacitación">
       <div className="outline-header">
         <div><span>Tu ruta</span><strong>Contenido de la capacitación</strong></div>
         <button ref={closeRef} type="button" className="outline-close" aria-label="Cerrar ruta" onClick={close}><X size={18} /></button>

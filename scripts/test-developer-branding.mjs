@@ -9,7 +9,7 @@ const [app, auth, splash, card, shell, routes, privacy, splashCss, cardCss, priv
   read('src/branding/PostLoginSplash.jsx'), read('player/src/DeveloperCreditsPage.jsx'),
   read('player/src/LearnerShell.jsx'), read('player/src/LearnerApp.jsx'),
   read('player/src/PrivacyCenter.jsx'),read('src/branding/developer-branding.css'),
-  read('player/src/styles/developer-credits.css'),read('player/src/styles/privacy.css'),read('vite.config.js')
+  read('player/src/styles/developer-credits.css'),read('player/src/styles/privacy-developer-entry.css'),read('vite.config.js')
 ])
 for(const [file,min] of [
   ['brand/developer/juan-perez-primary-blue.webp',5000],

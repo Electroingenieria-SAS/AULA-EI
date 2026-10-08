@@ -30,15 +30,15 @@
 .dev-auth-signature{
   display:inline-flex;align-items:center;gap:10px;
   align-self:start;max-width:100%;margin-top:15px;
-  padding:8px 13px;border:1px solid rgba(214,235,255,.25);
-  border-radius:14px;background:rgba(6,41,84,.32);
-  color:#fff;backdrop-filter:blur(8px)
+  padding:8px 13px;border:1px solid rgba(230,242,255,.9);
+  border-radius:14px;background:rgba(247,251,255,.95);
+  color:#174674;backdrop-filter:blur(8px)
 }
 .dev-auth-signature img{width:34px;height:43px;object-fit:contain;flex:none;
   filter:drop-shadow(0 2px 6px rgba(255,255,255,.14))}
 .dev-auth-signature span{display:grid;gap:4px;min-width:0}
-.dev-auth-signature strong{font-size:.74rem;font-weight:900;line-height:1.3;color:#fff}
-.dev-auth-signature small{font-size:.66rem;line-height:1.45;color:#d5e7fa}
+.dev-auth-signature strong{font-size:.74rem;font-weight:900;line-height:1.3;color:#174674}
+.dev-auth-signature small{font-size:.66rem;line-height:1.45;color:#547895}
 @media(max-width:900px){
   .learner-mobile-appbar .dev-signature-mobile{
     display:inline-grid;place-items:center;flex:0 0 38px;

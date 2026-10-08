@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { ArrowLeft, ArrowRight, BadgeCheck, Code2, ExternalLink, Layers3, ShieldCheck } from 'lucide-react'
-import { assetUrl, navigateLearner } from '../navigation.js'
+import { assetUrl, navigateLearner } from './navigation.js'
 import './styles/developer-credits.css'
 
 export default function DeveloperCreditsPage() {

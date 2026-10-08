@@ -86,7 +86,8 @@ assert.match(shell, /label="Mi desarrollo"/)
 assert.match(home, /home-development-entry/)
 assert.match(css, /@media\(max-width:480px\)/)
 assert.match(css, /:focus-visible/)
-assert.match(main, /styles\/development\.css/)
+assert.match(page, /styles\/development\.css/)
+assert.doesNotMatch(main, /styles\/development\.css/, 'El CSS de Fase 3 no debe inflar la carga inicial.')
 for(const source of [page,sections]) {
   assert.doesNotMatch(source, /from\('exam_attempts'\)|from\('profiles'\)|\.insert\(|\.upsert\(|\.update\(|\.delete\(|submit_exam/,
     'La Fase 3 debe mantener el seguimiento como lectura y usar contratos autenticados existentes.')

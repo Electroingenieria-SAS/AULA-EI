@@ -55,6 +55,7 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
   const [selectedPathId, setSelectedPathId] = useState('')
   const [peopleQuery, setPeopleQuery] = useState('')
   const [complianceQuery, setComplianceQuery] = useState('')
+  const [complianceStatus, setComplianceStatus] = useState('all')
   const [positionDraft, setPositionDraft] = useState({ name: '', department: '', position_type: 'cargo' })
   const [competencyDraft, setCompetencyDraft] = useState({ name: '', category: 'corporativa' })
   const [pathDraft, setPathDraft] = useState({ name: '', description: '' })
@@ -321,11 +322,11 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
 
   const filteredCompliance = useMemo(() => {
     const q = complianceQuery.trim().toLowerCase()
-    if (!q) return complianceRows
-    return complianceRows.filter((row) => [
+    if (!q) return complianceRows.filter((row) => complianceStatus === 'all' || row.compliance_state === complianceStatus)
+    return complianceRows.filter((row) => (complianceStatus === 'all' || row.compliance_state === complianceStatus) && [
       row.full_name, row.email, row.position_name, row.path_name, row.course_title, row.compliance_state,
     ].some((value) => String(value || '').toLowerCase().includes(q)))
-  }, [complianceRows, complianceQuery])
+  }, [complianceRows, complianceQuery, complianceStatus])
 
   if (loading) return <ComplianceLoading />
   if (!schemaReady) return <ComplianceSetupPending error={loadError} />
@@ -430,6 +431,8 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
       rows={filteredCompliance}
       query={complianceQuery}
       setQuery={setComplianceQuery}
+      statusFilter={complianceStatus}
+      setStatusFilter={setComplianceStatus}
       snapshot={snapshot}
     />}
 

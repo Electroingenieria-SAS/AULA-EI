@@ -257,111 +257,11 @@ export function AutomationRunPanel({ setMessage }) {
   </section>
 }
 
-export function ComplianceAnalytics({ setMessage }) {
-  const [analytics, setAnalytics] = useState(null)
-  const [questions, setQuestions] = useState([])
-  const [blocks, setBlocks] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      const [summary, questionResult, blockResult] = await Promise.all([
-        supabase.rpc('admin_training_analytics'),
-        supabase.rpc('admin_question_analytics'),
-        supabase.rpc('admin_content_block_analytics'),
-      ])
-      const firstError = [summary, questionResult, blockResult].find((result) => result.error)?.error
-      if (firstError) throw firstError
-      setAnalytics(summary.data || {})
-      setQuestions(questionResult.data || [])
-      setBlocks(blockResult.data || [])
-    } catch (error) {
-      setMessage(getError(error, 'No fue posible cargar la analítica de formación.'))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { load() }, [])
-
-  const hardest = useMemo(() => [...questions]
-    .filter((row) => Number(row.answers_count || 0) > 0)
-    .sort((a,b) => Number(b.error_percent || 0) - Number(a.error_percent || 0))
-    .slice(0,10), [questions])
-
-  const friction = useMemo(() => [...blocks]
-    .filter((row) => Number(row.started_count || 0) > 0)
-    .sort((a,b) => Number(a.completion_percent || 0) - Number(b.completion_percent || 0))
-    .slice(0,10), [blocks])
-
-  if (loading) return <div className="compliance-loading compact"><Loader2 className="spin" size={22} /><strong>Calculando analítica…</strong></div>
-
-  const courses = analytics?.courses || []
-
-  return <div className="compliance-analytics">
-    <section className="compliance-metrics analytics-metrics">
-      <Metric icon={CheckCircle2} label="Finalización" value={formatPercent(analytics?.completion_percent)} helper={(analytics?.completed || 0) + ' completadas'} />
-      <Metric icon={Activity} label="Aprobación de exámenes" value={formatPercent(analytics?.pass_percent)} helper={(analytics?.exam_attempts || 0) + ' intentos'} />
-      <Metric icon={Target} label="Nota promedio" value={formatPercent(analytics?.average_score)} />
-      <Metric icon={Clock3} label="Tiempo medio" value={Number(analytics?.average_completion_days || 0).toFixed(1) + ' d'} helper="Asignación → cierre" />
-      <Metric icon={AlertTriangle} label="Usuarios en riesgo" value={analytics?.at_risk_users || 0} helper="Vencidos o evidencia expirada" />
-    </section>
-
-    <section className="panel-card analytics-course-panel">
-      <div className="section-title-row">
-        <div><span className="eyebrow">Rendimiento por capacitación</span><h3>Finalización, intentos y aprobación</h3><p>Permite detectar cursos con baja finalización o exámenes que requieren ajuste.</p></div>
-        <BarChart3 size={27} />
-      </div>
-      <div className="compliance-table-wrap">
-        <table className="compliance-table analytics-table">
-          <thead><tr><th>Capacitación</th><th>Asignadas</th><th>Completadas</th><th>Finalización</th><th>Intentos</th><th>Aprobación</th><th>Nota</th></tr></thead>
-          <tbody>{courses.map((row) => <tr key={row.course_id}>
-            <td><strong>{row.course_title}</strong></td>
-            <td>{row.assigned}</td><td>{row.completed}</td>
-            <td>{formatPercent(row.completion_percent)}</td>
-            <td>{row.exam_attempts}</td><td>{formatPercent(row.pass_percent)}</td><td>{formatPercent(row.average_score)}</td>
-          </tr>)}</tbody>
-        </table>
-      </div>
-    </section>
-
-    <div className="analytics-detail-grid">
-      <section className="panel-card analytics-question-panel">
-        <div className="section-title-row"><div><span className="eyebrow">Dificultad real</span><h3>Preguntas con más error</h3></div><AlertTriangle size={24} /></div>
-        <div className="analytics-ranked-list">
-          {hardest.map((row,index) => <article key={row.question_id}>
-            <b>{index+1}</b><div><strong>{row.prompt}</strong><small>{row.course_title} · {row.answers_count} respuesta(s)</small></div><span>{formatPercent(row.error_percent)} error</span>
-          </article>)}
-          {!hardest.length && <div className="compliance-empty-compact">Todavía no hay respuestas suficientes.</div>}
-        </div>
-      </section>
-
-      <section className="panel-card analytics-question-panel">
-        <div className="section-title-row"><div><span className="eyebrow">Fricción de contenido</span><h3>Bloques con menor cierre</h3></div><Activity size={24} /></div>
-        <div className="analytics-ranked-list">
-          {friction.map((row,index) => <article key={row.block_id}>
-            <b>{index+1}</b><div><strong>{row.block_title}</strong><small>{row.course_title} · {row.phase_title}</small></div><span>{formatPercent(row.completion_percent)} cierre</span>
-          </article>)}
-          {!friction.length && <div className="compliance-empty-compact">Todavía no hay progreso suficiente.</div>}
-        </div>
-      </section>
-    </div>
-
-    <button className="secondary-button compliance-analytics-refresh" onClick={load}><RefreshCw size={15} /> Actualizar analítica</button>
-  </div>
-}
-
-function Metric({ icon: Icon, label, value, helper }) {
-  return <article><span><Icon size={20} /></span><div><small>{label}</small><strong>{value}</strong>{helper && <em>{helper}</em>}</div></article>
-}
+// Kept as a named export for the existing ComplianceCenter integration.
+export { default as ComplianceAnalytics } from './compliance/AnalyticsWorkbench.jsx'
 
 function initials(value) {
   return String(value || 'EI').split(/\s+/).filter(Boolean).slice(0,2).map((part) => part[0]).join('').toUpperCase()
-}
-
-function formatPercent(value) {
-  return Number(value || 0).toFixed(1) + '%'
 }
 
 function formatDateTime(value) {

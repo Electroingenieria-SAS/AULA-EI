@@ -10,7 +10,7 @@ import '../styles/immersive.css'
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
   return <>
     {open && <button className="outline-backdrop" aria-label="Cerrar ruta" onClick={close} />}
-    <aside className={'learner-outline ' + (open ? 'mobile-open' : '')}>
+    <aside className="course-route-drawer">
       <div className="outline-header">
         <div><span>Tu ruta</span><strong>Contenido de la capacitación</strong></div>
         <button className="outline-close" onClick={close}><X size={18} /></button>

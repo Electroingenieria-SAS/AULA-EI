@@ -322,7 +322,7 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
 
   const filteredCompliance = useMemo(() => {
     const q = complianceQuery.trim().toLowerCase()
-    if (!q) return complianceRows
+    if (!q) return complianceRows.filter((row) => complianceStatus === 'all' || row.compliance_state === complianceStatus)
     return complianceRows.filter((row) => (complianceStatus === 'all' || row.compliance_state === complianceStatus) && [
       row.full_name, row.email, row.position_name, row.path_name, row.course_title, row.compliance_state,
     ].some((value) => String(value || '').toLowerCase().includes(q)))

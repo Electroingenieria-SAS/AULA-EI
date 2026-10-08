@@ -41,6 +41,13 @@ export function answerFromCourse(query, cards) {
     note: 'Fragmento literal del material completado; comprueba el contenido original antes de aplicarlo.' }
 }
 
+/** Clears local-only practice signals for this user on this device; no LMS records are touched. */
+export function clearPractice(userId, storage = globalThis?.localStorage) {
+  if (!userId || !storage) return false
+  try { storage.removeItem(practiceStorageKey(userId)); return true }
+  catch { return false }
+}
+
 export function practiceStorageKey(userId) {
   return 'aula-ei-practice-v1:' + String(userId || '')
 }
@@ -65,6 +72,8 @@ export function recordPractice(userId, courseId, roundId, correct, mistakes = 0,
     solved: Math.min(999, (Number(old.solved) || 0) + (correct ? 1 : 0)),
     mistakes: Math.min(999, (Number(old.mistakes) || 0) + Math.max(0,Number(mistakes) || 0)),
     lastSeen: Date.now(),
+    lastMistakes: Math.max(0,Math.min(999,Number(mistakes) || 0)),
+    streak: Math.min(999, Math.max(0,Number(mistakes) || 0) ? 0 : (Number(old.streak) || 0) + (correct ? 1 : 0)),
   }
   const limited = Object.entries(rounds).sort((a,b) => b[1].lastSeen-a[1].lastSeen).slice(0,90)
   const courses = { ...prev.courses, [String(courseId)]: { rounds: Object.fromEntries(limited) } }
@@ -80,9 +89,11 @@ export function rankedReviewRounds(groups, coursePractice = {}) {
     ...round, gameType: group.type,
     practice: saved[round.id] || null,
   }))).sort((a,b) => {
-    const aMistakes = Number(a.practice?.mistakes || 0)
-    const bMistakes = Number(b.practice?.mistakes || 0)
-    if (aMistakes !== bMistakes) return bMistakes-aMistakes
+    // Repeated first-try mastery lowers urgency; unseen rounds precede mastered ones.
+    const urgency = (round) => Math.max(0,Number(round.practice?.mistakes || 0) - Number(round.practice?.solved || 0)) * 3
+      + (Number(round.practice?.lastMistakes || 0) > 0 ? 2 : 0) - Math.min(8,Number(round.practice?.streak || 0) * 2)
+    const difference = urgency(b) - urgency(a)
+    if (difference) return difference
     const aSeen = Number(a.practice?.attempts || 0),bSeen=Number(b.practice?.attempts || 0)
     return aSeen-bSeen || String(a.title).localeCompare(String(b.title),'es')
   })
@@ -105,14 +116,20 @@ export function deriveBadges(development, practice = {}) {
 
 /** Recommends only courses already available to this user; no invented skill-course mapping. */
 export function recommendedLearning(development) {
-  const candidates = []
-  const seen = new Set()
+  const paths = development?.paths || []
+  // Assignment is not permission: required-position pathways may still lock a course.
+  const locked = new Set(paths.filter((path) => path.required).flatMap((path) =>
+    (path.courses || []).filter((course) => !course.completed && !course.unlocked)
+      .map((course) => String(course.course_id))))
+  const candidates = new Map()
   const add = (id,title,reason,kind,score) => {
-    if (!id || seen.has(String(id))) return
-    seen.add(String(id))
-    candidates.push({ courseId:String(id), title:title || 'Capacitación asignada',reason,kind,score })
+    if (!id || locked.has(String(id))) return
+    const key = String(id)
+    const current = candidates.get(key)
+    if (!current || score > current.score)
+      candidates.set(key,{ courseId:key, title:title || 'Capacitación asignada',reason,kind,score })
   }
-  for (const path of development?.paths || []) {
+  for (const path of paths) {
     const next = path.next
     if (next?.unlocked && !next.completed)
       add(next.course_id,next.title,'Siguiente paso disponible en la ruta «' + path.name + '».','route',90)
@@ -125,5 +142,5 @@ export function recommendedLearning(development) {
     add(item.course.id,item.course.title,reason,item.overdue ? 'overdue' : item.dueSoon ? 'due' : 'assigned',
       item.overdue ? 100 : item.dueSoon ? 95 : item.status === 'in_progress' ? 65 : 30)
   }
-  return candidates.sort((a,b) => b.score-a.score).slice(0,6)
+  return [...candidates.values()].sort((a,b) => b.score-a.score).slice(0,6)
 }

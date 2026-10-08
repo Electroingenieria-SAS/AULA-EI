@@ -4,7 +4,7 @@ import { cachedQuery } from '../../src/data-cache.js'
 import { supabase } from './supabase.js'
 import { generateCourseReviewGames } from './games/course-game-generator.js'
 import { buildDevelopmentSnapshot } from './development/development-data.js'
-import { knowledgeCards, readPractice, recordPractice } from './intelligence/intelligence-model.js'
+import { clearPractice, knowledgeCards, practiceStorageKey, readPractice, recordPractice } from './intelligence/intelligence-model.js'
 import TutorPanel from './intelligence/TutorPanel.jsx'
 import AdaptivePanel from './intelligence/AdaptivePanel.jsx'
 import RewardsPanel from './intelligence/RewardsPanel.jsx'
@@ -26,6 +26,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
   const [course,setCourse] = useState(null)
   const [loading,setLoading] = useState(true)
   const [loadingCourse,setLoadingCourse] = useState(false)
+  const [revision,setRevision] = useState(0)
   const [error,setError] = useState('')
   const [courseError,setCourseError] = useState('')
   const [practice,setPractice] = useState(() => readPractice(sessionUser?.id))
@@ -41,6 +42,14 @@ export default function IntelligencePage({ profile, sessionUser }) {
   const groups = useMemo(() => course ? generateCourseReviewGames(course,completed) : [], [course,completed])
   const coursePractice = practice?.courses?.[selected] || {}
   useEffect(() => { setPractice(readPractice(userId)) }, [userId])
+  useEffect(() => {
+    const sync = (event) => {
+      if (event.key === practiceStorageKey(userId) || event.key === null)
+        setPractice(readPractice(userId))
+    }
+    window.addEventListener('storage',sync)
+    return () => window.removeEventListener('storage',sync)
+  }, [userId])
 
   useEffect(() => {
     let active=true
@@ -49,15 +58,15 @@ export default function IntelligencePage({ profile, sessionUser }) {
     ;(async()=>{
       try {
         const [h,c] = await Promise.all([
-          cachedQuery('home:snapshot:'+userId, async()=>{const x=await supabase.rpc('get_my_home_snapshot');if(x.error)throw x.error;return x.data||{}},{ttl:45000}),
-          cachedQuery('catalog:snapshot:'+userId,async()=>{const x=await supabase.rpc('get_my_catalog_snapshot');if(x.error)throw x.error;return x.data||{}},{ttl:30000}),
+          cachedQuery('home:snapshot:'+userId, async()=>{const x=await supabase.rpc('get_my_home_snapshot');if(x.error)throw x.error;return x.data||{}},{ttl:45000,force:revision>0}),
+          cachedQuery('catalog:snapshot:'+userId,async()=>{const x=await supabase.rpc('get_my_catalog_snapshot');if(x.error)throw x.error;return x.data||{}},{ttl:30000,force:revision>0}),
         ])
         if(active){setHome(h);setCatalog(c)}
       }catch(cause){if(active)setError(cause?.message||'No pudimos recuperar tus capacitaciones.')}
       finally{if(active)setLoading(false)}
     })()
     return ()=>{active=false}
-  },[userId])
+  },[userId,revision])
 
   useEffect(() => {
     if (loading || !catalog) return
@@ -75,7 +84,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
       try {
         const gate=await supabase.rpc('get_my_course_route_access',{p_course_id:selected})
         if (gate.error) throw gate.error
-        if (gate.data?.allowed === false) throw new Error('Tu ruta aún no permite consultar esta capacitación.')
+        if (gate.data?.allowed !== true) throw new Error(gate.data?.reason || 'Tu ruta no autoriza consultar esta capacitación.')
         const x=await supabase.from('courses')
           .select('id,title,status,phases:course_phases(id,title,sort_order,blocks:content_blocks(id,title,type,description,status,sort_order,content))')
           .eq('id',selected).single()
@@ -89,6 +98,11 @@ export default function IntelligencePage({ profile, sessionUser }) {
 
   const onPracticeResult = (roundId,result) => {
     setPractice(recordPractice(userId,selected,roundId,result.success,result.mistakes))
+  }
+  const clearHistory = () => {
+    const cleared = clearPractice(userId)
+    if (cleared) setPractice(readPractice(userId))
+    return cleared
   }
   const firstName=String(profile?.full_name||'Colaborador').trim().split(/\s+/)[0]
   const courseReady = Boolean(course && !loadingCourse && !courseError)
@@ -107,6 +121,12 @@ export default function IntelligencePage({ profile, sessionUser }) {
         className={tab===id?'is-active':''} aria-current={tab===id?'page':undefined}
         onClick={()=>setTab(id)}><Icon size={22}/><span><strong>{title}</strong><small>{detail}</small></span></button>)}
     </nav>
+    <div className="intelligence-toolbar">
+      <span><ShieldCheck size={15}/> Tus materiales siguen sujetos a los permisos de la ruta institucional.</span>
+      <button type="button" disabled={loading} onClick={() => setRevision((value) => value + 1)}>
+        <RefreshCw size={16}/> {loading ? 'Actualizando…' : 'Actualizar mi progreso'}
+      </button>
+    </div>
     {loading ? <section className="intelligence-status" role="status"><RefreshCw size={21}/> Preparando tu experiencia personalizada…</section> :
       error ? <section className="intelligence-status" role="alert">{error}</section> : <>
       {['tutor','adaptive'].includes(tab) && <section className="intelligence-selector">
@@ -123,7 +143,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
       {tab==='tutor' && !loadingCourse && !courseError && <TutorPanel key={selected} cards={courseReady?cards:[]} courseTitle={course?.title}/>}
       {tab==='adaptive' && !loadingCourse && !courseError && <AdaptivePanel
         key={selected} groups={courseReady?groups:[]} courseId={selected} practice={coursePractice} onResult={onPracticeResult}/>}
-      {tab==='rewards' && <RewardsPanel development={development} practice={practice}/>}
+      {tab==='rewards' && <RewardsPanel development={development} practice={practice} onClearHistory={clearHistory}/>}
       {tab==='paths' && <RoutesPanel development={development}/>}
     </>}
     <p className="intelligence-footer-note">El tutor usa búsqueda de información publicada y completada, no genera afirmaciones nuevas. Las insignias y prácticas son motivacionales; las calificaciones y los certificados solo los emite el LMS institucional.</p>

@@ -1,7 +1,6 @@
 import React from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { assetUrl } from './paths.js'
-import './branding/developer-signature.css'
 
 export default function AuthVisualShell({
   children,
@@ -40,9 +39,17 @@ export default function AuthVisualShell({
         <span><strong>02</strong><small>Certificación trazable</small></span>
         <span><strong>03</strong><small>Seguridad con RLS + MFA</small></span>
       </div>
-      <div className="dev-auth-signature" aria-label="Créditos de desarrollo">
-        <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt="" width="34" height="53"/>
-        <span><strong>Juan E. Pérez</strong><small>Créditos de diseño y desarrollo</small></span>
+      <div className="dev-auth-signature" aria-label="Créditos de desarrollo" style={{
+        display:'inline-flex',alignItems:'center',gap:10,alignSelf:'start',maxWidth:'100%',
+        marginTop:15,padding:'8px 13px',border:'1px solid rgba(230,242,255,.9)',
+        borderRadius:14,background:'rgba(247,251,255,.96)',color:'#174674',
+      }}>
+        <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt=""
+          width="34" height="53" style={{ width:34,height:43,objectFit:'contain',flexShrink:0 }}/>
+        <span style={{display:'grid',gap:4,minWidth:0}}>
+          <strong style={{fontSize:'.74rem',fontWeight:900,lineHeight:1.3}}>Juan E. Pérez</strong>
+          <small style={{fontSize:'.66rem',lineHeight:1.4,color:'#547895'}}>Créditos de diseño y desarrollo</small>
+        </span>
       </div>
     </section>
 

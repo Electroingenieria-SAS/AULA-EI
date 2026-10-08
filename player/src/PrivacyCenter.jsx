@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { CheckCircle2, Clock3, FileCheck2, RefreshCw, Send, ShieldCheck } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronDown, Clock3, ExternalLink, FileCheck2, RefreshCw, Send, ShieldCheck } from 'lucide-react'
+import { appUrl } from '../../src/paths.js'
+import { parseLegalMarkdown, stripLegalMarkdown } from '../../src/legal/legal-markdown.js'
 import {
   createPrivacyRequest,
   loadLegalAcceptances,
@@ -82,12 +84,23 @@ export default function PrivacyCenter() {
       <section className="privacy-card">
         <div className="privacy-card-title"><FileCheck2 size={20}/><div><h2>Documentos vigentes</h2><p>Versiones que actualmente aplican a tu cuenta.</p></div></div>
         {loading?<p>Cargando…</p>:requirements.length===0?<p>No hay documentos vigentes asociados.</p>:
-          <div className="privacy-list">{requirements.map((item)=><article key={item.versionId}>
-            <div><strong>{item.title}</strong><span>{item.code} · v{item.version}</span></div>
-            <span className={item.accepted?'privacy-status ok':'privacy-status pending'}>
-              {item.accepted?<><CheckCircle2 size={14}/> Aceptado</>:<><Clock3 size={14}/> Pendiente</>}
-            </span>
-          </article>)}</div>}
+          <div className="privacy-document-list">{requirements.map((item)=><details className="privacy-document-row" key={item.versionId}>
+            <summary>
+              <FileCheck2 size={20}/>
+              <span className="privacy-document-name"><strong>{item.title}</strong><small>{item.code} · Versión {item.version}</small></span>
+              <span className={item.accepted?'privacy-status ok':'privacy-status pending'}>
+                {item.accepted?<><CheckCircle2 size={14}/> Aceptado</>:<><Clock3 size={14}/> Pendiente</>}
+              </span>
+              <ChevronDown className="privacy-document-chevron" size={18}/>
+            </summary>
+            <div className="privacy-document-details">
+              <p>{documentExcerpt(item.content)}</p>
+              <a href={appUrl('/legal/read/'+encodeURIComponent(item.versionId))} target="_blank" rel="noopener noreferrer">
+                <BookOpen size={16}/> Leer documento vigente <ExternalLink size={14}/>
+              </a>
+              <small>Se abrirá en otra pestaña. Puedes guardarlo como PDF desde el lector.</small>
+            </div>
+          </details>)}</div>}
         {pending.length>0&&<small>Hay {pending.length} documento(s) pendiente(s). El gate de acceso te solicitará aceptarlos antes de usar el LMS.</small>}
       </section>
 
@@ -131,3 +144,9 @@ function shortHash(value){const text=String(value||'');return text?text.slice(0,
 function formatDate(value){if(!value)return '—';const date=new Date(value);if(Number.isNaN(date.getTime()))return String(value);return new Intl.DateTimeFormat('es-CO',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Bogota'}).format(date)}
 function requestLabel(value){return REQUEST_TYPES.find(([key])=>key===value)?.[1]||value}
 function statusLabel(value){return {received:'Recibida',in_review:'En revisión',extended:'Prorrogada',resolved:'Resuelta',rejected:'Cerrada'}[value]||value}
+
+function documentExcerpt(content){
+  const paragraph=parseLegalMarkdown(content).find((block)=>block.type==='paragraph'&&block.text.length>35)
+  const text=stripLegalMarkdown(paragraph?.text||'')
+  return text.length>220?text.slice(0,219).trimEnd()+'…':text||'Consulta la versión íntegra del documento.'
+}

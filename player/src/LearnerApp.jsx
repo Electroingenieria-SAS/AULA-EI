@@ -84,7 +84,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
     return <HomePage profile={profile} sessionUser={sessionUser} />
-  }, [route.key, route.type, profile, sessionUser])
+  }, [route.key, route.type, route.courseId, profile, sessionUser])
 
   return <LearnerShell activeRoute={route.type} profile={profile}>
     <div className="learner-route-transition" key={route.key}>

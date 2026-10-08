@@ -430,7 +430,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
     {message && <div className="learner-inline-message"><CircleAlert size={17} /><span>{message}</span><button onClick={() => setMessage('')}><X size={15} /></button></div>}
 
-    <div className="learner-course-layout course-workspace">
+    <div className="course-workspace">
       {outlineOpen && <CourseOutline
         course={course}
         allBlocks={allBlocks}
@@ -446,8 +446,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         close={() => setOutlineOpen(false)}
       />}
 
-      <section className="learner-stage-column" ref={stageRef}>
-        <div className="stage-context-bar">
+      <section className="course-main" ref={stageRef}>
+        <div className="course-stage-toolbar">
           <div className="course-stage-location">
             <strong>{currentPhase?.title || (examQuestions || examResult ? 'Evaluación final' : 'Capacitación')}</strong>
             {currentBlock && <span>{currentIndex + 1} de {allBlocks.length}</span>}
@@ -456,7 +456,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
           <button type="button" className="course-route-trigger" onClick={() => setOutlineOpen(true)}><Menu size={17} /> Ver ruta</button>
         </div>
 
-        <div className="learner-stage-card" key={examQuestions ? 'exam' : examResult ? 'result' : currentBlockId || 'empty'}>
+        <div className="course-stage-card" key={examQuestions ? 'exam' : examResult ? 'result' : currentBlockId || 'empty'}>
           {examQuestions ? (
             <ExamExperience
               questions={examQuestions}
@@ -481,10 +481,10 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         </div>
 
         {!examQuestions && !examResult && currentBlock && (
-          <nav className="learner-stage-nav" aria-label="Navegación por contenidos">
-            <button type="button" className="stage-nav-button previous" disabled={currentIndex <= 0 || practiceGateOpen} onClick={goPrevious}><ArrowLeft size={17} /> Anterior</button>
+          <nav className="course-flow-nav" aria-label="Navegación por contenidos">
+            <button type="button" className="course-flow-button previous" disabled={currentIndex <= 0 || practiceGateOpen} onClick={goPrevious}><ArrowLeft size={17} /> Anterior</button>
             <span className="course-nav-progress">{currentIndex + 1} / {allBlocks.length}</span>
-            <button type="button" className="stage-nav-button next" disabled={practiceLoading || practiceAdvanceBusy || practiceGateOpen} onClick={goNext}>
+            <button type="button" className="course-flow-button next" disabled={practiceLoading || practiceAdvanceBusy || practiceGateOpen} onClick={goNext}>
               {currentIndex === allBlocks.length - 1 && completed.has(currentBlockId) ? 'Presentar examen' : 'Siguiente'} <ArrowRight size={17} />
             </button>
           </nav>

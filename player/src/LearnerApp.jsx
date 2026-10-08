@@ -23,7 +23,9 @@ function readRoute() {
   const courseMatch = hash.match(/^#\/course\/([^/?#]+)/)
   if (courseMatch?.[1]) return { key: 'course:' + courseMatch[1], type: 'course' }
   if (/^#\/catalog(?:\/|$)/.test(hash)) return { key: 'catalog', type: 'catalog' }
-  if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games' }
+  const gamesMatch = hash.match(/^#\/games\/([^/?#]+)/)
+  if (gamesMatch?.[1]) return { key: 'games', type: 'games', courseId: gamesMatch[1] }
+  if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games', courseId: '' }
   if (/^#\/studio(?:\/|$)/.test(hash)) return { key: 'studio', type: 'studio' }
   if (/^#\/privacy(?:\/|$)/.test(hash)) return { key: 'privacy', type: 'privacy' }
   return { key: 'home', type: 'home' }
@@ -78,11 +80,11 @@ export default function LearnerApp({ profile, sessionUser }) {
       : <section className="course-preview-state" role="alert">No tienes permisos para consultar la vista previa.</section>
     if (route.type === 'course') return <CoursePlayer suppliedSessionUser={sessionUser} />
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
-    if (route.type === 'games') return <GamesPage />
+    if (route.type === 'games') return <GamesPage sessionUser={sessionUser} initialCourseId={route.courseId || ''}/>
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
     return <HomePage profile={profile} sessionUser={sessionUser} />
-  }, [route.key, route.type, profile, sessionUser])
+  }, [route.key, route.type, route.courseId, profile, sessionUser])
 
   return <LearnerShell activeRoute={route.type} profile={profile}>
     <div className="learner-route-transition" key={route.key}>

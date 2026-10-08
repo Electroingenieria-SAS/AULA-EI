@@ -63,3 +63,14 @@
   .study-review-content{padding:9px;gap:9px}
   .study-flashcards,.study-notes{padding:12px}
 }
+
+
+.study-open-games{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  align-self:start;min-height:45px;padding:11px 15px;border:1px solid #0a5eac;
+  border-radius:12px;background:#0b5faf;color:#fff;
+  font-size:.78rem;font-weight:900;line-height:1.35;cursor:pointer
+}
+.study-open-games:hover{background:#074b8e}
+.study-open-games:focus-visible{outline:3px solid #4596d5;outline-offset:2px}
+@media(max-width:560px){.study-open-games{width:100%}}

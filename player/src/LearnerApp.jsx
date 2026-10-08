@@ -5,17 +5,21 @@ import HomePage from './HomePage.jsx'
 const loadStudioApp = () => import('../../studio/src/App.jsx')
 const loadCatalogPage = () => import('./CatalogPage.jsx')
 const loadCoursePlayer = () => import('./CoursePlayer.jsx')
+const loadCoursePreview = () => import('./CoursePreview.jsx')
 const loadGamesPage = () => import('./GamesPage.jsx')
 const loadPrivacyCenter = () => import('./PrivacyCenter.jsx')
 
 const StudioApp = lazy(loadStudioApp)
 const CatalogPage = lazy(loadCatalogPage)
 const CoursePlayer = lazy(loadCoursePlayer)
+const CoursePreview = lazy(loadCoursePreview)
 const GamesPage = lazy(loadGamesPage)
 const PrivacyCenter = lazy(loadPrivacyCenter)
 
 function readRoute() {
   const hash = window.location.hash || '#/'
+  const previewMatch = hash.match(/^#\/course-preview\/([^/?#]+)/)
+  if (previewMatch?.[1]) return { key: 'preview:' + previewMatch[1], type: 'preview', id: previewMatch[1] }
   const courseMatch = hash.match(/^#\/course\/([^/?#]+)/)
   if (courseMatch?.[1]) return { key: 'course:' + courseMatch[1], type: 'course' }
   if (/^#\/catalog(?:\/|$)/.test(hash)) return { key: 'catalog', type: 'catalog' }
@@ -46,6 +50,7 @@ export default function LearnerApp({ profile, sessionUser }) {
       void loadPrivacyCenter()
       if (['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))) {
         void loadStudioApp()
+        if (['admin','super_admin'].includes(String(profile?.role || ''))) void loadCoursePreview()
       }
     }
 
@@ -60,6 +65,7 @@ export default function LearnerApp({ profile, sessionUser }) {
 
   useEffect(() => {
     if (route.type === 'course') void loadCoursePlayer()
+    if (route.type === 'preview') void loadCoursePreview()
     if (route.type === 'catalog') void loadCatalogPage()
     if (route.type === 'games') void loadGamesPage()
     if (route.type === 'studio') void loadStudioApp()
@@ -67,6 +73,9 @@ export default function LearnerApp({ profile, sessionUser }) {
   }, [route.type])
 
   const content = useMemo(() => {
+    if (route.type === 'preview') return ['admin','super_admin'].includes(String(profile?.role || ''))
+      ? <CoursePreview profile={profile} courseId={route.id}/>
+      : <section className="course-preview-state" role="alert">No tienes permisos para consultar la vista previa.</section>
     if (route.type === 'course') return <CoursePlayer suppliedSessionUser={sessionUser} />
     if (route.type === 'catalog') return <CatalogPage profile={profile} sessionUser={sessionUser} />
     if (route.type === 'games') return <GamesPage />
@@ -86,6 +95,8 @@ export default function LearnerApp({ profile, sessionUser }) {
 function RouteLoading({ route }) {
   const label = route === 'studio'
     ? 'Abriendo Gestión Aula EI…'
+    : route === 'preview'
+      ? 'Preparando la vista previa…'
     : route === 'catalog'
       ? 'Preparando tus capacitaciones…'
       : route === 'games'

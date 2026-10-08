@@ -179,8 +179,9 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
   }
 
   const preview = () => {
+    if (dirty && !window.confirm('La vista previa muestra la última versión guardada. ¿Abrirla sin guardar tus cambios actuales?')) return
     const anchor = document.createElement('a')
-    anchor.href = new URL(appUrl('/course/' + course.id), window.location.origin).href
+    anchor.href = new URL(appUrl('/course-preview/' + encodeURIComponent(course.id)), window.location.origin).href
     anchor.target = '_blank'
     anchor.rel = 'noopener noreferrer'
     anchor.click()

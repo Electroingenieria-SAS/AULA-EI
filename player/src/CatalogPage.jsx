@@ -164,8 +164,8 @@ export default function CatalogPage({ profile = null, sessionUser = null }) {
 
       <div className="catalog-original-copy">
         <span className="catalog-original-pill"><Sparkles size={15} /> Plataforma conectada</span>
-        <h1>Aprende, participa y certifícate.</h1>
-        <p>{firstName}, completa tus contenidos, recursos y actividades dentro de una misma ruta antes de presentar el examen final.</p>
+        <h1>Tu biblioteca de capacitación.</h1>
+        <p>{firstName}, encuentra tus cursos, revisa lo que te falta y continúa sin perder tu progreso. Todo en un solo lugar.</p>
 
         <div className="catalog-original-actions">
           {resumeCourse
@@ -196,9 +196,9 @@ export default function CatalogPage({ profile = null, sessionUser = null }) {
     <section className="catalog-workspace">
       <header className="catalog-workspace-header catalog-original-heading">
         <div>
-          <span>CONTINUAR APRENDIZAJE</span>
+          <span>CATÁLOGO PERSONAL</span>
           <h2>Mis capacitaciones</h2>
-          <p>Busca, filtra y continúa tu ruta con el mismo lenguaje visual de Aula EI.</p>
+          <p>Busca por nombre o filtra según tu estado, sin perder de vista las fechas límite.</p>
         </div>
 
         <div className="catalog-result-count">

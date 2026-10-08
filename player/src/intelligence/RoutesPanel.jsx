@@ -20,7 +20,9 @@ export default function RoutesPanel({ development }) {
       {suggestions.length ? <ol className="intelligence-recommendations">{suggestions.map((item,i) =>
         <li key={item.courseId}>
           <span>{String(i+1).padStart(2,'0')}</span>
-          <div><strong>{item.title}</strong><small>{item.reason}</small></div>
+          <div><small className={'intelligence-route-tag is-' + item.kind}>
+            {item.kind === 'overdue' ? 'VENCIDA' : item.kind === 'due' ? 'PRÓXIMA A VENCER' : item.kind === 'route' ? 'RUTA FORMATIVA' : 'ASIGNADA'}
+          </small><strong>{item.title}</strong><small>{item.reason}</small></div>
           <button type="button" onClick={() => openLearnerCourse(item.courseId)}>
             Abrir <ArrowRight size={16}/></button>
         </li>)}</ol> : <div className="intelligence-empty"><GraduationCap size={26}/>

@@ -48,3 +48,5 @@
 @media(max-width:960px){.dev-credit-showcase{grid-template-columns:minmax(0,1fr);justify-items:center}.dev-credit-intro{width:100%}.dev-credit-flip-region{width:min(100%,390px)}}
 @media(max-width:600px){.dev-credits-page{padding:12px 11px 92px}.dev-credit-showcase{padding:18px;border-radius:18px;gap:22px}.dev-credits-heading>span{font-size:.63rem}.dev-credit-feature-list{margin-top:13px}.dev-credit-footer{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.dev-credit-card{transition:none}.dev-credit-card:hover{transform:none}}
+
+.dev-credit-card-details[hidden]{display:none}

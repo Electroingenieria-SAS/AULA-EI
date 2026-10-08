@@ -28,16 +28,16 @@ assert.match(game,/className="game-result-track" role="progressbar"/)
 assert.match(game,/aria-valuenow=\{count\}/)
 assert.match(game,/import '\.\.\/styles\/games\.css'/)
 assert.doesNotMatch(main,/styles\/games\.css/, 'The game CSS must be fetched lazily.')
-assert.match(main,/import '\\.\\/responsive-foundation\\.css'/,'Desktop foundation must be eagerly loaded.')
-assert.match(foundation,/@media\\(min-width:1101px\\)\\{/)
-assert.match(foundation,/learner-app-shell:not\\(\\.learner-course-shell\\)>\\.learner-mobile-appbar\\{[\\s\\S]*?display:flex;[\\s\\S]*?margin-left:var\\(--aula-sidebar-width\\)/)
-assert.match(foundation,/\\.training-notification-center\\{[\\s\\S]*?position:relative!important;top:auto!important;right:auto!important/)
-assert.doesNotMatch(foundation,/\\.training-notification-center\\{\\s*position:fixed!important/,
+assert.match(main,/import '\.\/responsive-foundation\.css'/,'Desktop foundation must be eagerly loaded.')
+assert.match(foundation,/@media\(min-width:1101px\)\{/)
+assert.match(foundation,/learner-app-shell:not\(\.learner-course-shell\)>\.learner-mobile-appbar\{[\s\S]*?display:flex;[\s\S]*?margin-left:var\(--aula-sidebar-width\)/)
+assert.match(foundation,/\.training-notification-center\{[\s\S]*?position:relative!important;top:auto!important;right:auto!important/)
+assert.doesNotMatch(foundation,/\.training-notification-center\{\s*position:fixed!important/,
   'Desktop notification cannot use the old fixed overlay.')
-assert.doesNotMatch(mobile,/\\/\\* Desktop appbar is part of the page flow/,
+assert.doesNotMatch(mobile,/\/\* Desktop appbar is part of the page flow/,
   'Desktop styles must not live in lazy mobile-only CSS.')
 assert.match(shell,/learner-desktop-header-label/)
-assert.match(foundation,/\\.learner-desktop-header-label\\{display:none\\}/)
+assert.match(foundation,/\.learner-desktop-header-label\{display:none\}/)
 assert.match(coachStyles,/\.intelligence-tabs button\.is-active:after/)
 assert.match(coachStyles,/\.intelligence-rewards-crest/)
 assert.match(coachStyles,/\.intelligence-round-progress/)

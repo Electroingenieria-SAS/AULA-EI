@@ -64,7 +64,7 @@ void bootstrap()
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const workerUrl = new URL('sw.js?v=5', window.location.origin + import.meta.env.BASE_URL).href
+    const workerUrl = new URL('sw.js?v=6', window.location.origin + import.meta.env.BASE_URL).href
     let refreshing = false
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {

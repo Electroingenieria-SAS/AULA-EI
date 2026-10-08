@@ -6,6 +6,7 @@ import {
 import { safeExternalUrl } from '../../../src/security.js'
 import { signedAsset } from '../supabase.js'
 import { ReadingContent } from './CoursePlayerViews.jsx'
+import LearningGame from '../games/LearningGame.jsx'
 import '../styles/immersive.css'
 
 export function CourseOutline({ course, allBlocks, currentBlockId, completed, examUnlocked, examLoading, phaseStats, isLockedAtIndex, selectBlock, startExam, open, close }) {
@@ -235,14 +236,7 @@ export function ContentExperience({ block, completed, asset, openImmersive }) {
         </div>
       )}
 
-      {block.type === 'game' && (
-        <div className="activity-experience">
-          <span><Gamepad2 size={34} /></span>
-          <h3>{content.gameTitle || block.title || 'Actividad interactiva'}</h3>
-          <p>{content.instructions || 'Completa la actividad y confirma cuando hayas terminado.'}</p>
-          <div className="activity-progress-note"><BrainCircuit size={16} /> El avance de este contenido se registra al responder la pregunta rápida de “Siguiente”.</div>
-        </div>
-      )}
+      {block.type === 'game' && <LearningGame key={block.id} content={content} title={block.title} />}
 
       {block.type === 'validation' && (
         <div className="validation-experience">

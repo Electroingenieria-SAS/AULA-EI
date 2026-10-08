@@ -8,10 +8,10 @@
 
 | Entrega | Producto | Estado |
 | --- | --- | --- |
-| 7.1 | Mi plan de formación: prioridades, fechas, filtros, progreso, rutas bloqueadas, actualización | Implementado en PR, sujeto a aceptación y publicación |
-| 7.2 | Seguimiento y recordatorios: reducir ruido del centro de avisos existente, navegación a planes, evitar duplicación de backend | Por desarrollar |
-| 7.3 | Gestión para responsables: seguimiento agregado seguro con autorización por rol, sin acceso cruzado | Por desarrollar |
-| 7.4 | Consolidación: pruebas con cuentas autorizadas, rendimiento, accesibilidad y observabilidad | Por desarrollar |
+| 7.1 | Mi plan de formación: prioridades, fechas, filtros, progreso, rutas bloqueadas, actualización | PR #108 fusionado, pendiente de aceptación visual autenticada |
+| 7.2 | Seguimiento y avisos: filtros, urgencias, navegación a plan, polling existente de 180 s | PR #109 fusionado, despliegue consolidado sujeto a gate final |
+| 7.3 | Seguimiento institucional dentro de la matriz administrativa existente | Implementado en PR #110, sujeto a validación |
+| 7.4 | QA integrada, smoke público con reintento estricto, PWA v6 y publicación coordinada | Implementado en PR #110, sujeto a validación |
 
 ## Criterios de Fase 7.1
 
@@ -28,3 +28,18 @@
 Las pruebas automáticas de fase 7.1 verifican prioridades, permisos bloqueados, acceso desde inicio y desarrollo, rutas, CSS lazy y ausencia de mutaciones a calificaciones. Build y browser smoke prueban el login público.
 
 **Cierre pendiente:** la aceptación visual/funcional de Fase 6 y de esta Fase 7.1 requiere un usuario de prueba autenticado con varios cursos (vencido, futuro, bloqueado, cumplido) y revisión manual de móvil/desktop. No afirmar “certificado” sin ello. Los pendientes de seguridad y restauración de Fase 5 siguen siendo independientes.
+
+
+## Fase 7.2 — Control de alertas
+
+No se realizan nuevas consultas ni procesos de notificación. Las prioridades son una clasificación local de \`training_notifications\` **ya autorizadas**, y solo se etiquetan como urgentes los avisos sin leer, asociados a curso o ruta y con fecha válida dentro de 7 días o vencida. Los avisos sin ruta ni curso mantienen su acción original.
+
+## Fase 7.3 — Gestión de seguimiento
+
+Las tarjetas de casos se insertan **dentro del ComplianceCenter** que ya limita acceso a \`admin\` y \`super_admin\`. Agrupan exclusivamente filas devueltas por \`admin_training_compliance_rows\` y autorizadas por la RLS/RPC del sistema. No se añade acceso global a supervisores ni se usa una unión de datos fuera del contrato autorizado. Se priorizan requisitos vencidos, por vencer y pendientes; un clic filtra la matriz existente.
+
+## Fase 7.4 — Puerta de producción
+
+El service worker utiliza cache v6 y el HTML público incorpora \`aula-ei-release=phase-7.4-2026-10-08\`. El smoke de Chrome en los ocho viewports reintenta hasta tres veces únicamente si no logra **validar todas las condiciones de DOM**. Tres intentos fallidos continúan bloqueando producción.
+
+Los nuevos gates de Fase 7.1–7.4 deben estar en SUCCESS, junto con CodeQL, dependencias, GitHub Pages y Vercel. La aceptación **autenticada** sigue sin poder afirmarse sin un usuario de pruebas autorizado. Persisten, separadamente, los hallazgos de la Fase 5 sobre contraseña filtrada y restauración aislada.

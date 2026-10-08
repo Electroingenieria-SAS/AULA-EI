@@ -7,7 +7,7 @@
   },
   "scripts": {
     "check:architecture": "node scripts/verify-architecture.mjs",
-    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run check:legal && npm run test:legal-runtime && npm run test:course-navigation && npm run test:learning-experience && npm run test:interactive-learning && npm run test:course-review-generation && npm run test:personal-development && npm run test:intelligent-learning && npm run test:phase62-visual && npm run test:phase64-experience && npm run test:phase65-release && npm run test:phase71-plan && npm run test:phase72-notifications && npm run test:actionable-analytics && npm run test:developer-branding && npm run test:release-readiness && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
+    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run check:legal && npm run test:legal-runtime && npm run test:course-navigation && npm run test:learning-experience && npm run test:interactive-learning && npm run test:course-review-generation && npm run test:personal-development && npm run test:intelligent-learning && npm run test:phase62-visual && npm run test:phase64-experience && npm run test:phase65-release && npm run test:phase71-plan && npm run test:phase72-notifications && npm run test:phase73-followup && npm run test:phase74-release && npm run test:actionable-analytics && npm run test:developer-branding && npm run test:release-readiness && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
     "check:security": "node scripts/verify-security.mjs",
     "check:performance": "node scripts/verify-performance.mjs",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
@@ -34,7 +34,9 @@
     "test:phase64-experience": "node scripts/test-phase64-experience.mjs",
     "test:phase65-release": "node scripts/test-phase65-release.mjs",
     "test:phase71-plan": "node scripts/test-phase71-plan.mjs",
-    "test:phase72-notifications": "node scripts/test-phase72-notifications.mjs"
+    "test:phase72-notifications": "node scripts/test-phase72-notifications.mjs",
+    "test:phase73-followup": "node scripts/test-phase73-followup.mjs",
+    "test:phase74-release": "node scripts/test-phase74-release.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

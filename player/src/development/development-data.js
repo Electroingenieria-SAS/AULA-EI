@@ -12,7 +12,7 @@ export function matchCertificate(enrollment, certificates = []) {
   const name = courseKey(enrollment?.course?.title)
   return certificates.find((item) =>
     (id && item.course_id === id) ||
-    (name && courseKey(item.course_title) === name)) || null
+    (!item.course_id && name && courseKey(item.course_title) === name)) || null
 }
 
 /** Use the existing RLS-safe home snapshot. No shadow-progress or invented credential expiry. */

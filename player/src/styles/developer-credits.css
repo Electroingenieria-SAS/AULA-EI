@@ -1,0 +1,50 @@
+/* Developer credits are explicitly secondary to institutional branding. */
+.dev-credits-page{min-height:100vh;max-width:1440px;margin:auto;padding:24px;
+  display:grid;align-content:start;gap:19px;
+  font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;color:#183f69}
+.dev-credits-heading{display:flex;align-items:center;justify-content:space-between;gap:13px}
+.dev-credits-heading button{
+  display:inline-flex;align-items:center;gap:7px;min-height:44px;
+  padding:10px 14px;border:1px solid #d0e0ef;border-radius:12px;
+  background:#fff;color:#175c99;font-size:.76rem;font-weight:900;cursor:pointer
+}
+.dev-credits-heading>span{display:inline-flex;align-items:center;gap:8px;color:#457293;font-size:.72rem;font-weight:900}
+.dev-credit-showcase{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(285px,390px);
+  align-items:center;gap:clamp(22px,5vw,75px);padding:clamp(20px,5vw,55px);
+  border:1px solid #d2e3f1;border-radius:27px;
+  background:linear-gradient(127deg,#fff 0%,#eff7ff 64%,#e3f2ff 100%);
+  box-shadow:0 19px 48px rgba(21,64,110,.09);overflow:hidden
+}
+.dev-credit-intro{min-width:0}
+.dev-credit-overline{display:inline-flex;align-items:center;gap:8px;color:#1665a2;font-size:.68rem;font-weight:900;letter-spacing:.07em}
+.dev-credit-intro h1{max-width:670px;margin:13px 0;color:#164775;font-size:clamp(1.5rem,3.8vw,2.6rem);line-height:1.16;letter-spacing:-.03em}
+.dev-credit-intro>p{max-width:640px;margin:0;color:#617f98;font-size:.82rem;line-height:1.8}
+.dev-credit-feature-list{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+.dev-credit-feature-list span{display:inline-flex;align-items:center;gap:7px;padding:9px 11px;border-radius:999px;border:1px solid #d2e5f4;background:#fff;color:#315f84;font-size:.7rem;font-weight:900}
+.dev-credit-card{border:1px solid #c7deef;border-radius:22px;background:#fff;overflow:hidden;
+  box-shadow:0 17px 40px rgba(22,67,119,.14);transition:transform .22s ease,box-shadow .22s ease}
+.dev-credit-card:hover{transform:translateY(-3px);box-shadow:0 22px 52px rgba(22,67,119,.19)}
+.dev-credit-card-art{display:grid;place-items:center;min-height:248px;padding:17px;
+  background:radial-gradient(circle at 50% 38%,rgba(72,172,231,.2),transparent 61%),linear-gradient(150deg,#eaf5ff,#f7fbff)}
+.dev-credit-card-art img{display:block;width:min(100%,152px);height:215px;object-fit:contain;filter:drop-shadow(0 10px 12px rgba(16,82,151,.14))}
+.dev-credit-card-body{display:grid;gap:9px;padding:20px}
+.dev-credit-card-label{color:#1b75ad;font-size:.63rem;font-weight:900;letter-spacing:.07em}
+.dev-credit-card-body h2{margin:0;color:#163f69;font-size:1.37rem;line-height:1.3}
+.dev-credit-card-body>p{margin:0;color:#6c869c;font-size:.76rem}
+.dev-credit-card-body button{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  min-height:46px;margin-top:8px;padding:11px;border:1px solid #075fa7;border-radius:12px;
+  background:#0b5eaa;color:#fff;font-size:.75rem;font-weight:900;cursor:pointer
+}
+.dev-credit-card-details{display:grid;gap:9px;margin-top:8px;padding:13px;border:1px solid #d6e6f2;border-radius:12px;background:#f4f9ff}
+.dev-credit-card-details strong{font-size:.75rem;color:#1a578c}
+.dev-credit-card-details p{margin:0;font-size:.72rem;line-height:1.65;color:#486b89}
+.dev-credit-card-details small{font-size:.66rem;line-height:1.55;color:#698198}
+.dev-credit-footer{display:flex;align-items:flex-start;justify-content:space-between;gap:17px;padding:0 4px}
+.dev-credit-footer p{max-width:780px;margin:0;color:#6b8096;font-size:.7rem;line-height:1.7}
+.dev-credit-footer a{display:inline-flex;align-items:center;gap:7px;flex:none;color:#135d9d;font-size:.7rem;font-weight:900;line-height:1.5}
+.dev-credit-card button:focus-visible,.dev-credits-page a:focus-visible,.dev-credits-heading button:focus-visible{outline:3px solid #479bd8;outline-offset:3px}
+@media(max-width:960px){.dev-credit-showcase{grid-template-columns:minmax(0,1fr);justify-items:center}.dev-credit-intro{width:100%}.dev-credit-flip-region{width:min(100%,390px)}}
+@media(max-width:600px){.dev-credits-page{padding:12px 11px 92px}.dev-credit-showcase{padding:18px;border-radius:18px;gap:22px}.dev-credits-heading>span{font-size:.63rem}.dev-credit-feature-list{margin-top:13px}.dev-credit-footer{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.dev-credit-card{transition:none}.dev-credit-card:hover{transform:none}}

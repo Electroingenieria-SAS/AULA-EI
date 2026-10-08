@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Activity, Briefcase, Layers3, Settings2, ShieldCheck, Target } from 'lucide-react'
 import { getError, slugify, supabase } from './shared.js'
+import AutomationReadiness from './compliance/AutomationReadiness.jsx'
+import { buildAutomationReadiness } from './compliance/automation-readiness.js'
 import {
   AutomationRunPanel, ComplianceAnalytics, CompetencyCourseMapper, SupervisorAssignments,
 } from './ComplianceAdvanced.jsx'
@@ -64,6 +66,10 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
     () => courses.filter((course) => course.status === 'published'),
     [courses],
   )
+
+  const readiness = useMemo(() => buildAutomationReadiness({
+    people, positions, paths, pathCourses, positionPaths, courses, rules:automationRules, complianceRows,
+  }), [people, positions, paths, pathCourses, positionPaths, courses, automationRules, complianceRows])
 
   const selectedPosition = positions.find((item) => item.id === selectedPositionId) || positions[0] || null
   const selectedPath = paths.find((item) => item.id === selectedPathId) || paths[0] || null
@@ -221,6 +227,16 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
     })
   }
 
+  const confirmSync = async () => {
+    if (!readiness.ready || busy) {
+      setMessage('Antes de sincronizar, revisa los requisitos pendientes de la Fase 9.1.')
+      setSection('automation')
+      return
+    }
+    if (!window.confirm('¿Ejecutar ahora la sincronización institucional? El servidor validará requisitos, matrículas previas y rutas desbloqueadas.')) return
+    await syncEngine()
+  }
+
   const setCompetencyForPosition = async (competencyId, enabled) => {
     if (!selectedPosition) return
     await run('competency:' + competencyId, async () => {
@@ -358,7 +374,7 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
       paths={paths}
       automationRules={automationRules}
       complianceRows={complianceRows}
-      syncEngine={syncEngine}
+      syncEngine={() => setSection('automation')}
       syncing={busy === 'sync-engine'}
       setSection={setSection}
     />}
@@ -417,12 +433,12 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
     />}
 
     {section === 'automation' && <>
+      <AutomationReadiness readiness={readiness} onNavigate={setSection} onSync={confirmSync}
+        syncing={busy === 'sync-engine'} />
       <AutomationPanel
         rules={automationRules}
         toggleAutomation={toggleAutomation}
         busy={busy}
-        syncEngine={syncEngine}
-        syncing={busy === 'sync-engine'}
       />
       <AutomationRunPanel setMessage={setMessage} />
     </>}

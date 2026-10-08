@@ -49,7 +49,7 @@ export function Overview({ snapshot, positions, paths, automationRules, complian
           </React.Fragment>)}
         </div>
         <div className="compliance-flow-actions">
-          <button className="primary-button" onClick={syncEngine} disabled={syncing}>{syncing ? <Loader2 className="spin" size={16} /> : <RefreshCw size={16} />} Sincronizar motor</button>
+          <button className="primary-button" onClick={syncEngine}><ShieldCheck size={16} /> Revisar antes de sincronizar</button>
           <button className="secondary-button" onClick={() => setSection('positions')}><UserCheck size={16} /> Asignar cargos</button>
         </div>
       </section>
@@ -275,7 +275,7 @@ export function PathsPanel({
   </div>
 }
 
-export function AutomationPanel({ rules, toggleAutomation, busy, syncEngine, syncing }) {
+export function AutomationPanel({ rules, toggleAutomation, busy }) {
   return <div className="compliance-automation">
     <section className="panel-card compliance-automation-intro">
       <div>
@@ -283,7 +283,7 @@ export function AutomationPanel({ rules, toggleAutomation, busy, syncEngine, syn
         <h3>La plataforma debe buscar al usuario, no al revés.</h3>
         <p>Las reglas conectan cambios de cargo, vencimientos y recertificación con acciones automáticas.</p>
       </div>
-      <button className="primary-button" onClick={syncEngine} disabled={syncing}>{syncing ? <Loader2 className="spin" size={16} /> : <RefreshCw size={16} />} Ejecutar sincronización ahora</button>
+      <span className="automation-rule-info">La ejecución masiva se confirma exclusivamente en la simulación anterior.</span>
     </section>
 
     <div className="compliance-rule-grid">

@@ -22,20 +22,67 @@ function KeyMetric({ icon: Icon, label, value, helper }) {
   return <article><span><Icon size={20}/></span><div><small>{label}</small><strong>{value}</strong>{helper && <em>{helper}</em>}</div></article>
 }
 
+function performanceTone(value) {
+  const pct = Number(value || 0)
+  return pct < 60 ? 'low' : pct < 85 ? 'medium' : 'good'
+}
+
+function PercentCell({ value, empty = false, emptyLabel = 'Sin datos' }) {
+  if (empty) return <span className="analytics-value is-neutral">{emptyLabel}</span>
+  const numberValue = Math.max(0, Math.min(100, Number(value || 0)))
+  return <div className={'analytics-percent is-' + performanceTone(numberValue)}>
+    <strong>{formatted(numberValue)}</strong>
+    <span className="analytics-percent-track" aria-hidden="true">
+      <i style={{ width: numberValue + '%' }} />
+    </span>
+  </div>
+}
+
 function EvidenceList({ title, description, rows, kind }) {
+  const isQuestion = kind === 'question'
+  // A 100% closed block is not an obstacle. Keep it out of the friction ranking.
+  const relevantRows = isQuestion ? rows : rows.filter((row) => Number(row.completion_percent) < 100)
+  const hasObservations = rows.length > 0
   return <section className="panel-card analytics-review-panel">
-    <div className="section-title-row"><div><span className="eyebrow">{kind === 'question' ? 'Análisis de preguntas' : 'Revisión de contenidos'}</span><h3>{title}</h3><p>{description}</p></div>
-      {kind === 'question' ? <AlertTriangle size={24}/> : <Activity size={24}/>}
+    <div className="section-title-row">
+      <div>
+        <span className="eyebrow">{isQuestion ? 'ANÁLISIS DE PREGUNTAS' : 'REVISIÓN DE CONTENIDOS'}</span>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <span className={'analytics-panel-symbol ' + (isQuestion ? 'is-question' : 'is-block')}>
+        {isQuestion ? <AlertTriangle size={21}/> : <Activity size={21}/>}
+      </span>
     </div>
-    {rows.length ? <ol className="analytics-ranked-list analytics-review-list">
-      {rows.slice(0,10).map((row, i) => <li key={kind === 'question' ? row.question_id : row.block_id}>
-        <b>{i + 1}</b>
-        <div><strong>{kind === 'question' ? row.prompt : row.block_title}</strong>
-          <small>{row.course_title}{kind === 'block' ? ' · ' + row.phase_title : ''} · {count(kind === 'question' ? row.answers_count : row.started_count)} muestra(s)</small>
-        </div>
-        <span>{formatted(kind === 'question' ? row.error_percent : row.completion_percent)} {kind === 'question' ? 'error' : 'cierre'}</span>
-      </li>)}
-    </ol> : <p className="analytics-workbench-empty">Todavía no hay datos suficientes para este filtro y tamaño de muestra.</p>}
+    {relevantRows.length ? <ol className="analytics-evidence-list">
+      {relevantRows.slice(0,10).map((row, i) => {
+        const score = isQuestion ? Number(row.error_percent || 0) : Number(row.completion_percent || 0)
+        const sample = isQuestion ? row.answers_count : row.started_count
+        const tone = isQuestion
+          ? (score >= 60 ? 'low' : score >= 30 ? 'medium' : 'good')
+          : performanceTone(score)
+        return <li key={isQuestion ? row.question_id : row.block_id} className={'is-' + tone}>
+          <span className="analytics-rank-index" aria-label={'Posición ' + (i + 1)}>{String(i + 1).padStart(2, '0')}</span>
+          <div className="analytics-evidence-main">
+            <strong>{isQuestion ? row.prompt : row.block_title}</strong>
+            <small>{row.course_title}{!isQuestion && row.phase_title ? ' · ' + row.phase_title : ''} · {count(sample)} {isQuestion ? 'respuestas' : 'inicios'}</small>
+            <div className="analytics-evidence-track" aria-hidden="true"><span style={{ width: Math.max(0, Math.min(100,score)) + '%' }}/></div>
+          </div>
+          <span className="analytics-evidence-score">
+            <b>{formatted(score)}</b><small>{isQuestion ? 'error' : 'cierre'}</small>
+          </span>
+        </li>
+      })}
+    </ol> : <div className="analytics-detail-empty">
+      <CheckCircle2 size={22}/>
+      <strong>{!isQuestion && hasObservations ? 'Los bloques analizados alcanzan el 100 % de cierre' : 'No hay resultados suficientes'}</strong>
+      <p>{!isQuestion && hasObservations
+        ? 'No se muestran como obstáculos los contenidos que se han completado en todos los inicios registrados.'
+        : 'Cambia la capacitación o reduce la muestra mínima para explorar otros resultados, sin perder el contexto.'}</p>
+    </div>}
+    <footer className="analytics-review-footer">
+      <span>{relevantRows.length ? 'Se muestran hasta 10 registros ordenados por ' + (isQuestion ? 'errores' : 'menor cierre') : 'Datos sujetos al filtro y a la muestra seleccionada'}</span>
+    </footer>
   </section>
 }
 
@@ -155,8 +202,13 @@ export default function AnalyticsWorkbench({ setMessage }) {
             <p>{finding.detail}</p><span>{finding.action}</span>
           </div>
         </article>)}
-      </div> : <div className="analytics-workbench-empty">
-        <CheckCircle2 size={25}/><p>No hay hallazgos que superen los umbrales con esta muestra. Esto no equivale a una certificación de calidad; revisa la cobertura de los datos.</p>
+      </div> : <div className="analytics-insight-empty">
+        <span className="analytics-insight-icon"><CheckCircle2 size={24}/></span>
+        <div>
+          <strong>Sin alertas prioritarias para estos filtros</strong>
+          <p>Los resultados disponibles no superan los umbrales de intervención. No es una certificación de calidad.</p>
+        </div>
+        <span className="analytics-insight-guidance">¿Quieres ampliar el análisis? Selecciona otra capacitación o ajusta la muestra mínima.</span>
       </div>}
       {findings.length > 20 && <p className="analytics-workbench-foot">Se muestran los 20 hallazgos más prioritarios. El CSV exporta todos los hallazgos filtrados.</p>}
     </section>
@@ -167,21 +219,24 @@ export default function AnalyticsWorkbench({ setMessage }) {
           <p>Las cifras de aprobación corresponden a intentos de examen y no necesariamente a personas únicas.</p></div>
         <BarChart3 size={26}/>
       </div>
-      <div className="compliance-table-wrap">
+      <div className="compliance-table-wrap analytics-table-scroll" role="region" aria-label="Resultados por capacitación; desplázate horizontalmente para ver todas las columnas" tabIndex={0}>
         <table className="compliance-table analytics-table">
           <thead><tr><th>Capacitación</th><th>Asignadas</th><th>Completadas</th><th>Finalización</th><th>Intentos</th><th>Aprobación</th><th>Nota</th></tr></thead>
           <tbody>{view.courses.map((row) => <tr key={row.course_id}>
-            <td><strong>{row.course_title}</strong></td><td>{count(row.assigned)}</td><td>{count(row.completed)}</td>
-            <td>{row.assigned ? formatted(row.completion_percent) : 'Sin asignaciones'}</td>
-            <td>{count(row.exam_attempts)}</td><td>{row.exam_attempts ? formatted(row.pass_percent) : 'Sin intentos'}</td>
-            <td>{row.exam_attempts ? formatted(row.average_score) : '—'}</td>
+            <td className="analytics-course-name"><strong>{row.course_title}</strong></td>
+            <td><span className="analytics-count">{count(row.assigned)}</span></td>
+            <td><span className="analytics-count">{count(row.completed)}</span></td>
+            <td><PercentCell value={row.completion_percent} empty={!row.assigned} emptyLabel="Sin asignaciones"/></td>
+            <td><span className="analytics-count">{count(row.exam_attempts)}</span></td>
+            <td><PercentCell value={row.pass_percent} empty={!row.exam_attempts} emptyLabel="Sin intentos"/></td>
+            <td><PercentCell value={row.average_score} empty={!row.exam_attempts} emptyLabel="—"/></td>
           </tr>)}</tbody>
         </table>
         {!view.courses.length && <p className="analytics-workbench-empty">No se encontraron capacitaciones con este filtro.</p>}
       </div>
     </section>
 
-    <div className="analytics-detail-grid">
+    <div className="analytics-detail-grid" aria-label="Indicadores para revisión pedagógica">
       <EvidenceList kind="question" rows={view.questions} title="Preguntas con mayor dificultad"
         description="Ordenadas por porcentaje de error. Solo incluye preguntas que alcanzan el mínimo de respuestas seleccionado."/>
       <EvidenceList kind="block" rows={view.blocks} title="Bloques con menor cierre"

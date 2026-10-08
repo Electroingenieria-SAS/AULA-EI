@@ -46,7 +46,5 @@
   .home-training-route-content{grid-template-columns:1fr!important}
 }
 
-/* Global placement: keep the bell outside any sidebar that may be hidden on mobile. */
-.learner-app-shell>.training-notification-center{position:fixed;right:20px;top:18px;width:auto;margin:0;z-index:150}
-.learner-app-shell>.training-notification-center .training-notification-trigger{width:auto;min-width:150px}
-.learner-app-shell>.training-notification-center .training-notification-panel{left:auto;right:0;top:52px}
+/* The bell belongs to the in-flow desktop header and the mobile appbar.
+   Course headers use their dedicated in-flow layout in shell.css. */

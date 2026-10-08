@@ -1,0 +1,45 @@
+/* A standalone, one-time post-auth experience. No blocking animations on routes. */
+.dev-splash{
+  position:relative;isolation:isolate;display:grid;place-items:center;
+  min-height:100vh;min-height:100dvh;overflow:hidden;padding:20px;
+  font-family:"Century Gothic","Segoe UI",system-ui,sans-serif;
+  color:#17395f;background:linear-gradient(145deg,#061d3e 5%,#07518d 63%,#0e6ba2)
+}
+.dev-splash:before{content:"";position:absolute;inset:-50%;
+  background:radial-gradient(circle at 70% 25%,rgba(80,193,255,.28),transparent 35%),
+  radial-gradient(circle at 30% 75%,rgba(255,255,255,.1),transparent 30%);
+  pointer-events:none}
+.dev-splash-orbit{position:absolute;width:min(80vw,680px);aspect-ratio:1;
+  border-radius:50%;border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 0 0 58px rgba(255,255,255,.025),0 0 0 130px rgba(255,255,255,.02);
+  animation:devAmbient 4s ease-in-out infinite alternate;pointer-events:none}
+.dev-splash-card{
+  position:relative;width:min(100%,410px);display:grid;justify-items:center;
+  gap:12px;padding:25px 28px 23px;text-align:center;border:1px solid rgba(255,255,255,.75);
+  border-radius:28px;background:linear-gradient(145deg,#fff,#edf7ff);
+  box-shadow:0 22px 80px rgba(0,17,40,.28);animation:devCardArrival .45s ease-out both
+}
+.dev-splash-eyebrow{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 12px;
+  border-radius:999px;background:#e5f3ff;color:#1b6399;
+  font-size:.66rem;font-weight:900;letter-spacing:.04em
+}
+.dev-splash-logo{
+  display:block;width:145px;height:194px;object-fit:contain;
+  filter:drop-shadow(0 10px 12px rgba(3,68,140,.08));
+  animation:devLogoArrival .55s ease-out both
+}
+.dev-splash h1{margin:0;color:#133c67;font-size:clamp(1.35rem,3.5vw,1.65rem);line-height:1.25}
+.dev-splash p{margin:0;color:#6685a1;font-size:.77rem;line-height:1.5}
+.dev-splash-progress{height:5px;width:min(100%,260px);margin:7px 0;
+  overflow:hidden;border-radius:999px;background:#d7eaf9}
+.dev-splash-progress>span{display:block;width:55%;height:100%;border-radius:inherit;
+  background:linear-gradient(90deg,#1066ab,#4bb2ec);
+  animation:devLoadingLine 1.18s ease-in-out infinite}
+.dev-splash-card>small{max-width:295px;color:#748aa2;font-size:.64rem;line-height:1.6}
+@keyframes devCardArrival{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes devLogoArrival{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes devLoadingLine{from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes devAmbient{to{transform:translateY(-14px) scale(1.025)}}
+@media(max-width:430px){.dev-splash{padding:13px}.dev-splash-card{border-radius:21px;padding:23px 17px}.dev-splash-logo{height:175px;width:126px}}
+@media(prefers-reduced-motion:reduce){.dev-splash *, .dev-splash:before{animation:none!important;transition:none!important}}

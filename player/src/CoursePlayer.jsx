@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, Award, BadgeCheck, BookOpen, Check, CheckCircle2, CircleAlert, Clock3, GraduationCap, LockKeyhole, Medal, Menu, PlayCircle, ShieldCheck, Sparkles, BrainCircuit, Trophy, X,
 } from 'lucide-react'
-import LearnerTopbar from './LearnerTopbar.jsx'
 import {
   AchievementToast,
   CourseTransitionState,
@@ -410,11 +409,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   }
 
   return <main className="learner-course-app course-workspace-page">
-    <LearnerTopbar
-      center={<span className="course-topbar-caption">{course.title}</span>}
-      actions={<button className="secondary-action" onClick={() => navigateLearner('/catalog')}><ArrowLeft size={17} /> Mis capacitaciones</button>}
-    />
-
     <header className="course-intro">
       <div className="course-intro-copy">
         <span className="course-intro-label"><BookOpen size={15} /> Capacitación Aula EI {enrollment?.due_at ? ' · Hasta ' + dateLabel(enrollment.due_at) : ''}</span>

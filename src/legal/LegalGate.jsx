@@ -42,7 +42,7 @@ export default function LegalGate({ profile, sessionUser, children }) {
 
   const pending = useMemo(() => pendingLegalRequirements(requirements), [requirements])
   const readerMatch = window.location.hash.match(/^#\/legal\/read\/([^/?#]+)/)
-  const readerId = readerMatch ? decodeURIComponent(readerMatch[1]) : null
+  const readerId = readerMatch ? readerMatch[1] : null
   const readerDocument = readerId ? requirements.find((item) => String(item.versionId) === readerId) : null
   const confirmedCount = pending.filter((item) => checked[item.versionId] === true).length
   const allChecked = pending.length > 0 && pending.every((item) => checked[item.versionId] === true)

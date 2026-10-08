@@ -96,7 +96,7 @@ export default function PrivacyCenter() {
             <div className="privacy-document-details">
               <p>{documentExcerpt(item.content)}</p>
               <a href={appUrl('/legal/read/'+encodeURIComponent(item.versionId))} target="_blank" rel="noopener noreferrer">
-                <BookOpen size={16}/> Leer documento vigente <ExternalLink size={14}/>
+                <BookOpen size={16}/> Leer documento vigente (nueva pestaña) <ExternalLink size={14}/>
               </a>
               <small>Se abrirá en otra pestaña. Puedes guardarlo como PDF desde el lector.</small>
             </div>

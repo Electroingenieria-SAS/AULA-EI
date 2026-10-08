@@ -525,6 +525,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     {immersiveOpen && currentBlock && (
       <ImageGallery
         src={mediaAsset.displayUrl}
+        assetError={mediaAsset.assetError}
         alt={currentBlock.title}
         description={currentBlock.description || ''}
         originalUrl={mediaAsset.originalUrl}

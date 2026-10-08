@@ -24,7 +24,7 @@ function readRoute() {
   if (courseMatch?.[1]) return { key: 'course:' + courseMatch[1], type: 'course' }
   if (/^#\/catalog(?:\/|$)/.test(hash)) return { key: 'catalog', type: 'catalog' }
   const gamesMatch = hash.match(/^#\/games\/([^/?#]+)/)
-  if (gamesMatch?.[1]) return { key: 'games:' + gamesMatch[1], type: 'games', courseId: gamesMatch[1] }
+  if (gamesMatch?.[1]) return { key: 'games', type: 'games', courseId: gamesMatch[1] }
   if (/^#\/games(?:\/|$)/.test(hash)) return { key: 'games', type: 'games', courseId: '' }
   if (/^#\/studio(?:\/|$)/.test(hash)) return { key: 'studio', type: 'studio' }
   if (/^#\/privacy(?:\/|$)/.test(hash)) return { key: 'privacy', type: 'privacy' }

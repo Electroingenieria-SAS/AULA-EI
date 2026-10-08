@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { BookOpenCheck, CheckCircle2, ChevronLeft, ChevronRight, NotebookPen, RotateCcw } from 'lucide-react'
+import { BookOpenCheck, CheckCircle2, ChevronLeft, ChevronRight, Gamepad2, NotebookPen, RotateCcw } from 'lucide-react'
+import { navigateLearner } from '../navigation.js'
 
 function readDraft(key) {
   try {
@@ -81,6 +82,9 @@ export default function StudyReview({ course, blocks, completed, userId }) {
             </button>
           </div>
         </> : <p className="study-empty">Completa contenidos con explicación para habilitar las tarjetas de repaso.</p>}
+        <button className="study-open-games" type="button" onClick={() => navigateLearner('/games/' + encodeURIComponent(course.id))}>
+          <Gamepad2 size={18}/> Practicar juegos de esta capacitación
+        </button>
         <p className="study-local-note">Este repaso es voluntario, no cambia tus calificaciones ni la finalización de la capacitación.</p>
       </section>
       <section className="study-notes">

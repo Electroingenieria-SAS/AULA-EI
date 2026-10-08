@@ -11,10 +11,10 @@ import { supabase } from './supabase.js'
 
 const loadCertificateApp = () => import('../certificate/src/CertificateApp.jsx')
 const loadLearnerApp = () => import('../player/src/LearnerApp.jsx')
-const loadPostLoginSplash = () => import('./branding/PostLoginSplash.jsx')
+const loadEntrySplash = () => import('./branding/EntrySplash.jsx')
 const CertificateApp = lazy(loadCertificateApp)
 const LearnerApp = lazy(loadLearnerApp)
-const PostLoginSplash = lazy(loadPostLoginSplash)
+const EntrySplash = lazy(loadEntrySplash)
 
 function routeInfo() {
   const hash = window.location.hash || '#/'
@@ -37,9 +37,8 @@ export default function App() {
   const [profileBusy, setProfileBusy] = useState(false)
   const [authError, setAuthError] = useState('')
   const [recoveryMode, setRecoveryMode] = useState(false)
-  const [showWelcome, setShowWelcome] = useState(() => {
-    try { return window.sessionStorage.getItem('aula-ei-brand-welcome-v1') === 'pending' } catch { return false }
-  })
+  const [introComplete, setIntroComplete] = useState(false)
+
   useEffect(() => {
     if (!showWelcome) return
     try { window.sessionStorage.removeItem('aula-ei-brand-welcome-v1') } catch {}
@@ -68,6 +67,7 @@ export default function App() {
       setSession(nextSession)
       if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true)
       if (event === 'SIGNED_OUT' || !nextSession) clearDataCache()
+      if (event === 'SIGNED_OUT') setIntroComplete(false)
       if (!nextSession) setProfile(null)
       setAuthError('')
       setSessionReady(true)
@@ -147,7 +147,9 @@ export default function App() {
   const content = useMemo(() => {
     if (!sessionReady) return <Startup title="Preparando Aula EI…" />
     if (recoveryMode) return <LoginPage error={authError} preserveRoute={false} recoveryMode onRecoveryModeChange={setRecoveryMode} />
-    if (!session?.user) return <LoginPage error={authError} preserveRoute={route.isCertificate} onRecoveryModeChange={setRecoveryMode} />
+    if (!session?.user) return !introComplete && !route.isCertificate
+      ? <Suspense fallback={<Startup title="Iniciando Aula EI…" />}><EntrySplash onComplete={() => setIntroComplete(true)} /></Suspense>
+      : <LoginPage error={authError} preserveRoute={route.isCertificate} onRecoveryModeChange={setRecoveryMode} />
     if (profileBusy) return <Startup title="Validando tu acceso…" />
     if (!profile) return <AccessError message={authError || 'No fue posible cargar tu perfil de Aula EI.'} />
     if (mustChangePassword) return <PasswordGate profile={profile} />
@@ -156,14 +158,12 @@ export default function App() {
       : <LearnerApp profile={profile} sessionUser={session.user} />
     return <LegalGate profile={profile} sessionUser={session.user}>
       <AdminMfaGate profile={profile}>
-        {showWelcome && !route.isCertificate
-          ? <Suspense fallback={<Startup title="Preparando tu acceso…" />}><PostLoginSplash onComplete={() => setShowWelcome(false)} /></Suspense>
-          : <Suspense fallback={<Startup title="Cargando módulo…" />}>
-              {securedContent}
-            </Suspense>}
+        <Suspense fallback={<Startup title="Cargando módulo…" />}>
+          {securedContent}
+        </Suspense>
       </AdminMfaGate>
     </LegalGate>
-  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError, showWelcome])
+  }, [sessionReady, session?.user, profileBusy, profile, mustChangePassword, recoveryMode, route.isCertificate, route.hash, authError, introComplete])
 
   return <>
     <MobileViewportSync />

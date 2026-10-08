@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { assetUrl } from '../paths.js'
 import './developer-branding.css'
@@ -8,10 +8,12 @@ import './developer-branding.css'
  * This view neither authorizes access nor persists any private information.
  */
 export default function PostLoginSplash({ onComplete }) {
+  const finish = useRef(onComplete)
+  finish.current = onComplete
   useEffect(() => {
-    const timeout = window.setTimeout(onComplete, 1250)
+    const timeout = window.setTimeout(() => finish.current(), 1250)
     return () => window.clearTimeout(timeout)
-  }, [onComplete])
+  }, [])
 
   return <main className="dev-splash" role="status" aria-live="polite" aria-label="Accediendo a Aula EI">
     <div className="dev-splash-orbit" aria-hidden="true" />

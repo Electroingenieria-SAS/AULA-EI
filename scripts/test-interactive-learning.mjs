@@ -42,7 +42,7 @@ assert.match(page, /En desarrollo/, 'No anunciar como jugables los módulos futu
 for (const marker of ['MemoryRound','ClassificationRound','SequenceRound','DecisionRound','role="status"','Reiniciar']) {
   assert.ok(game.includes(marker), 'Motor interactivo sin función requerida: ' + marker)
 }
-for (const marker of ['window.localStorage','localStorage.removeItem','maxLength={3000}','completed.has(block.id)','No cambia']) {
+for (const marker of ['window.localStorage','localStorage.removeItem','maxLength={3000}','completed.has(block.id)','no cambia']) {
   assert.ok(review.includes(marker), 'El espacio de repaso no cumple su contrato: ' + marker)
 }
 assert.match(player, /<StudyReview course=\{course\}/)

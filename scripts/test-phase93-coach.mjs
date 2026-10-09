@@ -95,5 +95,5 @@ for(const source of [page,panel,adaptive,model]) {
   assert.doesNotMatch(source,/\.from\('exam_attempts'\)|\.from\('question_options'\)|\.insert\(|\.update\(|\.upsert\(|\.delete\(/)
 }
 assert.doesNotMatch(panel,/supabase\.rpc\(/)
-assert.doesNotMatch(model,/supabase|fetch\(|localStorage/)
+assert.doesNotMatch(model,/\bsupabase\s*\.|\bfetch\s*\(|\blocalStorage\s*\.|\bwindow\s*\.|\bglobalThis\s*\./)
 console.log('Phase 9.3 PASS: private/local attempts, spaced reviews, official route locks, no extra RPC and no grade mutations.')

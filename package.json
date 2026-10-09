@@ -7,7 +7,7 @@
   },
   "scripts": {
     "check:architecture": "node scripts/verify-architecture.mjs",
-    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run check:legal && npm run test:legal-runtime && npm run test:course-navigation && npm run test:learning-experience && npm run test:interactive-learning && npm run test:course-review-generation && npm run test:personal-development && npm run test:intelligent-learning && npm run test:phase62-visual && npm run test:phase64-experience && npm run test:phase65-release && npm run test:phase71-plan && npm run test:phase72-notifications && npm run test:phase73-followup && npm run test:phase74-release && npm run test:phase81-82 && npm run test:phase83-84 && npm run test:phase85-readiness && npm run test:preload-intent && npm run test:phase91-automation && npm run test:phase92-analytics && npm run test:actionable-analytics && npm run test:developer-branding && npm run test:release-readiness && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
+    "build": "npm run check:architecture && npm run check:security && npm run check:database && npm run check:legal && npm run test:legal-runtime && npm run test:course-navigation && npm run test:learning-experience && npm run test:interactive-learning && npm run test:course-review-generation && npm run test:personal-development && npm run test:intelligent-learning && npm run test:phase62-visual && npm run test:phase64-experience && npm run test:phase65-release && npm run test:phase71-plan && npm run test:phase72-notifications && npm run test:phase73-followup && npm run test:phase74-release && npm run test:phase81-82 && npm run test:phase83-84 && npm run test:phase85-readiness && npm run test:preload-intent && npm run test:phase91-automation && npm run test:phase92-analytics && npm run test:phase93-coach && npm run test:actionable-analytics && npm run test:developer-branding && npm run test:release-readiness && npm run test:security-runtime && npm run check:performance && npm run check:visual && npm run check:motion && npm run check:mobile && npm run check:controls && npm run check:pwa && vite build && npm run check:artifact && npm run check:bundle",
     "check:security": "node scripts/verify-security.mjs",
     "check:performance": "node scripts/verify-performance.mjs",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
@@ -43,7 +43,8 @@
     "check:phase85-certification": "node scripts/phase85-certification-status.mjs",
     "test:preload-intent": "node scripts/test-preload-intent.mjs",
     "test:phase91-automation": "node scripts/test-phase91-automation.mjs",
-    "test:phase92-analytics": "node scripts/test-phase92-analytics.mjs"
+    "test:phase92-analytics": "node scripts/test-phase92-analytics.mjs",
+    "test:phase93-coach": "node scripts/test-phase93-coach.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

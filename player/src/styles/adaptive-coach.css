@@ -1,0 +1,44 @@
+/* Fase 9.3 · Panel y repaso responsable, sin rediseñar el LMS completo */
+.intelligence-tabs.coach93-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
+.coach93-body{display:grid;gap:20px;padding:24px;min-width:0}
+.coach93-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.coach93-summary article{min-width:0;display:grid;gap:10px;padding:18px;border:1px solid #d8e7f5;border-radius:15px;background:#f7fbff}
+.coach93-summary svg{color:#1872ad}
+.coach93-summary small{font-size:.7rem;color:#637f9d;font-weight:800}
+.coach93-summary strong{font-size:1.8rem;color:#154c80;font-variant-numeric:tabular-nums}
+.coach93-next{display:flex;align-items:center;gap:14px;background:linear-gradient(112deg,#eaf6ff,#fff);border:1px solid #bddcf0;border-radius:17px;padding:18px}
+.coach93-next-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;color:#1468a7;background:#fff;border-radius:14px}
+.coach93-next>div:nth-child(2){display:grid;gap:6px;min-width:0;flex:1}
+.coach93-next small{font-size:.64rem;color:#43749c;font-weight:900;letter-spacing:.04em}
+.coach93-next strong{font-size:1rem;color:#135188}
+.coach93-next p,.coach93-list-head p{margin:0;font-size:.74rem;line-height:1.6;color:#68839c}
+.coach93-next button,.coach93-list button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:43px;border:1px solid #1369ad;border-radius:10px;background:#1369ad;color:#fff;padding:9px 13px;font-size:.74rem;font-weight:900;cursor:pointer}
+.coach93-list-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.coach93-list-head h3{margin:0 0 6px;font-size:1.07rem;color:#194f7e}
+.coach93-list-head>span{flex:none;border-radius:99px;background:#eaf4fc;padding:9px;font-size:.68rem;font-weight:900;color:#1e6499}
+.coach93-list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.coach93-list>li{display:flex;align-items:center;gap:14px;min-width:0;padding:16px;border:1px solid #e1eaf3;border-radius:14px;background:#fff}
+.coach93-index{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:10px;background:#e9f4fd;color:#15639e;font-weight:950}
+.coach93-item-text{display:grid;gap:6px;min-width:0;flex:1}
+.coach93-item-text strong{font-size:.84rem;color:#194d7a}
+.coach93-item-text p,.coach93-item-text small{margin:0;font-size:.71rem;line-height:1.5;color:#637f96}
+.coach93-item-text .coach93-type{font-size:.62rem;letter-spacing:.06em;color:#135e95;font-weight:900}
+.coach93-method{display:flex;gap:12px;align-items:flex-start;padding:16px;border-radius:13px;border:1px solid #d9e7f2;background:#f8fbfe}
+.coach93-method>svg{flex:none;color:#237bb6}
+.coach93-method strong{font-size:.76rem;color:#1b507e}
+.coach93-method p{display:flex;gap:6px;align-items:baseline;margin:7px 0 0;font-size:.7rem;line-height:1.65;color:#688299}
+.coach93-empty{display:grid;justify-items:center;gap:9px;padding:24px;text-align:center;color:#1b6a9d}
+.coach93-empty strong{font-size:.8rem;color:#21597f}
+.coach93-empty p{max-width:620px;color:#6d8296;font-size:.72rem}
+.coach93-adaptive-summary{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:0 0 18px;padding:14px 16px;background:#f1f8fe;border:1px solid #d8e8f5;border-radius:14px}
+.coach93-adaptive-summary span{display:inline-flex;align-items:center;gap:7px;font-size:.7rem;color:#276291;font-weight:850}
+.coach93-adaptive-summary p{width:100%;margin:0;color:#607f9b;font-size:.69rem}
+.coach93-adaptive-summary .coach93-due{color:#a76624}
+.coach93-adaptive-summary .coach93-mastered{color:#208663}
+.coach93-now-reason{display:block;font-size:.67rem;color:#477698;line-height:1.6;margin-top:5px}
+.intelligence-page button:focus-visible{outline:3px solid #76b8e4;outline-offset:2px}
+@media(max-width:1250px){.intelligence-tabs.coach93-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.coach93-next{flex-wrap:wrap}.coach93-next button{width:100%}.coach93-list>li{flex-wrap:wrap}.coach93-list button{margin-left:auto}.intelligence-tabs.coach93-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:590px){.coach93-body{padding:14px}.coach93-summary{grid-template-columns:1fr}.coach93-summary article{grid-template-columns:auto 1fr auto;align-items:center;padding:13px}.coach93-summary strong{font-size:1.3rem}.coach93-list-head{flex-wrap:wrap}.coach93-list>li{gap:10px;padding:12px}.coach93-list button{width:100%}.intelligence-tabs.coach93-tabs{grid-template-columns:1fr 1fr}.intelligence-tabs.coach93-tabs button{padding:11px;min-height:76px;gap:6px}.intelligence-tabs.coach93-tabs button>svg{padding:6px;width:19px}.intelligence-tabs.coach93-tabs small{display:none}}
+@media(max-width:370px){.intelligence-tabs.coach93-tabs{grid-template-columns:1fr}.coach93-summary article{grid-template-columns:auto 1fr}.coach93-summary strong{grid-column:2}}
+@media(prefers-reduced-motion:reduce){.coach93-panel *{transition:none!important;animation:none!important}}

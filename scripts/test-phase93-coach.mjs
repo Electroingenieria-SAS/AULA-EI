@@ -37,7 +37,6 @@ const catalog=[
  {course:{id:'c1',title:'Curso obligatorio'},status:'in_progress'},
  {course:{id:'c2',title:'Curso complementario'},status:'assigned'},
  {course:{id:'locked',title:'Curso bloqueado'},status:'assigned'},
- {course:{id:'removed',title:'Inscripción revocada'},status:'assigned'},
  {course:{id:'c1',title:'Duplicado'},status:'in_progress'},
 ]
 const localPractice={courses:{
@@ -54,6 +53,7 @@ assert.equal(courses[0].errors,1)
 assert.equal(courses[0].masteredRounds,1)
 assert.equal(courses.find(row=>row.courseId==='c2').kind,'due')
 assert.ok(!courses.some(row=>row.courseId==='unknown'))
+assert.ok(!courses.some(row=>row.courseId==='removed'), 'Revoked courses in local storage must not be recommended.')
 assert.equal(buildCoachCoursePlan([],development,localPractice).length,0,'Local data cannot introduce a course without enrollment.')
 assert.equal(buildCoachCoursePlan(catalog,development,{courses:{}}).some(x=>x.errors>0),false)
 

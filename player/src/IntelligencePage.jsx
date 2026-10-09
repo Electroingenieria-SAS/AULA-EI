@@ -7,11 +7,13 @@ import { buildDevelopmentSnapshot } from './development/development-data.js'
 import { clearPractice, knowledgeCards, practiceStorageKey, readPractice, recordPractice } from './intelligence/intelligence-model.js'
 import TutorPanel from './intelligence/TutorPanel.jsx'
 import AdaptivePanel from './intelligence/AdaptivePanel.jsx'
+import ReviewPlanPanel from './intelligence/ReviewPlanPanel.jsx'
 import RewardsPanel from './intelligence/RewardsPanel.jsx'
 import RoutesPanel from './intelligence/RoutesPanel.jsx'
 import './styles/intelligence.css'
 
 const OPTIONS = [
+  { id:'plan',title:'Mi plan de refuerzo',detail:'Qué estudiar primero',icon:BookOpenCheck },
   { id:'tutor',title:'Tutor',detail:'Consulta tus contenidos',icon:MessageCircle },
   { id:'adaptive',title:'Repaso adaptativo',detail:'Refuerza lo que cuesta',icon:BrainCircuit },
   { id:'rewards',title:'Insignias',detail:'Reconoce tu constancia',icon:Award },
@@ -19,7 +21,7 @@ const OPTIONS = [
 ]
 
 export default function IntelligencePage({ profile, sessionUser }) {
-  const [tab,setTab] = useState('tutor')
+  const [tab,setTab] = useState('plan')
   const [home,setHome] = useState(null)
   const [catalog,setCatalog] = useState(null)
   const [selected,setSelected] = useState('')
@@ -105,7 +107,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
     return cleared
   }
   const firstName=String(profile?.full_name||'Colaborador').trim().split(/\s+/)[0]
-  const courseReady = Boolean(course && !loadingCourse && !courseError)
+  const courseReady = Boolean(course && String(course.id)===String(selected) && validSelection && !loadingCourse && !courseError)
 
   return <main className="intelligence-page">
     <section className="intelligence-hero">
@@ -121,7 +123,7 @@ export default function IntelligencePage({ profile, sessionUser }) {
       <div className="intelligence-hero-art" aria-hidden="true"><BrainCircuit size={78}/><span>EI</span></div>
     </section>
     <div className="intelligence-section-heading"><span>MI ESPACIO DE APRENDIZAJE</span><strong>Elige cómo quieres entrenar hoy</strong></div>
-    <nav className="intelligence-tabs" role="tablist" aria-label="Elegir función del entrenador">
+    <nav className="intelligence-tabs coach93-tabs" role="tablist" aria-label="Elegir función del entrenador">
       {OPTIONS.map(({id,title,detail,icon:Icon})=><button key={id} type="button"
         role="tab" id={"intelligence-tab-"+id} aria-controls="intelligence-tool-panel" aria-selected={tab===id}
         className={tab===id?'is-active':''}
@@ -147,6 +149,9 @@ export default function IntelligencePage({ profile, sessionUser }) {
       </section>}
       {['tutor','adaptive'].includes(tab) && loadingCourse && <div className="intelligence-status" role="status">Verificando tu ruta y contenidos completados…</div>}
       {['tutor','adaptive'].includes(tab) && courseError && <div className="intelligence-status" role="alert">{courseError}</div>}
+      {tab==='plan' && <ReviewPlanPanel enrollments={enrollmentOptions} development={development}
+        practice={practice} groups={groups} selected={selected} courseReady={courseReady}
+        onPractice={(courseId)=>{setSelected(courseId);setTab('adaptive')}}/>}
       {tab==='tutor' && !loadingCourse && !courseError && <TutorPanel key={selected} cards={courseReady?cards:[]} courseTitle={course?.title}/>}
       {tab==='adaptive' && !loadingCourse && !courseError && <AdaptivePanel
         key={selected} groups={courseReady?groups:[]} courseId={selected} practice={coursePractice} onResult={onPracticeResult}/>}

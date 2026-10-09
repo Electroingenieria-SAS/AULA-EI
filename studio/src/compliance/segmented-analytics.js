@@ -89,7 +89,8 @@ export function segmentedComplianceCsv(report, timestamp=new Date()) {
   ]
   const toRow=(type,item)=>[type,item.label,item.people,item.requirements,item.compliant,
     item.atRisk,item.overdue,item.withoutEnrollment,item.pending,item.coverage??'']
-  rows.push(toRow('Resumen',report.summary))
+  rows.push(report.summary.enoughSample ? toRow('Resumen',report.summary) :
+    ['Resumen','Muestra inferior al mínimo', '', '', '', '', '', '', '', ''])
   for(const [type,list] of [['Área',report.areaGroups],['Cargo',report.positionGroups]]){
     for(const group of list){
       if(group.enoughSample) rows.push(toRow(type,group))

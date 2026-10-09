@@ -33,7 +33,7 @@ for (const required of [
   'import.meta.env.BASE_URL',
   "updateViaCache: 'none'",
   "controllerchange",
-  "sw.js?v=8",
+  "sw.js?v=9",
 ]) {
   if (!main.includes(required)) throw new Error('Registro PWA incompleto: falta ' + required)
 }
@@ -61,7 +61,7 @@ for (const forbidden of [
 for (const required of [
   "url.origin !== self.location.origin) return false",
   "request.mode === 'navigate'",
-  "CACHE_VERSION = 'aula-ei-pwa-v8'",
+  "CACHE_VERSION = 'aula-ei-pwa-v9'",
   'isFreshCode',
   'networkFirst(request)',
   "fetch(request, { cache: 'no-store' })",
@@ -72,4 +72,4 @@ for (const required of [
   if (!worker.includes(required)) throw new Error('Estrategia PWA incompleta: falta ' + required)
 }
 
-console.log('PWA v8 validada: actualización inmediata de JS/CSS, installable iOS/Android y caché segura.')
+console.log('PWA v9 validada: actualización inmediata de JS/CSS, installable iOS/Android y caché segura.')

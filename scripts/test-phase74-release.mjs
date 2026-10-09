@@ -11,11 +11,11 @@ const [main,sw,html,learner,plan,shell,notices,model,studio,panels,smoke,pwa,pkg
   read('studio/src/compliance/CompliancePanels.jsx'), read('scripts/smoke-browser.sh'),
   read('scripts/verify-pwa.mjs'), read('package.json'),
  ])
-assert.match(html,/name="aula-ei-release" content="phase-9\.2-2026-10-09"/)
-assert.match(main,/sw\.js\?v=9/)
-assert.match(main,/aula-ei-pwa-refresh-v9/)
-assert.match(sw,/CACHE_VERSION = 'aula-ei-pwa-v9'/)
-assert.match(pwa,/aula-ei-pwa-v9/)
+assert.match(html,/name="aula-ei-release" content="phase-9\.3-2026-10-09"/)
+assert.match(main,/sw\.js\?v=10/)
+assert.match(main,/aula-ei-pwa-refresh-v10/)
+assert.match(sw,/CACHE_VERSION = 'aula-ei-pwa-v10'/)
+assert.match(pwa,/aula-ei-pwa-v10/)
 assert.match(sw,/networkFirstNavigation/)
 assert.match(sw,/isFreshCode/)
 assert.match(learner,/const loadTrainingPlanPage = \(\) => import\('\.\/TrainingPlanPage\.jsx'\)/)
@@ -37,4 +37,4 @@ assert.doesNotMatch(plan,/\.insert\(|\.upsert\(|\.update\(|\.delete\(/)
 const tasks=JSON.parse(pkg).scripts.build
 for(const gate of ['test:phase71-plan','test:phase72-notifications','test:phase73-followup','test:phase74-release','check:pwa','check:mobile','check:controls','check:bundle'])
  assert.ok(tasks.includes('npm run '+gate),'Release gate missing: '+gate)
-console.log('Fase 7.4: cross-module controls, lazy routes, PWA v9 and smoke with strict DOM assertions OK.')
+console.log('Fase 7.4: cross-module controls, lazy routes, PWA v10 and smoke with strict DOM assertions OK.')

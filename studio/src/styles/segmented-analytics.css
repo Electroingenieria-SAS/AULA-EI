@@ -1,0 +1,45 @@
+/* Fase 9.2 · Analítica agregada por cargo y dependencia. */
+.a92-panel{display:grid;gap:17px;min-width:0;padding:23px;font-family:"Century Gothic","Segoe UI",sans-serif}
+.a92-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.a92-heading>div{flex:1;min-width:0}
+.a92-heading h3{display:flex;align-items:center;gap:9px;font-size:1.1rem;color:#164e81;margin:6px 0}
+.a92-heading p,.a92-table-head p{font-size:.75rem;line-height:1.6;color:#687f97;margin:4px 0}
+.a92-cut{display:inline-flex;align-items:center;gap:7px;flex:none;border:1px solid #dce7f0;border-radius:99px;padding:9px 12px;background:#f5faff;color:#486d92;font-size:.67rem;font-weight:800}
+.a92-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.a92-filters label{min-width:0;display:grid;gap:7px;font-size:.72rem;font-weight:900;color:#24557c}
+.a92-filters select{width:100%;box-sizing:border-box;min-height:44px;padding:9px 12px;border:1px solid #c6dbeb;border-radius:10px;background:#fff;color:#20547c;font:inherit;font-size:.75rem}
+.a92-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.a92-cards article{min-width:0;display:grid;gap:5px;padding:16px;border:1px solid #ddebf6;border-radius:15px;background:linear-gradient(145deg,#fff,#f5faff)}
+.a92-cards small{font-size:.68rem;font-weight:800;color:#607f9a}
+.a92-cards strong{font-size:clamp(1.25rem,2vw,1.9rem);line-height:1.2;color:#17518a;font-variant-numeric:tabular-nums}
+.a92-cards article:nth-child(3) strong{color:#bb6a2b}
+.a92-cards span{font-size:.65rem;line-height:1.45;color:#6687a3}
+.a92-table-head h4{color:#174c7b;font-size:.88rem;margin:0}
+.a92-table-scroller{overflow-x:auto;border:1px solid #dce8f1;border-radius:13px;min-width:0}
+.a92-table-scroller table{border-collapse:collapse;width:100%;min-width:665px;text-align:left}
+.a92-table-scroller th,.a92-table-scroller td{padding:12px 11px;border-bottom:1px solid #e7edf4;font-size:.7rem;vertical-align:middle}
+.a92-table-scroller th{color:#315a7d;font-weight:850}
+.a92-table-scroller thead th{position:sticky;top:0;background:#edf6fe;color:#285e8f;font-size:.66rem}
+.a92-table-scroller tbody tr:last-child>*{border-bottom:0}
+.a92-table-scroller tbody tr:hover{background:#fafcff}
+.a92-confidential{display:block;margin-top:3px;font-size:.58rem;color:#9d732b}
+.a92-progress{display:grid;gap:5px;min-width:105px}
+.a92-progress strong{font-variant-numeric:tabular-nums}
+.a92-track{display:block;height:5px;border-radius:6px;background:#e3edf6;overflow:hidden}
+.a92-track i{display:block;height:100%;background:#1b83b8;border-radius:6px}
+.a92-export{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px;background:#f6fbfe;border:1px solid #e2eef8;border-radius:13px}
+.a92-export>div:first-child{display:flex;align-items:flex-start;gap:9px;min-width:0;flex:1;color:#26809f}
+.a92-export p{font-size:.68rem;line-height:1.5;margin:0;color:#597992}
+.a92-export-actions{display:flex;gap:8px;flex:none}
+.a92-export-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 13px;border-radius:10px;border:1px solid #b5d3e9;background:#eaf5ff;color:#135e98;font-size:.68rem;font-weight:900;cursor:pointer}
+.a92-export-actions button:last-child{background:#0e69ac;border-color:#0e69ac;color:#fff}
+.a92-export-actions button:disabled{opacity:.5;cursor:wait}
+.a92-empty{display:grid;justify-items:center;gap:10px;padding:25px 15px;border:1px dashed #c8dae9;border-radius:13px;text-align:center;color:#b17d32;background:#fffdf9}
+.a92-empty strong{font-size:.78rem;color:#695c47}
+.a92-empty p{font-size:.72rem;color:#71859a;line-height:1.6;max-width:620px;margin:0}
+.a92-method{font-size:.68rem!important;line-height:1.6!important;color:#71849a!important;margin:0!important}
+.a92-panel button:focus-visible,.a92-panel select:focus-visible,.a92-table-scroller:focus-visible{outline:3px solid #66a9dc;outline-offset:2px}
+@media(max-width:1050px){.a92-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.a92-heading{flex-wrap:wrap}}
+@media(max-width:650px){.a92-panel{padding:15px}.a92-filters{grid-template-columns:1fr}.a92-export{align-items:stretch;flex-direction:column}.a92-export-actions{width:100%}.a92-export-actions button{flex:1}.a92-heading h3{font-size:1rem}.a92-cut{font-size:.64rem}}
+@media(max-width:385px){.a92-cards{gap:8px}.a92-cards article{padding:11px}.a92-cards strong{font-size:1.2rem}.a92-export-actions{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.a92-panel *{transition:none!important;animation:none!important}}

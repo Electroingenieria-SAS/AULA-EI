@@ -77,12 +77,12 @@ export default function SegmentedAnalytics({complianceRows=[],positions=[],setMe
         </select>
       </label>
     </div>
-    <div className="a92-cards" aria-label="Resumen de cumplimiento dentro del filtro">
+    {data.hasData && !data.summary.enoughSample ? <p className="a92-method" role="status">Esta selección corresponde a menos de tres personas. Se ocultan las cifras desglosadas para evitar identificar grupos pequeños.</p> : <div className="a92-cards" aria-label="Resumen de cumplimiento dentro del filtro">
       <article><small>Requisitos únicos</small><strong>{count(data.summary.requirements)}</strong><span>Persona y capacitación</span></article>
       <article><small>Al día</small><strong>{count(data.summary.compliant)}</strong><span>{pct(data.summary.coverage)} de cumplimiento</span></article>
       <article><small>En riesgo</small><strong>{count(data.summary.atRisk)}</strong><span>{count(data.summary.overdue)} vencidos o expirados</span></article>
       <article><small>Sin matrícula</small><strong>{count(data.summary.withoutEnrollment)}</strong><span>Requieren verificar asignación</span></article>
-    </div>
+    </div>}
     {data.hasData?<>
       <div className="a92-table-head"><div><h4>Comparación de grupos</h4><p>Ordenados por vencimientos y exposición al riesgo. Los porcentajes utilizan requisitos, no personas, como denominador.</p></div></div>
       <div className="a92-table-scroller" role="region" aria-label="Comparación por áreas y cargos, desplazable horizontalmente" tabIndex={0}>

@@ -75,7 +75,7 @@ assert.match(css,/:focus-visible/)
 assert.match(workbench,/admin_training_analytics/)
 assert.match(workbench,/admin_question_analytics/)
 assert.match(workbench,/admin_content_block_analytics/)
-assert.match(html,/phase-9\.2-2026-10-09/)
+assert.match(html,/phase-9\.3-2026-10-09/)
 assert.match(JSON.parse(pkg).scripts.build,/npm run test:phase92-analytics/)
 for(const forbidden of [/\.rpc\(/,/\.from\(/,/\.insert\(/,/\.update\(/,/\.upsert\(/,/\.delete\(/]){
   assert.doesNotMatch(component,forbidden,'segment UI must not request or modify database')

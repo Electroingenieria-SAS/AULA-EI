@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Activity, Briefcase, Layers3, Settings2, ShieldCheck, Target } from 'lucide-react'
 import { getError, slugify, supabase } from './shared.js'
+import SegmentedAnalytics from './compliance/SegmentedAnalytics.jsx'
 import AutomationReadiness from './compliance/AutomationReadiness.jsx'
 import { buildAutomationReadiness } from './compliance/automation-readiness.js'
 import {
@@ -452,6 +453,9 @@ export default function ComplianceCenter({ courses = [], profiles = [], setMessa
       snapshot={snapshot}
     />}
 
-    {section === 'analytics' && <ComplianceAnalytics setMessage={setMessage} />}
+    {section === 'analytics' && <>
+      <SegmentedAnalytics complianceRows={complianceRows} positions={positions} setMessage={setMessage} />
+      <ComplianceAnalytics setMessage={setMessage} />
+    </>}
   </div>
 }

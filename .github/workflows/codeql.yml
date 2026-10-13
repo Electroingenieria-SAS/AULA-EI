@@ -29,4 +29,4 @@ jobs:
           languages: javascript-typescript
 
       - name: Analyze
-        uses: github/codeql-action/analyze@1190a975f95ce23525efb6a3fc21ea29567c1b52
+        uses: github/codeql-action/analyze@9f759ee644a3e7c15c1390abf49868036c00067b

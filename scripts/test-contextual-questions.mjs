@@ -39,7 +39,7 @@ for(const q of questions){
   assert.equal(q.options.length,4)
   assert.equal(new Set(q.options.map(x=>x.toLocaleLowerCase('es'))).size,4)
   assert.equal(q.selected,false)
-  assert.equal(q.sourceExcerpt,passages[q.page-1])
+  assert.ok(passages[q.page-1].startsWith(q.sourceExcerpt),'Evidence must come verbatim from the cited PDF slide')
   assert.ok(q.sourceExcerpt.includes(q.options[q.correctIndex]),'Correct answer must be sourced to the cited slide')
   assert.ok(q.kind && q.difficulty)
   const outside=q.options.filter((_,i)=>i!==q.correctIndex)

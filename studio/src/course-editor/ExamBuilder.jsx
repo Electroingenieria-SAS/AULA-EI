@@ -8,7 +8,7 @@ import AiExamAssistant from './AiExamAssistant.jsx'
 
 const EMPTY_QUESTION = { prompt: '', a: '', b: '', c: '', d: '', correct: 'A' }
 
-export default function ExamBuilder({ courseId, courseTitle, questions, refresh, setMessage }) {
+export default function ExamBuilder({ courseId, courseTitle, canvaUrl = '', questions, refresh, setMessage }) {
   const [form, setForm] = useState(EMPTY_QUESTION)
   const [editingId, setEditingId] = useState(null)
   const [importOpen, setImportOpen] = useState(false)
@@ -201,6 +201,7 @@ export default function ExamBuilder({ courseId, courseTitle, questions, refresh,
     {aiOpen && <AiExamAssistant
       courseId={courseId}
       title={courseTitle}
+      initialCanvaUrl={canvaUrl}
       existingQuestions={questions}
       refresh={refresh}
       setMessage={setMessage}

@@ -32,3 +32,19 @@
 .ai-exam-actions{border-top:1px solid #e4ebf5;padding-top:14px;display:flex;justify-content:space-between;align-items:center;gap:14px}
 .ai-exam-actions span{font-size:.78rem;color:#6e8097;line-height:1.45}
 @media(max-width:700px){.ai-exam-panel{padding:15px}.ai-exam-answer-grid{grid-template-columns:1fr}.ai-exam-actions{align-items:stretch;flex-direction:column}.ai-exam-actions .primary-button{width:100%;justify-content:center}.ai-exam-upload-row .primary-button{width:100%;justify-content:center}}
+
+/* Canva reference visible from the question-suggestion panel. */
+.ai-exam-canva-source{border:1px solid #dae7f5;background:#fff;border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:10px}
+.ai-exam-canva-source>label{display:flex;align-items:center;gap:8px;font-weight:750;font-size:.89rem;color:#244d7e}
+.ai-exam-link-row{display:flex;align-items:stretch;gap:9px}
+.ai-exam-link-row>input{flex:1;min-width:0;height:44px;border:1px solid #b9cce3;background:#fff;border-radius:10px;padding:10px 13px;font-size:.9rem;color:#193755;outline-offset:2px}
+.ai-exam-link-row>input:focus-visible{outline:2px solid #2a72b8}
+.ai-exam-link-row>input[aria-invalid=true]{border-color:#c93e45}
+.ai-exam-link-row>a{display:flex;align-items:center;gap:7px;justify-content:center;border:1px solid #d4e3f5;padding:10px 13px;border-radius:10px;background:#f3f8ff;text-decoration:none;color:#215b9a;font-weight:650;white-space:nowrap;font-size:.86rem}
+.ai-exam-link-help{margin:0!important;color:#617690!important;font-size:.8rem;line-height:1.5}
+.ai-exam-link-invalid{font-size:.79rem;color:#9e3136;line-height:1.45}
+.ai-exam-link-preview{border-radius:13px;overflow:hidden;border:1px solid #dbe6f4;background:#f8fbff}
+.ai-exam-link-preview-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 13px;background:#f3f7fd;color:#315f95;font-size:.81rem}
+.ai-exam-link-preview-top span{margin-left:auto;color:#206448;background:#e6f5ed;border-radius:999px;padding:4px 9px;font-size:.7rem;font-weight:700}
+.ai-exam-link-preview iframe{display:block;border:0;width:100%;height:auto;aspect-ratio:16/9;background:#fff}
+@media(max-width:700px){.ai-exam-canva-source{padding:12px}.ai-exam-link-row{flex-direction:column}.ai-exam-link-row>a{align-self:flex-start}.ai-exam-link-preview iframe{aspect-ratio:4/3}}

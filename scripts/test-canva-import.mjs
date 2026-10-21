@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { normalizeCanvaEmbedUrl } from '../src/canva-embed.js'
+import { normalizeCanvaEmbedUrl, findCourseCanvaPresentation } from '../src/canva-embed.js'
 import { prepareCanvaQuestions, prepareCanvaPages } from '../studio/src/course-editor/canva-import-model.js'
 
 assert.equal(normalizeCanvaEmbedUrl('https://www.canva.com/design/DAGabc1234/t0ken333/edit?utm_source=x'), 'https://www.canva.com/design/DAGabc1234/t0ken333/view?embed')
@@ -22,6 +22,18 @@ const pdfClient = readFileSync('studio/src/course-editor/analyze-pdf-client.js',
 assert.ok(editor.includes('Sugerir con IA'), 'The author must be able to open AI suggestions from the exam')
 assert.ok(editor.includes('<AiExamAssistant'), 'AI suggestions must appear on an existing course')
 assert.ok(builder.includes('courseTitle={config.title}'), 'The real course title must reach the assistant')
+assert.equal(findCourseCanvaPresentation([]), '')
+assert.equal(findCourseCanvaPresentation([
+  { blocks: [{ type:'presentation', content:{ url:'https://canva.com.evil.example/design/DAGabc1234/view' } }] },
+  { blocks: [{ type:'presentation', content:{url:'https://www.canva.com/design/DAGabc1234/t0ken333/edit?foo=bar'}}] },
+]), 'https://www.canva.com/design/DAGabc1234/t0ken333/view?embed')
+assert.equal(findCourseCanvaPresentation([{ blocks:[{ type:'text', content: {url:'https://www.canva.com/design/DAGabc1234/view'}}]}]), '')
+assert.ok(builder.includes('canvaUrl={findCourseCanvaPresentation(phases)}'), 'Import saved Canva deck into exam suggestions')
+assert.ok(editor.includes('initialCanvaUrl={canvaUrl}'), 'Pass a safe initial Canva URL to assistant')
+assert.ok(coach.includes('normalizeCanvaEmbedUrl(canvaUrl)'), 'The assistant must validate the pasted Canva URL')
+assert.ok(coach.includes('src={validCanvaUrl}'), 'Preview must only embed normalized Canva links')
+assert.ok(coach.includes('no da acceso al texto'), 'Explain why the public link cannot yield questions by itself')
+
 assert.ok(coach.includes('active: false'), 'Suggested questions must start inactive')
 assert.ok(coach.includes('.update({ active: true })'), 'Questions must activate after saving options')
 assert.ok(coach.includes('setForm') === false, 'The assistant must not bypass the manual editor')

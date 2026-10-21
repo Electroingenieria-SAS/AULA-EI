@@ -16,3 +16,19 @@ export function normalizeCanvaEmbedUrl(value) {
 export function isCanvaEmbedUrl(value) {
   return Boolean(normalizeCanvaEmbedUrl(value))
 }
+
+/**
+ * Reuse the original Canva presentation attached to a course. Do not accept
+ * other iframe origins or treat its public embed as a readable data API.
+ */
+export function findCourseCanvaPresentation(phases) {
+  if (!Array.isArray(phases)) return ''
+  for (const phase of phases) {
+    for (const block of (Array.isArray(phase?.blocks) ? phase.blocks : [])) {
+      if (block?.type !== 'presentation') continue
+      const normalized = normalizeCanvaEmbedUrl(block?.content?.url)
+      if (normalized) return normalized
+    }
+  }
+  return ''
+}

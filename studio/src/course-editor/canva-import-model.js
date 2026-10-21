@@ -20,6 +20,7 @@ export function prepareCanvaQuestions(value) {
       kind: String(entry.kind || 'Comprensión').slice(0, 55),
       difficulty: String(entry.difficulty || 'Comprensión').slice(0, 35),
       sourceExcerpt: String(entry.sourceExcerpt || '').slice(0, 500),
+      missingOptions: entry.missingOptions === true || (Array.isArray(entry.options) && entry.options.some(v => !String(v || '').trim())),
       selected: false,
-    })).filter((entry) => entry.prompt.trim() && entry.options.length === 4 && entry.options.every((v) => v.trim()) && Number.isInteger(entry.correctIndex) && entry.correctIndex >= 0 && entry.correctIndex < 4)
+    })).filter((entry) => entry.prompt.trim() && entry.options.length === 4 && entry.options[entry.correctIndex]?.trim() && Number.isInteger(entry.correctIndex) && entry.correctIndex >= 0 && entry.correctIndex < 4)
 }

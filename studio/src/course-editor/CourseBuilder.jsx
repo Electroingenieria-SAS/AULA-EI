@@ -5,6 +5,7 @@ import {
 import { getError, signedAsset, supabase } from '../shared.js'
 import { appUrl } from '../../../src/paths.js'
 import ExamBuilder from './ExamBuilder.jsx'
+import { findCourseCanvaPresentation } from '../../../src/canva-embed.js'
 import {
   BlockEditor,
   BlockList,
@@ -374,7 +375,7 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
               description="Evalúa los conocimientos esenciales. Puedes crear preguntas manualmente, importarlas o solicitar sugerencias de IA a partir del PDF de Canva."
               icon={FileQuestion}
             />
-            <ExamBuilder courseId={course.id} courseTitle={config.title} questions={questions} refresh={load} setMessage={setMessage} />
+            <ExamBuilder courseId={course.id} courseTitle={config.title} canvaUrl={findCourseCanvaPresentation(phases)} questions={questions} refresh={load} setMessage={setMessage} />
           </section>
         )}
 

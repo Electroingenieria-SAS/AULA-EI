@@ -40,7 +40,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
       setSuggestions(next.map((item, index) => ({ ...item, localId: index, saved: false })))
       setLoaded(true)
       setNotice(next.length
-        ? next.length + ' preguntas basadas en frases, listas y relaciones del PDF. ' + next.filter(q => q.options.some(option => !option.trim())).length + ' necesitan completar opciones de respuesta. Revisa el fundamento antes de incorporarlas.'
+        ? next.length + ' preguntas con respuestas A, B, C y D propuestas automáticamente. ' + next.filter(q => q.options.some(option => !option.trim())).length + ' requieren completar opciones. Revisa que las alternativas sean correctas antes de incorporarlas.'
         : 'Se leyó el PDF, pero no se identificaron frases con significado suficiente. Comprueba que el PDF contenga texto seleccionable.')
     } catch (err) {
       setError(getError(err, 'No fue posible leer el texto del PDF.'))
@@ -107,7 +107,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
         {busy || 'Leer PDF y sugerir preguntas'}
       </button>
     </div>
-    <div className="ai-exam-tip"><BookOpenCheck size={16}/> Cada sugerencia incluye su frase de origen. Las opciones vacías necesitan edición manual y no pueden guardarse hasta completarse. No se generan respuestas inventadas.</div>
+    <div className="ai-exam-tip"><BookOpenCheck size={16}/> El sistema propone las cuatro opciones A–D y marca la correcta según el PDF. Valida todas las alternativas: algunas pueden proceder de otros temas del mismo material. Si faltan datos, dejará opciones pendientes en vez de inventarlas.</div>
     {error && <div className="ai-exam-error" role="alert"><AlertCircle size={17}/>{error}</div>}
     {notice && <div className="ai-exam-notice" role="status"><CheckCircle2 size={17}/>{notice}</div>}
     {loaded && suggestions.length > 0 && <>
@@ -139,6 +139,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
               <div className="ai-exam-answer-grid">{q.options.map((option, i) =>
                 <label key={i}>Opción {String.fromCharCode(65 + i)}<input value={option} placeholder={option.trim() ? '' : 'Escribe una alternativa distinta'} disabled={Boolean(busy) || q.saved}
                   onChange={(e) => update(q.localId, { options: q.options.map((value, idx) => idx === i ? e.target.value : value) })}/></label>)}</div>
+              <div className="ai-exam-suggested-answer"><CheckCircle2 size={16}/> Respuesta correcta propuesta: {String.fromCharCode(65 + q.correctIndex)} · {q.options[q.correctIndex]}</div>
               <label>Respuesta correcta<select disabled={Boolean(busy) || q.saved} value={q.correctIndex}
                 onChange={(e) => update(q.localId, { correctIndex: Number(e.target.value) })}>
                 {[0,1,2,3].map((i) => <option key={i} value={i}>{String.fromCharCode(65+i)}</option>)}</select></label>
@@ -149,7 +150,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
         })}
       </div>
       <div className="ai-exam-actions">
-        <span>Completa las cuatro alternativas, comprueba que solo una sea correcta y selecciona las preguntas. Nada se publica automáticamente.</span>
+        <span>AULA EI completa las alternativas con información del PDF siempre que sea posible. Verifica que solo una sea correcta antes de seleccionar las preguntas.</span>
         <button type="button" className="primary-button" disabled={Boolean(busy) || !canSave} onClick={save}>
           {busy === 'Incorporando preguntas…' ? <Loader2 size={17} className="spin"/> : <CheckCircle2 size={17}/>}
           {busy || ('Incorporar ' + chosen.length + ' seleccionada' + (chosen.length === 1 ? '' : 's'))}

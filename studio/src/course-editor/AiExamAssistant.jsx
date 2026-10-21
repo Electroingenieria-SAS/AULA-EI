@@ -9,6 +9,7 @@ const normalize = (value) => String(value || '').trim().replace(/\s+/g, ' ').toL
 function isValidQuestion(q) {
   return q.prompt.trim().length >= 8 && q.options.length === 4 &&
     q.options.every((option) => option.trim().length > 0) &&
+    new Set(q.options.map(normalize)).size === 4 &&
     Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex <= 3
 }
 
@@ -26,6 +27,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
   const chosen = suggestions.filter((item) => item.selected && !item.saved && !knownPrompts.has(normalize(item.prompt)))
   const allSelectable = suggestions.filter((item) => !item.saved && !knownPrompts.has(normalize(item.prompt)))
   const canSave = chosen.length > 0 && chosen.every(isValidQuestion)
+  const incompleteCount = suggestions.filter(item => !item.saved && !isValidQuestion(item)).length
 
   const analyze = async () => {
     setBusy('Leyendo el PDF localmente…')
@@ -38,8 +40,8 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
       setSuggestions(next.map((item, index) => ({ ...item, localId: index, saved: false })))
       setLoaded(true)
       setNotice(next.length
-        ? next.length + ' preguntas sugeridas a partir de ' + analysis.extractedPages.length + ' páginas. Revisa los fundamentos, el contexto y las opciones antes de incorporarlas.'
-        : 'Se extrajo texto del PDF, pero no se encontraron suficientes relaciones explícitas y opciones diferenciadas para construir preguntas verificables. Puedes redactarlas en el editor manual.')
+        ? next.length + ' preguntas basadas en frases, listas y relaciones del PDF. ' + next.filter(q => q.options.some(option => !option.trim())).length + ' necesitan completar opciones de respuesta. Revisa el fundamento antes de incorporarlas.'
+        : 'Se leyó el PDF, pero no se identificaron frases con significado suficiente. Comprueba que el PDF contenga texto seleccionable.')
     } catch (err) {
       setError(getError(err, 'No fue posible leer el texto del PDF.'))
     } finally { setBusy('') }
@@ -91,7 +93,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
       <div>
         <span className="eyebrow">Sin créditos ni API · 100 % local</span>
         <h3>Preguntas sugeridas a partir del texto de un PDF</h3>
-        <p>Adjunta la presentación exportada en PDF con texto seleccionable. PDF.js lee las páginas en este dispositivo y identifica relaciones expresas entre conceptos, funciones, riesgos, causas y procedimientos, y prepara preguntas de comprensión y aplicación para que las revises, corrijas y selecciones. No utiliza inteligencia artificial de pago ni envía el PDF a un servidor.</p>
+        <p>Lee el PDF frase por frase: reconoce conceptos, listas, elementos, indicaciones, riesgos y procedimientos. También conserva preguntas incompletas cuando faltan opciones, para que puedas terminarlas. Todo se procesa localmente, sin API de pago.</p>
       </div>
     </div>
     <div className="ai-exam-upload-row">
@@ -105,12 +107,12 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
         {busy || 'Leer PDF y sugerir preguntas'}
       </button>
     </div>
-    <div className="ai-exam-tip"><BookOpenCheck size={16}/> Las preguntas examinan funciones, conceptos, decisiones y causas expresas en el PDF; no son razonamiento de un modelo de IA. Verifica que el fundamento y las opciones correspondan al tema. Solo se agregan las que selecciones.</div>
+    <div className="ai-exam-tip"><BookOpenCheck size={16}/> Cada sugerencia incluye su frase de origen. Las opciones vacías necesitan edición manual y no pueden guardarse hasta completarse. No se generan respuestas inventadas.</div>
     {error && <div className="ai-exam-error" role="alert"><AlertCircle size={17}/>{error}</div>}
     {notice && <div className="ai-exam-notice" role="status"><CheckCircle2 size={17}/>{notice}</div>}
     {loaded && suggestions.length > 0 && <>
       <div className="ai-exam-review-heading">
-        <div><strong>{suggestions.length} sugerencias</strong><span>{chosen.length} seleccionadas para incorporar</span></div>
+        <div><strong>{suggestions.length} sugerencias</strong><span>{chosen.length} seleccionadas · {incompleteCount} requieren completar alternativas</span></div>
         <label><input type="checkbox" disabled={Boolean(busy) || !allSelectable.length}
           checked={allSelectable.length > 0 && allSelectable.every((item) => item.selected)}
           onChange={(e) => selectAll(e.target.checked)}/> Seleccionar disponibles</label>
@@ -125,7 +127,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
                   disabled={Boolean(busy) || q.saved || repeated} checked={q.selected && !q.saved}
                   onChange={(e) => update(q.localId, { selected: e.target.checked })}/>
               </span>
-              <span className="ai-exam-question-title"><small>Diapositiva {q.page} · {q.kind} · {q.difficulty} {q.saved ? '· Ya incorporada' : repeated ? '· Ya existe' : ''}</small>{q.prompt}</span>
+              <span className="ai-exam-question-title"><small>Diapositiva {q.page} · {q.kind} · {q.difficulty} {!isValidQuestion(q) ? '· Completar respuestas' : ''} {q.saved ? '· Ya incorporada' : repeated ? '· Ya existe' : ''}</small>{q.prompt}</span>
             </summary>
             <div className="ai-exam-fields">
               {q.sourceExcerpt && <div className="ai-exam-evidence">
@@ -135,7 +137,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
               <label>Pregunta<textarea rows={2} value={q.prompt} disabled={Boolean(busy) || q.saved}
                 onChange={(e) => update(q.localId, { prompt: e.target.value })}/></label>
               <div className="ai-exam-answer-grid">{q.options.map((option, i) =>
-                <label key={i}>Opción {String.fromCharCode(65 + i)}<input value={option} disabled={Boolean(busy) || q.saved}
+                <label key={i}>Opción {String.fromCharCode(65 + i)}<input value={option} placeholder={option.trim() ? '' : 'Escribe una alternativa distinta'} disabled={Boolean(busy) || q.saved}
                   onChange={(e) => update(q.localId, { options: q.options.map((value, idx) => idx === i ? e.target.value : value) })}/></label>)}</div>
               <label>Respuesta correcta<select disabled={Boolean(busy) || q.saved} value={q.correctIndex}
                 onChange={(e) => update(q.localId, { correctIndex: Number(e.target.value) })}>
@@ -147,7 +149,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
         })}
       </div>
       <div className="ai-exam-actions">
-        <span>El PDF permanece en tu dispositivo. La elección y edición son tuyas. No se modifica ninguna pregunta existente.</span>
+        <span>Completa las cuatro alternativas, comprueba que solo una sea correcta y selecciona las preguntas. Nada se publica automáticamente.</span>
         <button type="button" className="primary-button" disabled={Boolean(busy) || !canSave} onClick={save}>
           {busy === 'Incorporando preguntas…' ? <Loader2 size={17} className="spin"/> : <CheckCircle2 size={17}/>}
           {busy || ('Incorporar ' + chosen.length + ' seleccionada' + (chosen.length === 1 ? '' : 's'))}

@@ -38,8 +38,8 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
       setSuggestions(next.map((item, index) => ({ ...item, localId: index, saved: false })))
       setLoaded(true)
       setNotice(next.length
-        ? next.length + ' preguntas sugeridas a partir de ' + analysis.extractedPages.length + ' páginas. Revisa especialmente las opciones de respuesta antes de incorporarlas.'
-        : 'Se extrajo texto del PDF, pero no se encontraron suficientes afirmaciones diferenciadas para crear preguntas fiables. Puedes redactarlas en el editor manual.')
+        ? next.length + ' preguntas sugeridas a partir de ' + analysis.extractedPages.length + ' páginas. Revisa los fundamentos, el contexto y las opciones antes de incorporarlas.'
+        : 'Se extrajo texto del PDF, pero no se encontraron suficientes relaciones explícitas y opciones diferenciadas para construir preguntas verificables. Puedes redactarlas en el editor manual.')
     } catch (err) {
       setError(getError(err, 'No fue posible leer el texto del PDF.'))
     } finally { setBusy('') }
@@ -91,7 +91,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
       <div>
         <span className="eyebrow">Sin créditos ni API · 100 % local</span>
         <h3>Preguntas sugeridas a partir del texto de un PDF</h3>
-        <p>Adjunta la presentación exportada en PDF con texto seleccionable. PDF.js lee las páginas en este dispositivo y propone preguntas de reconocimiento del contenido para que las revises, corrijas y selecciones. No utiliza inteligencia artificial de pago ni envía el PDF a un servidor.</p>
+        <p>Adjunta la presentación exportada en PDF con texto seleccionable. PDF.js lee las páginas en este dispositivo y identifica relaciones expresas entre conceptos, funciones, riesgos, causas y procedimientos, y prepara preguntas de comprensión y aplicación para que las revises, corrijas y selecciones. No utiliza inteligencia artificial de pago ni envía el PDF a un servidor.</p>
       </div>
     </div>
     <div className="ai-exam-upload-row">
@@ -105,7 +105,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
         {busy || 'Leer PDF y sugerir preguntas'}
       </button>
     </div>
-    <div className="ai-exam-tip"><BookOpenCheck size={16}/> Las respuestas propuestas son fragmentos literales del PDF, no explicaciones creadas por IA. Revisa que cada pregunta sea pertinente y las opciones sean suficientemente diferentes. Solo se agregan las que selecciones.</div>
+    <div className="ai-exam-tip"><BookOpenCheck size={16}/> Las preguntas examinan funciones, conceptos, decisiones y causas expresas en el PDF; no son razonamiento de un modelo de IA. Verifica que el fundamento y las opciones correspondan al tema. Solo se agregan las que selecciones.</div>
     {error && <div className="ai-exam-error" role="alert"><AlertCircle size={17}/>{error}</div>}
     {notice && <div className="ai-exam-notice" role="status"><CheckCircle2 size={17}/>{notice}</div>}
     {loaded && suggestions.length > 0 && <>
@@ -125,9 +125,13 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
                   disabled={Boolean(busy) || q.saved || repeated} checked={q.selected && !q.saved}
                   onChange={(e) => update(q.localId, { selected: e.target.checked })}/>
               </span>
-              <span className="ai-exam-question-title"><small>Diapositiva {q.page} {q.saved ? '· Ya incorporada' : repeated ? '· Ya existe' : ''}</small>{q.prompt}</span>
+              <span className="ai-exam-question-title"><small>Diapositiva {q.page} · {q.kind} · {q.difficulty} {q.saved ? '· Ya incorporada' : repeated ? '· Ya existe' : ''}</small>{q.prompt}</span>
             </summary>
             <div className="ai-exam-fields">
+              {q.sourceExcerpt && <div className="ai-exam-evidence">
+                <strong>Fundamento · diapositiva {q.page}</strong>
+                <p>{q.sourceExcerpt}</p>
+              </div>}
               <label>Pregunta<textarea rows={2} value={q.prompt} disabled={Boolean(busy) || q.saved}
                 onChange={(e) => update(q.localId, { prompt: e.target.value })}/></label>
               <div className="ai-exam-answer-grid">{q.options.map((option, i) =>

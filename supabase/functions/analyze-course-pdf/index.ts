@@ -77,6 +77,19 @@ Deno.serve(async (req) => {
 
   const key = Deno.env.get("OPENAI_API_KEY");
   if (!key) return answer({ error: "La generación inteligente todavía requiere configurar OPENAI_API_KEY como secreto de Supabase. Puedes importar el enlace sin IA." }, 503);
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!serviceRoleKey) return answer({ error: "Falta la configuración de seguridad para limitar solicitudes." }, 503);
+  const securityClient = createClient(apiUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: withinLimit, error: limitError } = await securityClient.rpc("consume_aula_security_rate_limit", {
+    p_scope: "aula_ei_canva_pdf_ai",
+    p_actor: identity.user.id,
+    p_limit: 5,
+    p_window_seconds: 3600,
+  });
+  if (limitError) return answer({ error: "No fue posible verificar el límite de análisis. Intenta más tarde." }, 503);
+  if (!withinLimit) return answer({ error: "Alcanzaste el máximo de 5 análisis por hora. Intenta más tarde." }, 429);
   const title = String(payload.title || "Capacitación").trim().slice(0, 140);
   try {
     const upstream = await fetch("https://api.openai.com/v1/responses", {

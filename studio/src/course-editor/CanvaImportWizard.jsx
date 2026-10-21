@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, CircleAlert, ExternalLink, File
 import { getError, slugify, supabase } from '../shared.js'
 import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { prepareCanvaPages, prepareCanvaQuestions } from './canva-import-model.js'
+import { renderGuidedSlideBlobs, saveGuidedSlides } from './guided-slide-utils.js'
 import '../styles/canva-import.css'
 
 const MAX_LOCAL_PDF_BYTES = 12 * 1024 * 1024
@@ -28,6 +29,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
   const [pages, setPages] = useState([])
   const [questions, setQuestions] = useState([])
   const [analysed, setAnalysed] = useState(false)
+  const [guidedSlides, setGuidedSlides] = useState(true)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
   const embed = useMemo(() => normalizeCanvaEmbedUrl(url), [url])
@@ -60,10 +62,13 @@ export default function CanvaImportWizard({ close, onCreated }) {
   const saveDraft = async () => {
     if (!embed || !title.trim()) return setError('Se necesita un enlace válido de Canva y un título.')
     if (chosen.some((question) => !questionIsReady(question))) return setError('Corrige todas las preguntas seleccionadas antes de guardar.')
+    if (guidedSlides && pdf && analysed && chosen.length === 0) return setError('Para abrir preguntas emergentes, selecciona al menos una pregunta completa o desactiva el modo guiado.')
     setBusy('Creando capacitación en borrador…')
     setError('')
     let createdId = null
     try {
+      const enableGuided = Boolean(guidedSlides && pdf && analysed)
+      const renderedSlides = enableGuided ? await renderGuidedSlideBlobs(pdf,setBusy) : []
       const slug = slugify(title.trim()) + '-' + crypto.randomUUID().slice(0, 8)
       const course = assertSaved(await supabase.from('courses')
         .insert({
@@ -78,7 +83,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
       const phase = assertSaved(await supabase.from('course_phases').insert({
         course_id: createdId,
         title: 'Presentación y material de estudio',
-        sort_order: 0,
+        sort_order: renderedSlides.length ? 1 : 0,
       }).select('id').single(), 'Crear módulo')
 
       const blocks = [{
@@ -87,7 +92,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         title: 'Presentación interactiva de Canva',
         description: 'Explora el material original y las notas extraídas del PDF.',
         content: { url: embed, provider: 'canva' },
-        required: true,
+        required: !renderedSlides.length,
         sort_order: 0,
         status: 'published',
         completion_rule: { mode: 'manual' },
@@ -98,7 +103,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         title: 'Diapositiva ' + page.page + ' · ' + page.title,
         description: 'Idea principal: ' + page.takeaway,
         content: { html: '<p>' + page.explanation.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;') + '</p>', source_provider: 'local_pdf', source_page: page.page },
-        required: true,
+        required: !renderedSlides.length,
         sort_order: index + 1,
         status: 'published',
         completion_rule: { mode: 'manual' },
@@ -119,7 +124,17 @@ export default function CanvaImportWizard({ close, onCreated }) {
           is_correct: index === item.correctIndex,
         }))), 'Guardar respuestas')
       }
-      await onCreated(createdId, 'Importación creada como borrador. Revisa el contenido y completa manualmente el examen antes de publicar.')
+      if (renderedSlides.length) {
+        setBusy('Preparando el reproductor interactivo…')
+        const visualPhase = assertSaved(await supabase.from('course_phases').insert({
+          course_id:createdId,
+          title:'Diapositivas interactivas · preguntas aleatorias',
+          description:'Cada diapositiva se recorre dentro de AULA EI y abre una pregunta emergente al avanzar.',
+          sort_order:0,
+        }).select('id').single(),'Crear fase interactiva')
+        await saveGuidedSlides({courseId:createdId,phaseId:visualPhase.id,slides:renderedSlides,onProgress:setBusy})
+      }
+      await onCreated(createdId, 'Importación creada como borrador. El modo interactivo presenta preguntas al avanzar entre diapositivas. Revisa y publica cuando esté listo.')
     } catch (reason) {
       const message = getError(reason, 'No fue posible importar esta capacitación.')
       setError(message)
@@ -166,6 +181,10 @@ export default function CanvaImportWizard({ close, onCreated }) {
               <input type="file" accept=".pdf,application/pdf" hidden onChange={(e) => { setPdf(e.target.files?.[0] || null); resetAnalysis(); }}/>
             </label>
             
+            {pdf && analysed && <label className="canva-import-consent">
+              <input type="checkbox" checked={guidedSlides} onChange={(e)=>setGuidedSlides(e.target.checked)}/>
+              <span>Activar presentación guiada con preguntas aleatorias emergentes al avanzar de diapositiva. AULA EI usará imágenes del PDF, manteniendo el enlace original de Canva como recurso adicional.</span>
+            </label>}
             <button type="button" className="secondary-button canva-analyze-button" disabled={Boolean(busy) || !pdf || !title.trim()} onClick={analyzePdf}>
               {busy.startsWith('Leyendo') ? <Loader2 size={17} className="spin"/> : <Sparkles size={17}/>}
               {busy.startsWith('Analizando') ? busy : analysed ? 'Volver a generar sugerencias' : 'Leer PDF y sugerir preguntas'}

@@ -3,8 +3,9 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, CircleAlert, ExternalLink, File
 import { getError, slugify, supabase } from '../shared.js'
 import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { prepareCanvaPages, prepareCanvaQuestions } from './canva-import-model.js'
-const MAX_LOCAL_PDF_BYTES = 12 * 1024 * 1024
 import '../styles/canva-import.css'
+
+const MAX_LOCAL_PDF_BYTES = 12 * 1024 * 1024
 
 
 function assertSaved(result, label) {
@@ -83,7 +84,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         phase_id: phase.id,
         type: 'presentation',
         title: 'Presentación interactiva de Canva',
-        description: 'Explora el material original antes de estudiar las explicaciones.',
+        description: 'Explora el material original y las notas extraídas del PDF.',
         content: { url: embed, provider: 'canva' },
         required: true,
         sort_order: 0,
@@ -150,7 +151,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
               <small>Admite también el código iframe copiado desde Canva. Los enlaces privados o sin publicar no se podrán reproducir.</small>
             </label>
             <label>Descripción del curso
-              <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Puedes escribirla o generarla al analizar el PDF."/>
+              <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe los objetivos y el propósito de esta capacitación."/>
             </label>
             {url.trim() && !embed && <p className="canva-import-alert"><CircleAlert size={16}/> El enlace no corresponde a una inserción válida de un diseño Canva.</p>}
           </section>
@@ -161,11 +162,11 @@ export default function CanvaImportWizard({ close, onCreated }) {
               <Upload size={24} />
               <span>{pdf ? pdf.name : 'Seleccionar PDF de la presentación'}</span>
               <small>Opcional · hasta 12 MB, 50 páginas. El PDF se analiza localmente, sin API, créditos ni cargos.</small>
-              <input type="file" accept=".pdf,application/pdf" hidden onChange={(e) => { setPdf(e.target.files?.[0] || null); resetAnalysis();  }}/>
+              <input type="file" accept=".pdf,application/pdf" hidden onChange={(e) => { setPdf(e.target.files?.[0] || null); resetAnalysis(); }}/>
             </label>
             
             <button type="button" className="secondary-button canva-analyze-button" disabled={Boolean(busy) || !pdf || !title.trim()} onClick={analyzePdf}>
-              {busy.startsWith('Analizando') ? <Loader2 size={17} className="spin"/> : <Sparkles size={17}/>}
+              {busy.startsWith('Leyendo') ? <Loader2 size={17} className="spin"/> : <Sparkles size={17}/>}
               {busy.startsWith('Analizando') ? busy : analysed ? 'Volver a generar sugerencias' : 'Leer PDF y sugerir preguntas'}
             </button>
           </section>
@@ -176,7 +177,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
             <div className="canva-import-step"><span>3</span><div><strong>Vista previa y revisión</strong><small>Lo generado no modifica el examen hasta que selecciones preguntas.</small></div></div>
             {embed ? <div className="canva-import-embed"><iframe src={embed} title="Vista previa de Canva" loading="lazy" allowFullScreen /><a href={embed} target="_blank" rel="noreferrer"><ExternalLink size={14}/> Abrir original</a></div> : <div className="canva-import-preview-placeholder"><Presentation size={34}/><span>La presentación aparecerá cuando pegues un enlace válido.</span></div>}
             {hasAnalysis && <div className="canva-import-review">
-              <div className="canva-import-review-title"><BookOpen size={18}/><strong>{pages.length} explicaciones generadas</strong></div>
+              <div className="canva-import-review-title"><BookOpen size={18}/><strong>{pages.length} transcripciones extraídas</strong></div>
               <small>Son transcripciones del texto del PDF, no explicaciones generadas por IA. Revísalas antes de agregarlas.</small>
               {pages.map((page, index) => <details key={page.page + '-' + index}>
                 <summary>Diapositiva {page.page}: {page.title}</summary>

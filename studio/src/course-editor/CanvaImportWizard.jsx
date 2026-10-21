@@ -16,6 +16,7 @@ function assertSaved(result, label) {
 function questionIsReady(question) {
   return question.prompt.trim() && question.options.length === 4 &&
     question.options.every((option) => option.trim()) &&
+    new Set(question.options.map(option => option.trim().toLocaleLowerCase('es'))).size === 4 &&
     Number.isInteger(question.correctIndex) && question.correctIndex >= 0 && question.correctIndex <= 3
 }
 
@@ -134,7 +135,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         <div>
           <span className="eyebrow"><Sparkles size={15} /> Importación guiada · Canva</span>
           <h2 id="canva-import-title">Convierte tus diapositivas en capacitación</h2>
-          <p>Conserva la presentación original. Al adjuntar un PDF, extraemos localmente su texto y sugerimos preguntas editables sin servicios de pago.</p>
+          <p>Conserva la presentación original. El PDF se analiza frase por frase para proponer preguntas editables, incluso desde listas y frases cortas, sin servicios de pago.</p>
         </div>
         <button type="button" className="icon-button" aria-label="Cerrar importación" disabled={Boolean(busy)} onClick={close}><X size={19}/></button>
       </header>
@@ -188,12 +189,12 @@ export default function CanvaImportWizard({ close, onCreated }) {
             </div>}
             {analysed && <div className="canva-import-review">
               <div className="canva-import-review-title"><Check size={18}/><strong>{chosen.length} de {questions.length} preguntas elegidas</strong></div>
-              <small>Solo las seleccionadas se incorporarán al banco de preguntas, no se publicará el examen.</small>
+              <small>Las preguntas sin cuatro alternativas completas siguen como borradores editables. Solo se incorporan las seleccionadas y validadas.</small>
               {questions.map((question, index) => <details key={index}>
-                <summary><input type="checkbox" checked={question.selected} onClick={(e) => e.stopPropagation()} onChange={(e) => changeQuestion(index, {selected:e.target.checked})}/> Diapositiva {question.page} · {question.kind} · {question.prompt}</summary>
+                <summary><input type="checkbox" checked={question.selected} onClick={(e) => e.stopPropagation()} onChange={(e) => changeQuestion(index, {selected:e.target.checked})}/> Diapositiva {question.page} · {question.kind} {question.options.some(option => !option.trim()) ? '· Requiere completar alternativas' : ''} · {question.prompt}</summary>
                 {question.sourceExcerpt && <p className="canva-question-evidence">Fundamento de la diapositiva: {question.sourceExcerpt}</p>}
                 <label>Pregunta<textarea rows={2} value={question.prompt} onChange={(e) => changeQuestion(index, {prompt:e.target.value})}/></label>
-                {question.options.map((option, optionIndex) => <label key={optionIndex}>Opción {String.fromCharCode(65 + optionIndex)}<input value={option} onChange={(e) => changeQuestion(index, {options:question.options.map((v,i)=>i===optionIndex?e.target.value:v)})}/></label>)}
+                {question.options.map((option, optionIndex) => <label key={optionIndex}>Opción {String.fromCharCode(65 + optionIndex)}<input value={option} placeholder={option.trim() ? '' : 'Escribe una alternativa'} onChange={(e) => changeQuestion(index, {options:question.options.map((v,i)=>i===optionIndex?e.target.value:v)})}/></label>)}
                 <label>Respuesta correcta<select value={question.correctIndex} onChange={(e) => changeQuestion(index, {correctIndex:Number(e.target.value)})}>{question.options.map((_,i)=><option value={i} key={i}>{String.fromCharCode(65+i)}</option>)}</select></label>
               </details>)}
             </div>}

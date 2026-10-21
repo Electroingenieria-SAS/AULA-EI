@@ -4,6 +4,7 @@ import {
 } from 'lucide-react'
 import { getError, slugify, supabase } from './shared.js'
 import CourseBuilder from './course-editor/CourseBuilder.jsx'
+import CanvaImportWizard from './course-editor/CanvaImportWizard.jsx'
 import { clampScore, statusLabel } from './course-editor/course-utils.js'
 
 const EMPTY_COURSE = { title: '', description: '', passing_score: 80 }
@@ -34,6 +35,7 @@ const COURSE_TEMPLATES = [
 export default function CoursesManager({ courses, refresh, setMessage }) {
   const [selectedId, setSelectedId] = useState(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [form, setForm] = useState(EMPTY_COURSE)
   const [templateId, setTemplateId] = useState('blank')
   const [busy, setBusy] = useState(false)
@@ -123,9 +125,14 @@ export default function CoursesManager({ courses, refresh, setMessage }) {
           <h2>Diseña experiencias de aprendizaje completas.</h2>
           <p>Crea, estructura, revisa y publica cursos desde un constructor guiado. No necesitas conocer la estructura técnica de Aula EI.</p>
         </div>
-        <button className="primary-button courses-create-button" onClick={() => setCreateOpen(true)}>
-          <Plus size={18} /> Nueva capacitación
-        </button>
+        <div className="canva-import-trigger">
+          <button className="secondary-button" onClick={() => setImportOpen(true)}>
+            <Sparkles size={18} /> Importar desde Canva
+          </button>
+          <button className="primary-button courses-create-button" onClick={() => setCreateOpen(true)}>
+            <Plus size={18} /> Nueva capacitación
+          </button>
+        </div>
       </div>
 
       <div className="course-metrics-grid">
@@ -188,6 +195,18 @@ export default function CoursesManager({ courses, refresh, setMessage }) {
         </div>
       )}
     </section>
+
+    {importOpen && (
+      <CanvaImportWizard
+        close={() => setImportOpen(false)}
+        onCreated={async (courseId, message) => {
+          setMessage(message)
+          setImportOpen(false)
+          await refresh()
+          setSelectedId(courseId)
+        }}
+      />
+    )}
 
     {createOpen && (
       <CreateCourseModal

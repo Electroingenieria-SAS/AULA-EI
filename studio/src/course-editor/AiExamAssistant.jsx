@@ -26,7 +26,7 @@ export default function AiExamAssistant({ courseId, title, existingQuestions, re
     () => new Set((existingQuestions || []).map((item) => normalize(item.prompt))),
     [existingQuestions],
   )
-  const chosen = suggestions.filter((item) => item.selected && !item.saved)
+  const chosen = suggestions.filter((item) => item.selected && !item.saved && !knownPrompts.has(normalize(item.prompt)))
   const allSelectable = suggestions.filter((item) => !item.saved && !knownPrompts.has(normalize(item.prompt)))
   const canSave = chosen.length > 0 && chosen.every(isValidQuestion)
 
@@ -62,7 +62,7 @@ export default function AiExamAssistant({ courseId, title, existingQuestions, re
       for (const item of chosen) {
         if (knownPrompts.has(normalize(item.prompt))) continue
         const { data, error: createError } = await supabase.from('questions')
-          .insert({ course_id: courseId, prompt: item.prompt.trim(), sort_order: (existingQuestions || []).length + savedCount, active: true })
+          .insert({ course_id: courseId, prompt: item.prompt.trim(), sort_order: (existingQuestions || []).length + savedCount, active: false })
           .select('id').single()
         if (createError) throw createError
         const { error: optionsError } = await supabase.from('question_options')
@@ -70,6 +70,9 @@ export default function AiExamAssistant({ courseId, title, existingQuestions, re
             question_id: data.id, label: label.trim(), sort_order: index, is_correct: index === item.correctIndex,
           })))
         if (optionsError) throw new Error('No se pudieron agregar las respuestas de una pregunta. Revisa el banco antes de reintentar: ' + optionsError.message)
+        const { error: activateError } = await supabase.from('questions')
+          .update({ active: true }).eq('id', data.id)
+        if (activateError) throw new Error('La pregunta se guardó como inactiva. Revisa el banco antes de repetir: ' + activateError.message)
         savedCount += 1
         update(item.localId, { saved: true, selected: false })
       }

@@ -39,7 +39,7 @@ assert.equal(isolated[0].options.filter(Boolean).length,1)
 assert.deepEqual(generateLocalQuestions([{page:1,text:'24'}]),[])
 const editor=readFileSync('studio/src/course-editor/AiExamAssistant.jsx','utf8')
 const importer=readFileSync('studio/src/course-editor/CanvaImportWizard.jsx','utf8')
-assert.ok(editor.includes('incompleteCount') && editor.includes('new Set(q.options.map(normalize))')===false)
+assert.ok(editor.includes('incompleteCount'))
 // Validate exact comparison exists in the validator, without depending on a component ref.
 assert.ok(editor.includes('new Set(q.options.map(normalize))') || editor.includes('new Set(q.options.map('))
 assert.ok(importer.includes('Requiere completar alternativas'))

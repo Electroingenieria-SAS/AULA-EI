@@ -25,7 +25,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
     [existingQuestions],
   )
   const chosen = suggestions.filter((item) => item.selected && !item.saved && !knownPrompts.has(normalize(item.prompt)))
-  const allSelectable = suggestions.filter((item) => !item.saved && !knownPrompts.has(normalize(item.prompt)))
+  const allSelectable = suggestions.filter((item) => !item.saved && !knownPrompts.has(normalize(item.prompt)) && isValidQuestion(item))
   const canSave = chosen.length > 0 && chosen.every(isValidQuestion)
   const incompleteCount = suggestions.filter(item => !item.saved && !isValidQuestion(item)).length
 
@@ -51,7 +51,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
     items.map((item) => item.localId === localId ? { ...item, ...patch } : item))
 
   const selectAll = (checked) => setSuggestions((items) =>
-    items.map((item) => item.saved || knownPrompts.has(normalize(item.prompt)) ? item : { ...item, selected: checked }))
+    items.map((item) => item.saved || knownPrompts.has(normalize(item.prompt)) || !isValidQuestion(item) ? item : { ...item, selected: checked }))
 
   const save = async () => {
     if (!canSave) return setError('Revisa las preguntas seleccionadas y sus cuatro opciones antes de incorporarlas.')

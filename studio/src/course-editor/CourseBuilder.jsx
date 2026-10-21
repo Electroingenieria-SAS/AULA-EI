@@ -371,10 +371,10 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
             <SectionHeader
               eyebrow="Paso 3"
               title="Diseña el examen final"
-              description="Evalúa los conocimientos esenciales. Puedes crear preguntas una a una o importar varias desde una plantilla."
+              description="Evalúa los conocimientos esenciales. Puedes crear preguntas manualmente, importarlas o solicitar sugerencias de IA a partir del PDF de Canva."
               icon={FileQuestion}
             />
-            <ExamBuilder courseId={course.id} questions={questions} refresh={load} setMessage={setMessage} />
+            <ExamBuilder courseId={course.id} courseTitle={config.title} questions={questions} refresh={load} setMessage={setMessage} />
           </section>
         )}
 

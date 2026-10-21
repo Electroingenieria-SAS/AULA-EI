@@ -3,18 +3,9 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, CircleAlert, ExternalLink, File
 import { getError, slugify, supabase } from '../shared.js'
 import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { prepareCanvaPages, prepareCanvaQuestions } from './canva-import-model.js'
+import { MAX_PDF_BYTES, analyzeTrainingPdf } from './analyze-pdf-client.js'
 import '../styles/canva-import.css'
 
-const MAX_PDF_BYTES = 4 * 1024 * 1024
-
-async function fileToBase64(file) {
-  const bytes = new Uint8Array(await file.arrayBuffer())
-  const parts = []
-  for (let i = 0; i < bytes.length; i += 8192) {
-    parts.push(String.fromCharCode(...bytes.subarray(i, i + 8192)))
-  }
-  return btoa(parts.join(''))
-}
 
 function assertSaved(result, label) {
   if (result.error) throw new Error(label + ': ' + result.error.message)
@@ -50,19 +41,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
     setError('')
     setBusy('Analizando páginas y preparando preguntas…')
     try {
-      const pdf_base64 = await fileToBase64(pdf)
-      const { data, error: invokeError } = await supabase.functions.invoke('analyze-course-pdf', {
-        body: { title: title.trim(), pdf_base64, consent: true },
-      })
-      if (invokeError) {
-        const response = invokeError.context
-        let remoteMessage = ''
-        if (response && typeof response.json === 'function') {
-          try { remoteMessage = (await response.json())?.error || '' } catch {}
-        }
-        throw new Error(remoteMessage || invokeError.message || 'El análisis no está disponible.')
-      }
-      if (data?.error) throw new Error(data.error)
+      const data = await analyzeTrainingPdf({ file: pdf, title, consent })
       const preparedPages = prepareCanvaPages(data?.pages)
       if (!preparedPages.length) throw new Error('No se encontraron diapositivas con texto interpretable. Puedes importar el enlace sin IA.')
       setPages(preparedPages)

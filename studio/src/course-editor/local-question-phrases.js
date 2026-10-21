@@ -39,7 +39,11 @@ function isHeading(text, isFirst) {
   if (/[.!?,;:]$/.test(text)) return false
   if (actionVerb.test(text) && !isFirst) return false
   const words=text.split(/\s+/)
-  return words.length<=8 && (isFirst || words.length<=6)
+  if(isFirst) return words.length<=8
+  // On Canva exports, short words below the first heading are usually
+  // unbulleted list elements, not new titles. Only obvious all-caps headings
+  // reset the context; otherwise every line remains a candidate.
+  return words.length>=2 && text===text.toLocaleUpperCase('es')
 }
 function fromPair(page, head, text, evidence) {
   const name=strip(head), meaning=strip(text)

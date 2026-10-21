@@ -17,6 +17,9 @@ export function prepareCanvaQuestions(value) {
       prompt: String(entry.prompt || '').slice(0, 400),
       options: Array.isArray(entry.options) ? entry.options.slice(0, 4).map((v) => String(v || '').slice(0, 250)) : [],
       correctIndex: Number(entry.correctIndex),
+      kind: String(entry.kind || 'Comprensión').slice(0, 55),
+      difficulty: String(entry.difficulty || 'Comprensión').slice(0, 35),
+      sourceExcerpt: String(entry.sourceExcerpt || '').slice(0, 500),
       selected: false,
     })).filter((entry) => entry.prompt.trim() && entry.options.length === 4 && entry.options.every((v) => v.trim()) && Number.isInteger(entry.correctIndex) && entry.correctIndex >= 0 && entry.correctIndex < 4)
 }

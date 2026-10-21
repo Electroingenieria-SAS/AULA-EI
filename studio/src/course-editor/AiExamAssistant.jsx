@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { AlertCircle, BookOpenCheck, CheckCircle2, ExternalLink, FileQuestion, Link2, Loader2, Presentation, Sparkles, Upload } from 'lucide-react'
 import { analyzeTrainingPdf } from './analyze-pdf-client.js'
 import { prepareCanvaQuestions } from './canva-import-model.js'
@@ -18,6 +18,7 @@ function isValidQuestion(q) {
 export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '', existingQuestions, refresh, setMessage, useInEditor }) {
   const [canvaUrl, setCanvaUrl] = useState(initialCanvaUrl)
   const validCanvaUrl = useMemo(() => normalizeCanvaEmbedUrl(canvaUrl), [canvaUrl])
+  const fileInputRef = useRef(null)
   const [file, setFile] = useState(null)
   const [consent, setConsent] = useState(false)
   const [suggestions, setSuggestions] = useState([])
@@ -34,9 +35,20 @@ export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '',
   const canSave = chosen.length > 0 && chosen.every(isValidQuestion)
 
   const analyze = async () => {
-    setBusy('Analizando material…')
     setError('')
     setNotice('')
+    if (!file) {
+      setError(validCanvaUrl
+        ? 'La presentación de Canva está enlazada, pero su visor público no permite extraer las diapositivas. Selecciona el PDF exportado desde ese Canva para generar preguntas reales.'
+        : 'Selecciona el PDF de la presentación que deseas analizar.')
+      fileInputRef.current?.click()
+      return
+    }
+    if (!consent) {
+      setError('Marca la autorización de análisis antes de enviar el PDF al proveedor de IA.')
+      return
+    }
+    setBusy('Analizando material…')
     try {
       const analysis = await analyzeTrainingPdf({ file, title, consent })
       const next = prepareCanvaQuestions(analysis.suggested_questions)
@@ -119,11 +131,11 @@ export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '',
       <label className="ai-exam-file">
         <Upload size={19}/>
         <span>{file ? file.name : 'Adjuntar PDF de la misma presentación (hasta 4 MB)'}</span>
-        <input type="file" accept="application/pdf,.pdf" onChange={(e) => { setFile(e.target.files?.[0] || null); setSuggestions([]); setLoaded(false); setConsent(false); setNotice(''); setError('') }}/>
+        <input ref={fileInputRef} type="file" accept="application/pdf,.pdf" onChange={(e) => { setFile(e.target.files?.[0] || null); setSuggestions([]); setLoaded(false); setNotice(''); setError('') }}/>
       </label>
-      <button className="primary-button" type="button" disabled={!file || !consent || Boolean(busy)}
+      <button className="primary-button" type="button" disabled={Boolean(busy)}
         onClick={analyze}>{busy === 'Analizando material…' ? <Loader2 size={17} className="spin"/> : <Sparkles size={17}/>}
-        {busy === 'Analizando material…' ? busy : 'Analizar PDF y generar sugerencias'}</button>
+        {busy === 'Analizando material…' ? busy : 'Analizar y generar sugerencias'}</button>
     </div>
     <label className="ai-exam-consent">
       <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}/>

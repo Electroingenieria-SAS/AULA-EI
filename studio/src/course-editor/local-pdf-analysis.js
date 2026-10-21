@@ -28,9 +28,9 @@ export async function analyzeLocalPdf(file) {
         if (typeof item.str !== 'string') continue
         const pos=Array.isArray(item.transform) ? {x:item.transform[4],y:item.transform[5]} : null
         if (previous && pos &&
-          (Math.abs(pos.y-previous.y)>2 || pos.x < previous.x-4)) fragments.push('\\n')
+          (Math.abs(pos.y-previous.y)>2 || pos.x < previous.x-4)) fragments.push('\n')
         fragments.push(item.str)
-        if (item.hasEOL) { fragments.push('\\n'); previous=null }
+        if (item.hasEOL) { fragments.push('\n'); previous=null }
         else {fragments.push(' ');previous=pos}
       }
       pages.push({page:index,text:fragments.join('').slice(0,10000)})

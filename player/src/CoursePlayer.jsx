@@ -14,6 +14,7 @@ import { ContentExperience, CourseOutline, useCourseAsset } from './course-playe
 import ImageGallery from './course-player/ImageGallery.jsx'
 import StudyReview from './course-player/StudyReview.jsx'
 import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
+import { shouldAskTransitionQuestion } from '../../src/guided-slides.js'
 import { appUrl, navigateLearner } from './navigation.js'
 import { invalidateCache } from '../../src/data-cache.js'
 import { supabase } from './supabase.js'
@@ -258,13 +259,9 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const goNext = async () => {
     if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy || practiceGateOpen) return
     const next = allBlocks[currentIndex + 1] || null
-    // The original Canva iframe cannot report its internal page changes.
-    // Guided PDF slide images are first-party blocks: show the random quiz
-    // on every forward slide transition, including when revisiting a slide.
-    const isGuidedSlide = currentBlock?.type === 'image'
-      && currentBlock?.content?.provider === 'canva_guided_pdf'
-      && currentBlock?.content?.quiz_between_slides === true
-    if (completed.has(currentBlockId) && !isGuidedSlide) {
+    // Guided slide images can report a real page transition, unlike the
+    // cross-origin Canva iframe. Ask again on each forward slide advance.
+    if (!shouldAskTransitionQuestion(currentBlock,completed.has(currentBlockId))) {
       if (next) selectBlock(next.id)
       else await startExam()
       return

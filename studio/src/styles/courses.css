@@ -72,7 +72,7 @@
 
 /* Authoring shell */
 .course-authoring-studio{min-width:0}
-.course-authoring-header{position:sticky;top:72px;z-index:30;margin:-4px -4px 16px;padding:12px 13px;border:1px solid #dbe5ef;border-radius:16px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(17,47,82,.07);display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px}
+.course-authoring-header{position:static;top:auto;z-index:auto;margin:-4px -4px 16px;padding:12px 13px;border:1px solid #dbe5ef;border-radius:16px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(17,47,82,.07);display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px}
 .course-authoring-title{min-width:0}
 .course-authoring-title-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
 .course-authoring-title h2{margin:0;font-size:1.08rem;color:#173b69;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

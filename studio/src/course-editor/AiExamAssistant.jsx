@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { AlertCircle, BookOpenCheck, CheckCircle2, ExternalLink, FileQuestion, Link2, Loader2, Presentation, Sparkles, Upload } from 'lucide-react'
 import { analyzeTrainingPdf } from './analyze-pdf-client.js'
 import { prepareCanvaQuestions } from './canva-import-model.js'
@@ -18,6 +18,7 @@ function isValidQuestion(q) {
 export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '', existingQuestions, refresh, setMessage, useInEditor }) {
   const [canvaUrl, setCanvaUrl] = useState(initialCanvaUrl)
   const validCanvaUrl = useMemo(() => normalizeCanvaEmbedUrl(canvaUrl), [canvaUrl])
+  const [canvaConnection, setCanvaConnection] = useState({ loading: true, configured: false, connected: false, error: '' })
   const [file, setFile] = useState(null)
   const [consent, setConsent] = useState(false)
   const [suggestions, setSuggestions] = useState([])
@@ -33,12 +34,42 @@ export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '',
   const allSelectable = suggestions.filter((item) => !item.saved && !knownPrompts.has(normalize(item.prompt)))
   const canSave = chosen.length > 0 && chosen.every(isValidQuestion)
 
+  useEffect(() => {
+    let alive = true
+    supabase.functions.invoke('aula-canva-connect', { body: {action:'status'} })
+      .then(({data,error}) => {
+        if (!alive) return
+        if (error || data?.error) {
+          setCanvaConnection({loading:false,configured:false,connected:false,error:'No se pudo consultar la conexión de Canva.'})
+        } else {
+          setCanvaConnection({loading:false,configured:Boolean(data?.configured),connected:Boolean(data?.connected),error:''})
+        }
+      }).catch(() => {
+        if (alive) setCanvaConnection({loading:false,configured:false,connected:false,error:'No se pudo consultar Canva.'})
+      })
+    return () => { alive = false }
+  }, [])
+
+  const connectCanva = async () => {
+    setBusy('Conectando con Canva…')
+    setError('')
+    try {
+      const {data,error:invokeError}=await supabase.functions.invoke('aula-canva-connect',{body:{action:'start'}})
+      if (invokeError || data?.error) throw new Error(data?.error || invokeError?.message || 'No fue posible iniciar sesión con Canva.')
+      if (!data?.authorization_url?.startsWith('https://www.canva.com/api/oauth/authorize?')) throw new Error('Canva devolvió una URL de autorización inválida.')
+      window.location.assign(data.authorization_url)
+    } catch(err) {
+      setError(getError(err,'No se pudo conectar Canva.'))
+      setBusy('')
+    }
+  }
+
   const analyze = async () => {
     setBusy('Analizando material…')
     setError('')
     setNotice('')
     try {
-      const analysis = await analyzeTrainingPdf({ file, title, consent })
+      const analysis = await analyzeTrainingPdf({ file, canvaUrl: validCanvaUrl, title, consent })
       const next = prepareCanvaQuestions(analysis.suggested_questions)
       setSuggestions(next.map((item, index) => ({ ...item, localId: index, saved: false })))
       setLoaded(true)
@@ -110,10 +141,17 @@ export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '',
       {canvaUrl.trim() && !validCanvaUrl &&
         <span role="alert" className="ai-exam-link-invalid">Utiliza un enlace completo de canva.com/design/... o el código de inserción proporcionado por Canva.</span>}
       {validCanvaUrl && <div className="ai-exam-link-preview">
-        <div className="ai-exam-link-preview-top"><Presentation size={16}/><strong>Vista previa de la presentación</strong><span>Canva vinculado</span></div>
+        <div className="ai-exam-link-preview-top"><Presentation size={16}/><strong>Vista previa de la presentación</strong><span>Enlace válido</span></div>
         <iframe loading="lazy" title="Presentación Canva para revisar preguntas" src={validCanvaUrl} allowFullScreen/>
       </div>}
-      <p className="ai-exam-link-help">El enlace permite visualizar la presentación, pero por sí solo no da acceso al texto de sus páginas. La lectura automática requiere un PDF o una conexión autorizada con Canva.</p>
+      <p className="ai-exam-link-help">Puedes analizar el enlace directamente si has conectado una cuenta de Canva con permisos sobre este diseño. AULA EI exportará temporalmente las diapositivas mediante la API oficial, sin pedirte el PDF manualmente.</p>
+      {canvaConnection.loading ? <p className="ai-exam-connection"><Loader2 className="spin" size={15}/> Comprobando conexión de Canva…</p>
+        : <div className="ai-exam-connection">
+          {canvaConnection.connected ? <span className="ai-exam-connection-ok"><CheckCircle2 size={16}/> Cuenta de Canva conectada</span>
+            : <span>{canvaConnection.configured ? 'Canva no está conectado a tu cuenta de AULA EI.' : 'La integración oficial de Canva todavía no está configurada.'}</span>}
+          {canvaConnection.configured && !canvaConnection.connected && <button type="button" className="secondary-button compact" disabled={Boolean(busy)} onClick={connectCanva}><Link2 size={15}/> Conectar Canva</button>}
+          {canvaConnection.error && <small>{canvaConnection.error}</small>}
+        </div>}
     </div>
     <div className="ai-exam-upload-row">
       <label className="ai-exam-file">
@@ -121,15 +159,15 @@ export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '',
         <span>{file ? file.name : 'Adjuntar PDF de la misma presentación (hasta 4 MB)'}</span>
         <input type="file" accept="application/pdf,.pdf" onChange={(e) => { setFile(e.target.files?.[0] || null); setSuggestions([]); setLoaded(false); setConsent(false); setNotice(''); setError('') }}/>
       </label>
-      <button className="primary-button" type="button" disabled={!file || !consent || Boolean(busy)}
+      <button className="primary-button" type="button" disabled={(!file && !validCanvaUrl) || !consent || Boolean(busy)}
         onClick={analyze}>{busy === 'Analizando material…' ? <Loader2 size={17} className="spin"/> : <Sparkles size={17}/>}
-        {busy === 'Analizando material…' ? busy : 'Analizar PDF y generar sugerencias'}</button>
+        {busy === 'Analizando material…' ? busy : file ? 'Analizar PDF y generar sugerencias' : 'Analizar enlace de Canva'}</button>
     </div>
     <label className="ai-exam-consent">
       <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}/>
-      Autorizo el envío del PDF al proveedor de IA para generar preguntas. No incluir información reservada sin autorización.
+      Autorizo el análisis de este diseño de Canva o PDF y su envío al proveedor de IA para generar preguntas. No incluir información reservada sin autorización.
     </label>
-    <div className="ai-exam-tip"><BookOpenCheck size={16}/> {validCanvaUrl && !file ? 'Presentación enlazada. Para generar preguntas, exporta su PDF desde Canva y adjúntalo arriba. ' : ''}Puedes revisar y modificar cada pregunta; ninguna se agrega automáticamente y el examen no se publica desde aquí.</div>
+    <div className="ai-exam-tip"><BookOpenCheck size={16}/> {validCanvaUrl && !file && !canvaConnection.connected ? 'Para analizar el enlace, primero debes conectar Canva. Como alternativa puedes adjuntar el PDF. ' : ''}Puedes revisar y modificar cada pregunta; ninguna se agrega automáticamente y el examen no se publica desde aquí.</div>
     {error && <div className="ai-exam-error" role="alert"><AlertCircle size={17}/>{error}</div>}
     {notice && <div className="ai-exam-notice" role="status"><CheckCircle2 size={17}/>{notice}</div>}
     {loaded && suggestions.length > 0 && <>

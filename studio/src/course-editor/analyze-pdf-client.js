@@ -1,4 +1,5 @@
 import { supabase } from '../shared.js'
+import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 
 export const MAX_PDF_BYTES = 4 * 1024 * 1024
 
@@ -25,14 +26,16 @@ async function fileToBase64(file) {
  * No media is persisted by this utility. The PDF leaves the browser only
  * after explicit confirmation by the author, through an authenticated Edge Function.
  */
-export async function analyzeTrainingPdf({ file, title, consent }) {
-  validateTrainingPdf(file)
+export async function analyzeTrainingPdf({ file, canvaUrl = '', title, consent }) {
+  const normalizedCanva = normalizeCanvaEmbedUrl(canvaUrl)
+  if (!file && !normalizedCanva) throw new Error('Adjunta un PDF o pega un enlace de Canva válido.')
+  if (file) validateTrainingPdf(file)
   if (!String(title || '').trim()) throw new Error('Define el título de la capacitación.')
-  if (!consent) throw new Error('Autoriza el análisis de este archivo por el proveedor de IA.')
+  if (!consent) throw new Error('Autoriza el análisis de este material por el proveedor de IA.')
   const { data, error } = await supabase.functions.invoke('analyze-course-pdf', {
     body: {
       title: String(title).trim().slice(0, 140),
-      pdf_base64: await fileToBase64(file),
+      ...(file ? { pdf_base64: await fileToBase64(file) } : { canva_url: normalizedCanva }),
       consent: true,
     },
   })

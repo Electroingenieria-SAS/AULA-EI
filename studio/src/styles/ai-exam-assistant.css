@@ -48,3 +48,7 @@
 .ai-exam-link-preview-top span{margin-left:auto;color:#206448;background:#e6f5ed;border-radius:999px;padding:4px 9px;font-size:.7rem;font-weight:700}
 .ai-exam-link-preview iframe{display:block;border:0;width:100%;height:auto;aspect-ratio:16/9;background:#fff}
 @media(max-width:700px){.ai-exam-canva-source{padding:12px}.ai-exam-link-row{flex-direction:column}.ai-exam-link-row>a{align-self:flex-start}.ai-exam-link-preview iframe{aspect-ratio:4/3}}
+
+.ai-exam-connection{display:flex;align-items:center;flex-wrap:wrap;gap:9px;border-radius:10px;background:#f5f8fd;border:1px solid #dfebf8;padding:10px 13px;color:#486781;font-size:.81rem;line-height:1.45}
+.ai-exam-connection-ok{display:inline-flex;align-items:center;gap:7px;color:#196844;font-weight:700}
+.ai-exam-connection small{display:block;width:100%;font-size:.75rem;color:#9e4a34}

@@ -4,6 +4,7 @@ import {
   BookOpen, BrainCircuit, Check, CheckCircle2, ChevronRight, CircleAlert, ExternalLink, File, FileAudio, FileText, Gamepad2, GraduationCap, Image as ImageIcon, Link2, Loader2, LockKeyhole, Maximize2, PlayCircle, Presentation, ShieldCheck, Video, X,
 } from 'lucide-react'
 import { safeExternalUrl } from '../../../src/security.js'
+import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { signedAsset } from '../supabase.js'
 import { ReadingContent } from './CoursePlayerViews.jsx'
 import LearningGame from '../games/LearningGame.jsx'
@@ -325,6 +326,7 @@ function youtubeEmbed(url) {
 function normalizeExternalUrl(url, type) {
   const raw = url.trim()
   if (!raw) return ''
+  if (/canva\.com/i.test(raw)) return type === 'presentation' ? normalizeCanvaEmbedUrl(raw) : ''
   const driveId = googleDriveId(raw)
   if (driveId) return type === 'image' ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w2400` : `https://drive.google.com/file/d/${driveId}/preview`
   if (/youtube\.com|youtu\.be/i.test(raw)) return safeExternalUrl(youtubeEmbed(raw))
@@ -333,5 +335,5 @@ function normalizeExternalUrl(url, type) {
 }
 
 function isEmbedProvider(url) {
-  return /drive\.google\.com|onedrive\.live\.com|1drv\.ms|youtube\.com\/embed/i.test(url)
+  return /drive\.google\.com|onedrive\.live\.com|1drv\.ms|youtube\.com\/embed|www\.canva\.com\/design/i.test(url)
 }

@@ -67,7 +67,7 @@ function fromInstruction(page, item, heading) {
   match=line.match(/^(?:utilizar|usar|mantener|verificar|revisar|registrar|reportar|aplicar|proteger|identificar|conservar|guardar|confirmar|comunicar|clasificar|depositar|asegurar|implementar|realizar|emplear|llevar|activar|desactivar|notificar|completar)\s+.{7,175}$/i)
   if(match)return make(page,'Medida práctica',anchor,line,item,
     `¿Qué medida concreta se indica dentro de «${anchor}»?`,'procedures','Aplicación')
-  if(context && meaningful(line,7) && line.length<=150)
+  if(context && meaningful(line,4) && line.length<=150)
     return make(page,'Elemento',context,line,item,
       `¿Qué elemento o indicación se incluye en «${context}»?`,'items','Comprensión')
   return null

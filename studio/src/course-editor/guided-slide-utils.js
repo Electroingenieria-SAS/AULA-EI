@@ -2,32 +2,12 @@
 // course-assets bucket only after an authorized course editor explicitly asks.
 // No premium Canva/OpenAI service and no attempt to read cross-origin iframe state.
 import { supabase, uploadCourseAsset } from '../shared.js'
+import { guidedSlideContent } from '../../../src/guided-slides.js'
 
 export const MAX_GUIDED_SLIDES = 50
 const MAX_RENDER_WIDTH = 1440
 const MAX_SLIDE_BYTES = 1_750_000
-
-export function guidedSlideContent(index, total, source = 'canva_pdf') {
-  return {
-    provider: 'canva_guided_pdf',
-    source,
-    slide_number: index + 1,
-    slide_total: total,
-    quiz_between_slides: true,
-  }
-}
-
-export function isGuidedSlide(block) {
-  return block?.type === 'image'
-    && block?.content?.provider === 'canva_guided_pdf'
-    && block?.content?.quiz_between_slides === true
-}
-
-export function hasGuidedSlides(phases) {
-  return Array.isArray(phases) && phases.some(
-    phase => (phase.blocks || []).some(isGuidedSlide),
-  )
-}
+const MAX_TOTAL_BYTES = 20 * 1024 * 1024
 
 export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
   if (!file) throw new Error('Selecciona el PDF exportado desde Canva.')
@@ -41,6 +21,7 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
   }
   const job = getDocument({ data: bytes, isEvalSupported: false, useSystemFonts: true })
   const slides = []
+  let totalBytes = 0
   try {
     const pdfDocument = await job.promise
     if (pdfDocument.numPages > MAX_GUIDED_SLIDES) {
@@ -65,6 +46,8 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
         if (!blob || blob.size > MAX_SLIDE_BYTES) {
           throw new Error('La diapositiva ' + number + ' resulta demasiado grande. Reduce las imágenes del PDF.')
         }
+        totalBytes += blob.size
+        if(totalBytes>MAX_TOTAL_BYTES) throw new Error('Las diapositivas superan el límite de 20 MB. Comprime el PDF o divídelo en varios módulos.')
         slides.push({index: number - 1,blob,
           filename: 'diapositiva-' + String(number).padStart(3,'0') + (blob.type === 'image/webp' ? '.webp' : '.png')})
       } finally { page.cleanup() }

@@ -61,7 +61,7 @@ function factFrom(sentence, page) {
   match = s.match(/^(.{8,130}?)\s+(?:porque|debido a que|ya que|puesto que)\s+(.{12,190})$/i)
   if (match) return put('Causa',match[1],match[2],
     `¿Por qué ${match[1].toLocaleLowerCase('es')}?`, 'causes','Análisis')
-  match = s.match(/^(.{8,125}?)\s+(?:puede ocasionar|puede provocar|puede causar|puede generar|genera|provoca|ocasiona|causa)\s+(.{12,170})$/i)
+  match = s.match(/^(.{8,125}?)\s+(?:puede ocasionar|puede provocar|puede causar|puede generar|genera|provoca|ocasiona)\s+(.{12,170})$/i)
   if (match) return put('Consecuencia',match[1],match[2],
     `¿Qué consecuencia se relaciona con ${match[1].toLocaleLowerCase('es')}?`, 'effects','Análisis')
   match = s.match(/^(.{8,130}?)\s+(?:ayuda a evitar|permite prevenir|contribuye a evitar|reduce el riesgo de|previene|evita)\s+(.{10,170})$/i)

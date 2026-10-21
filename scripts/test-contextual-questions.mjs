@@ -50,7 +50,8 @@ assert.ok(incident && incident.options[incident.correctIndex].includes('suspende
 const inspection=questions.find(q=>q.prompt.includes('inspección visual'))
 assert.ok(inspection && inspection.options[inspection.correctIndex].includes('identificar anomalías'))
 assert.deepEqual(generateLocalQuestions([{page:1,text:'Una imagen sin texto útil'}]),[])
-assert.deepEqual(generateLocalQuestions([{page:1,text:'La inspección visual permite identificar anomalías en las máquinas antes de operarlas.'}]),[],
-  'Do not fabricate plausible distractors from a single sentence')
+const oneFact=generateLocalQuestions([{page:1,text:'La inspección visual permite identificar anomalías en las máquinas antes de operarlas.'}])
+assert.equal(oneFact.length,1,'Keep answerable sentence as editable draft even without other alternatives')
+assert.equal(oneFact[0].options.filter(Boolean).length,1,'Do not fabricate plausible distractors from a single sentence')
 assert.ok(generateLocalQuestions(pages,{maxQuestions:4}).length<=4)
 console.log('Contextual grounded PDF questions: OK ('+questions.length+' questions, kinds '+[...kinds].join(', ')+')')

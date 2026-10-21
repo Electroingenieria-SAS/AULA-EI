@@ -1,3 +1,5 @@
+import { extractPhraseFacts } from './local-question-phrases.js'
+
 // Preguntas contextuales construidas localmente a partir de relaciones
 // explícitas del PDF. Sin LLM, servicios externos ni contenido inventado.
 // Los distractores también proceden de los textos de estudio y requieren revisión.
@@ -119,25 +121,36 @@ function alternatives(correct, facts) {
   return picked
 }
 
-export function generateLocalQuestions(pages, {maxQuestions=20}={}) {
-  const facts=factsFromPages(pages)
+export function generateLocalQuestions(pages, {maxQuestions=30}={}) {
+  const combined=[...factsFromPages(pages),...extractPhraseFacts(pages)]
+  const keys=new Set()
+  const facts=combined.filter(f=>{
+    const key=f.page+'|'+keyFor(f.answer)+'|'+keyFor(f.theme)
+    if(keys.has(key))return false
+    keys.add(key)
+    return true
+  })
   const usable=facts.map(f=>({...f,distractors:alternatives(f,facts)}))
-    .filter(f=>f.distractors.length===3)
   // Prioritise practical/causal relationships over definitions, then rotate pages.
   const ranked=usable.sort((a,b)=>{
     const weight={Situación:0,Secuencia:1,Aplicación:2,Prevención:3,Causa:4,Consecuencia:5,Procedimiento:6,Función:7,Concepto:8}
     return (weight[a.kind]??9)-(weight[b.kind]??9) || a.page-b.page
   })
   const output=[], pageCount=new Map(), usedPrompt=new Set()
+  // Keep answerable questions first, but never drop substantive prompts merely
+  // because the presentation cannot supply three distinct alternatives.
+  ranked.sort((a,b)=>b.distractors.length-a.distractors.length)
   for(const f of ranked) {
     if(output.length>=maxQuestions)break
-    if((pageCount.get(f.page)||0)>=3 || usedPrompt.has(keyFor(f.prompt)))continue
+    if((pageCount.get(f.page)||0)>=4 || usedPrompt.has(keyFor(f.prompt)))continue
     const correctIndex=output.length%4
     const options=[...f.distractors]
+    while(options.length<3)options.push('')
     options.splice(correctIndex,0,f.answer)
     output.push({
       page:f.page,prompt:f.prompt,options,correctIndex,
-      sourceExcerpt:f.sourceExcerpt,kind:f.kind,difficulty:f.difficulty,selected:false,
+      sourceExcerpt:f.sourceExcerpt,kind:f.kind,difficulty:f.difficulty,
+      missingOptions:f.distractors.length<3,selected:false,
     })
     usedPrompt.add(keyFor(f.prompt))
     pageCount.set(f.page,(pageCount.get(f.page)||0)+1)

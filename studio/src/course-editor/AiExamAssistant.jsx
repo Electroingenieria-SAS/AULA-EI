@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
 import { AlertCircle, BookOpenCheck, CheckCircle2, FileQuestion, Loader2, Sparkles, Upload } from 'lucide-react'
-import { analyzeLocalPdf } from './local-pdf-analysis.js'
 import { prepareCanvaQuestions } from './canva-import-model.js'
 import { getError, supabase } from '../shared.js'
 import '../styles/ai-exam-assistant.css'
@@ -33,6 +32,7 @@ export default function AiExamAssistant({ courseId, existingQuestions, refresh, 
     setError('')
     setNotice('')
     try {
+      const { analyzeLocalPdf } = await import('./local-pdf-analysis.js')
       const analysis = await analyzeLocalPdf(file)
       const next = prepareCanvaQuestions(analysis.suggested_questions)
       setSuggestions(next.map((item, index) => ({ ...item, localId: index, saved: false })))

@@ -96,7 +96,7 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
       { id: 'cover', label: 'Imagen de portada', done: Boolean(config.cover_path || coverFile), step: 'overview', optional: true },
       { id: 'phase', label: 'Al menos una fase', done: phases.length > 0, step: 'structure' },
       { id: 'block', label: 'Contenido agregado', done: totalBlocks > 0, step: 'structure' },
-      { id: 'exam', label: 'Examen creado', done: questions.length > 0, step: 'exam' },
+      { id: 'exam', label: 'Mínimo 10 preguntas activas', done: questions.filter((question) => question.active !== false && (question.options || []).filter((option) => option.is_correct).length === 1 && (question.options || []).length >= 2).length >= 10, step: 'exam' },
     ]
     const requiredChecks = checks.filter((item) => !item.optional)
     const completed = requiredChecks.filter((item) => item.done).length

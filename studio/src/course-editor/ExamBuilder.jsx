@@ -250,7 +250,7 @@ export default function ExamBuilder({ courseId, questions, refresh, setMessage }
           </div>
         </article>
       })}
-      {!questions.length && <div className="authoring-empty-state small"><span><FileQuestion size={24} /></span><strong>Aún no hay preguntas</strong><p>Agrega al menos una pregunta para que la capacitación pueda publicarse.</p></div>}
+      {!questions.length && <div className="authoring-empty-state small"><span><FileQuestion size={24} /></span><strong>Aún no hay preguntas</strong><p>Agrega al menos diez preguntas activas para publicar la capacitación.</p></div>}
     </div>
   </div>
 }

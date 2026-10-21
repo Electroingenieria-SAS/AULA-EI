@@ -258,7 +258,13 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const goNext = async () => {
     if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy || practiceGateOpen) return
     const next = allBlocks[currentIndex + 1] || null
-    if (completed.has(currentBlockId)) {
+    // The original Canva iframe cannot report its internal page changes.
+    // Guided PDF slide images are first-party blocks: show the random quiz
+    // on every forward slide transition, including when revisiting a slide.
+    const isGuidedSlide = currentBlock?.type === 'image'
+      && currentBlock?.content?.provider === 'canva_guided_pdf'
+      && currentBlock?.content?.quiz_between_slides === true
+    if (completed.has(currentBlockId) && !isGuidedSlide) {
       if (next) selectBlock(next.id)
       else await startExam()
       return

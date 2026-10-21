@@ -1,16 +1,18 @@
 import React, { useMemo, useState } from 'react'
 import {
   ArrowDown, ArrowUp, Check, CheckCircle2, Download, Edit3,
-  FileQuestion, Loader2, Plus, Save, Trash2, Upload, X,
+  FileQuestion, Loader2, Plus, Save, Sparkles, Trash2, Upload, X,
 } from 'lucide-react'
 import { getError, supabase } from '../shared.js'
+import AiExamAssistant from './AiExamAssistant.jsx'
 
 const EMPTY_QUESTION = { prompt: '', a: '', b: '', c: '', d: '', correct: 'A' }
 
-export default function ExamBuilder({ courseId, questions, refresh, setMessage }) {
+export default function ExamBuilder({ courseId, courseTitle, questions, refresh, setMessage }) {
   const [form, setForm] = useState(EMPTY_QUESTION)
   const [editingId, setEditingId] = useState(null)
   const [importOpen, setImportOpen] = useState(false)
+  const [aiOpen, setAiOpen] = useState(false)
   const [importText, setImportText] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -189,11 +191,30 @@ export default function ExamBuilder({ courseId, questions, refresh, setMessage }
         <span>La nota mínima del curso se configura en “Información”. Marca una respuesta correcta en cada pregunta.</span>
       </div>
       <div className="toolbar-buttons exam-toolbar">
+        <button className="secondary-button compact" type="button" aria-expanded={aiOpen} onClick={() => setAiOpen((value) => !value)}><Sparkles size={16} /> {aiOpen ? 'Ocultar sugerencias' : 'Sugerir con IA'}</button>
         <button className="secondary-button compact" onClick={() => setImportOpen((value) => !value)}><Upload size={16} /> Importar</button>
         <button className="secondary-button compact" onClick={() => download('plantilla-examen-aula-ei.csv', template)}><Download size={16} /> Plantilla</button>
         <button className="secondary-button compact" onClick={() => download('preguntas-examen-aula-ei.csv', exportText)} disabled={!questions.length}><Download size={16} /> Exportar</button>
       </div>
     </div>
+
+    {aiOpen && <AiExamAssistant
+      courseId={courseId}
+      title={courseTitle}
+      existingQuestions={questions}
+      refresh={refresh}
+      setMessage={setMessage}
+      useInEditor={(question) => {
+        setEditingId(null)
+        setForm({
+          prompt: question.prompt, a: question.options[0] || '', b: question.options[1] || '',
+          c: question.options[2] || '', d: question.options[3] || '',
+          correct: ['A', 'B', 'C', 'D'][question.correctIndex] || 'A',
+        })
+        window.requestAnimationFrame(() => document.querySelector('.question-editor-pro')?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+        setMessage('Sugerencia copiada al editor. Revísala y pulsa Agregar pregunta para guardarla.')
+      }}
+    />}
 
     {importOpen && <div className="exam-import-panel">
       <div><strong>Importar varias preguntas</strong><span>Pega contenido con formato: Pregunta;A;B;C;D;Correcta</span></div>

@@ -22,7 +22,7 @@ for(const question of questions) {
   assert.equal(question.options.length,4)
   assert.ok(question.page>=1 && question.page<=5)
   assert.equal(question.selected,false)
-  assert.equal(question.sourceExcerpt,question.options[question.correctIndex], 'Respuesta correcta debe ser texto literal del PDF.')
+  assert.ok(question.sourceExcerpt.includes(question.options[question.correctIndex]), 'La respuesta correcta debe derivarse del texto literal del PDF.')
   assert.ok(pages.find(p=>p.page===question.page)?.text.includes(question.sourceExcerpt))
   assert.equal(new Set(question.options).size,4)
 }
@@ -45,4 +45,4 @@ assert.ok(!exam.includes('OPENAI_API_KEY') && !exam.includes('aula-canva-connect
 assert.ok(!importWizard.includes('analyze-course-pdf'))
 assert.ok(exam.includes('active: false') && exam.includes('.update({ active: true })'))
 assert.ok(!exam.includes('canvaUrl') && !exam.includes('window.location.assign'))
-console.log('PDF.js local, preguntas verificables y edición manual: OK')
+console.log('PDF.js local, preguntas contextualizadas y edición manual: OK')

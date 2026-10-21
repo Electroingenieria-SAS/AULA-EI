@@ -33,3 +33,7 @@
 .ai-exam-actions span{font-size:.78rem;color:#6e8097;line-height:1.45}
 @media(max-width:700px){.ai-exam-panel{padding:15px}.ai-exam-answer-grid{grid-template-columns:1fr}.ai-exam-actions{align-items:stretch;flex-direction:column}.ai-exam-actions .primary-button{width:100%;justify-content:center}.ai-exam-upload-row .primary-button{width:100%;justify-content:center}}
 
+
+.ai-exam-evidence{background:#f4f8fe;border-left:3px solid #88b3e5;border-radius:9px;padding:10px 12px;color:#415c7d;font-size:.81rem;line-height:1.5}
+.ai-exam-evidence strong{display:block;color:#24588b;margin-bottom:5px;font-size:.75rem}
+.ai-exam-evidence p{margin:0;overflow-wrap:anywhere}

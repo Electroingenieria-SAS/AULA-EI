@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, CircleAlert, ExternalLink, File
 import { getError, slugify, supabase } from '../shared.js'
 import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { prepareCanvaPages, prepareCanvaQuestions } from './canva-import-model.js'
-import { MAX_LOCAL_PDF_BYTES, analyzeLocalPdf } from './local-pdf-analysis.js'
+const MAX_LOCAL_PDF_BYTES = 12 * 1024 * 1024
 import '../styles/canva-import.css'
 
 
@@ -39,6 +39,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
     setError('')
     setBusy('Leyendo páginas localmente…')
     try {
+      const { analyzeLocalPdf } = await import('./local-pdf-analysis.js')
       const data = await analyzeLocalPdf(pdf)
       const preparedPages = prepareCanvaPages(data?.pages)
       if (!preparedPages.length) throw new Error('El PDF no contiene suficientes diapositivas con texto. Puedes importar la presentación sin generar preguntas.')

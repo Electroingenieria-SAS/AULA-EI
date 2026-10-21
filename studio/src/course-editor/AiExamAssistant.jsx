@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react'
-import { AlertCircle, BookOpenCheck, CheckCircle2, FileQuestion, Loader2, Sparkles, Upload } from 'lucide-react'
+import { AlertCircle, BookOpenCheck, CheckCircle2, ExternalLink, FileQuestion, Link2, Loader2, Presentation, Sparkles, Upload } from 'lucide-react'
 import { analyzeTrainingPdf } from './analyze-pdf-client.js'
 import { prepareCanvaQuestions } from './canva-import-model.js'
+import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { getError, supabase } from '../shared.js'
 import '../styles/ai-exam-assistant.css'
 
@@ -14,7 +15,9 @@ function isValidQuestion(q) {
     && Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex <= 3
 }
 
-export default function AiExamAssistant({ courseId, title, existingQuestions, refresh, setMessage, useInEditor }) {
+export default function AiExamAssistant({ courseId, title, initialCanvaUrl = '', existingQuestions, refresh, setMessage, useInEditor }) {
+  const [canvaUrl, setCanvaUrl] = useState(initialCanvaUrl)
+  const validCanvaUrl = useMemo(() => normalizeCanvaEmbedUrl(canvaUrl), [canvaUrl])
   const [file, setFile] = useState(null)
   const [consent, setConsent] = useState(false)
   const [suggestions, setSuggestions] = useState([])
@@ -92,24 +95,41 @@ export default function AiExamAssistant({ courseId, title, existingQuestions, re
       <div>
         <span className="eyebrow">Asistente pedagógico</span>
         <h3>Preguntas sugeridas desde tus diapositivas</h3>
-        <p>El enlace de Canva permite reproducir la presentación, pero no leer sus diapositivas. Adjunta el PDF exportado desde Canva para generar preguntas basadas en su contenido.</p>
+        <p>Pega el enlace de Canva para consultar las diapositivas durante la revisión. Para generar preguntas a partir de su contenido, adjunta también el PDF exportado desde el mismo diseño.</p>
       </div>
+    </div>
+    <div className="ai-exam-canva-source">
+      <label htmlFor="ai-exam-canva-url"><Link2 size={17}/> Enlace de tu presentación en Canva</label>
+      <div className="ai-exam-link-row">
+        <input id="ai-exam-canva-url" type="text" inputMode="url" spellCheck={false}
+          aria-invalid={Boolean(canvaUrl.trim() && !validCanvaUrl)}
+          value={canvaUrl} onChange={(e) => setCanvaUrl(e.target.value)}
+          placeholder="Pega el enlace de Canva o su código de inserción"/>
+        {validCanvaUrl && <a href={validCanvaUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={16}/> Abrir</a>}
+      </div>
+      {canvaUrl.trim() && !validCanvaUrl &&
+        <span role="alert" className="ai-exam-link-invalid">Utiliza un enlace completo de canva.com/design/... o el código de inserción proporcionado por Canva.</span>}
+      {validCanvaUrl && <div className="ai-exam-link-preview">
+        <div className="ai-exam-link-preview-top"><Presentation size={16}/><strong>Vista previa de la presentación</strong><span>Canva vinculado</span></div>
+        <iframe loading="lazy" title="Presentación Canva para revisar preguntas" src={validCanvaUrl} allowFullScreen/>
+      </div>}
+      <p className="ai-exam-link-help">El enlace permite visualizar la presentación, pero por sí solo no da acceso al texto de sus páginas. La lectura automática requiere un PDF o una conexión autorizada con Canva.</p>
     </div>
     <div className="ai-exam-upload-row">
       <label className="ai-exam-file">
         <Upload size={19}/>
-        <span>{file ? file.name : 'Adjuntar PDF de Canva (hasta 4 MB)'}</span>
+        <span>{file ? file.name : 'Adjuntar PDF de la misma presentación (hasta 4 MB)'}</span>
         <input type="file" accept="application/pdf,.pdf" onChange={(e) => { setFile(e.target.files?.[0] || null); setSuggestions([]); setLoaded(false); setConsent(false); setNotice(''); setError('') }}/>
       </label>
       <button className="primary-button" type="button" disabled={!file || !consent || Boolean(busy)}
         onClick={analyze}>{busy === 'Analizando material…' ? <Loader2 size={17} className="spin"/> : <Sparkles size={17}/>}
-        {busy === 'Analizando material…' ? busy : 'Generar sugerencias'}</button>
+        {busy === 'Analizando material…' ? busy : 'Analizar PDF y generar sugerencias'}</button>
     </div>
     <label className="ai-exam-consent">
       <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}/>
       Autorizo el envío del PDF al proveedor de IA para generar preguntas. No incluir información reservada sin autorización.
     </label>
-    <div className="ai-exam-tip"><BookOpenCheck size={16}/> Puedes revisar y modificar cada pregunta; ninguna se agrega automáticamente y el examen no se publica desde aquí.</div>
+    <div className="ai-exam-tip"><BookOpenCheck size={16}/> {validCanvaUrl && !file ? 'Presentación enlazada. Para generar preguntas, exporta su PDF desde Canva y adjúntalo arriba. ' : ''}Puedes revisar y modificar cada pregunta; ninguna se agrega automáticamente y el examen no se publica desde aquí.</div>
     {error && <div className="ai-exam-error" role="alert"><AlertCircle size={17}/>{error}</div>}
     {notice && <div className="ai-exam-notice" role="status"><CheckCircle2 size={17}/>{notice}</div>}
     {loaded && suggestions.length > 0 && <>

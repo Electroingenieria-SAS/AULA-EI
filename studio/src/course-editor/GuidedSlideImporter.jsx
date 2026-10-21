@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { BookOpenCheck, CheckCircle2, FileText, Images, Loader2, Sparkles, Upload } from 'lucide-react'
 import { getError, supabase } from '../shared.js'
-import { hasGuidedSlides, renderGuidedSlideBlobs, saveGuidedSlides } from './guided-slide-utils.js'
+import { hasGuidedSlides } from '../../../src/guided-slides.js'
+import { renderGuidedSlideBlobs, saveGuidedSlides } from './guided-slide-utils.js'
 import '../styles/guided-slides.css'
 
 export default function GuidedSlideImporter({courseId, courseStatus, phases, questions, refresh, setMessage}) {

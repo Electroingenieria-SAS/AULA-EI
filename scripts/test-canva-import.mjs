@@ -32,7 +32,7 @@ assert.ok(builder.includes('canvaUrl={findCourseCanvaPresentation(phases)}'), 'I
 assert.ok(editor.includes('initialCanvaUrl={canvaUrl}'), 'Pass a safe initial Canva URL to assistant')
 assert.ok(coach.includes('normalizeCanvaEmbedUrl(canvaUrl)'), 'The assistant must validate the pasted Canva URL')
 assert.ok(coach.includes('src={validCanvaUrl}'), 'Preview must only embed normalized Canva links')
-assert.ok(coach.includes('no da acceso al texto'), 'Explain why the public link cannot yield questions by itself')
+assert.ok(coach.includes('Conectar Canva') && coach.includes('sin pedirte el PDF manualmente'), 'Canva export requires an authorized account rather than a public iframe')
 
 assert.ok(coach.includes('active: false'), 'Suggested questions must start inactive')
 assert.ok(coach.includes('.update({ active: true })'), 'Questions must activate after saving options')

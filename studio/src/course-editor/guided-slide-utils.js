@@ -42,13 +42,13 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
   const job = getDocument({ data: bytes, isEvalSupported: false, useSystemFonts: true })
   const slides = []
   try {
-    const document = await job.promise
-    if (document.numPages > MAX_GUIDED_SLIDES) {
+    const pdfDocument = await job.promise
+    if (pdfDocument.numPages > MAX_GUIDED_SLIDES) {
       throw new Error('La presentación supera las 50 diapositivas. Divídela en PDF más pequeños.')
     }
-    for (let number = 1; number <= document.numPages; number++) {
-      onProgress('Preparando diapositiva ' + number + ' de ' + document.numPages)
-      const page = await document.getPage(number)
+    for (let number = 1; number <= pdfDocument.numPages; number++) {
+      onProgress('Preparando diapositiva ' + number + ' de ' + pdfDocument.numPages)
+      const page = await pdfDocument.getPage(number)
       try {
         const nativeSize = page.getViewport({scale: 1})
         const ratio = Math.min(2, MAX_RENDER_WIDTH / nativeSize.width)

@@ -5,7 +5,6 @@ const tidy = (value) => String(value || '').normalize('NFKC')
   .replace(/[\u200b-\u200f]/g, '').replace(/\s+/g, ' ').trim()
 const keyFor = (value) => tidy(value).toLocaleLowerCase('es')
   .replace(/[^a-záéíóúüñ\d]+/g, ' ').trim()
-const cap = (s) => s ? s.charAt(0).toLocaleUpperCase('es') + s.slice(1) : s
 const trimEnd = (s) => tidy(s).replace(/[.!?:;,\s]+$/g, '').trim()
 const goodText = (s, min=12, max=190) =>
   Boolean(s && s.length >= min && s.length <= max &&
@@ -37,7 +36,7 @@ function factFrom(sentence, page) {
     answer = trimEnd(answer)
     if (!goodText(theme,4,110) || !goodText(answer,10,190)) return null
     if (keyFor(theme) === keyFor(answer) || keyFor(answer).includes(keyFor(theme))) return null
-    return { page, kind, theme, answer:cap(answer), prompt, group, difficulty,
+    return { page, kind, theme, answer, prompt, group, difficulty,
       sourceExcerpt: sentence }
   }
   // Condition and contextual decision: exact action in response to given situation.

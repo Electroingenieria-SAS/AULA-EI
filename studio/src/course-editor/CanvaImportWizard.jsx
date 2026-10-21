@@ -62,12 +62,12 @@ export default function CanvaImportWizard({ close, onCreated }) {
   const saveDraft = async () => {
     if (!embed || !title.trim()) return setError('Se necesita un enlace válido de Canva y un título.')
     if (chosen.some((question) => !questionIsReady(question))) return setError('Corrige todas las preguntas seleccionadas antes de guardar.')
-    if (guidedSlides && pdf && chosen.length === 0) return setError('Para abrir preguntas emergentes, selecciona al menos una pregunta completa o desactiva el modo guiado.')
+    if (guidedSlides && pdf && analysed && chosen.length === 0) return setError('Para abrir preguntas emergentes, selecciona al menos una pregunta completa o desactiva el modo guiado.')
     setBusy('Creando capacitación en borrador…')
     setError('')
     let createdId = null
     try {
-      const enableGuided = Boolean(guidedSlides && pdf)
+      const enableGuided = Boolean(guidedSlides && pdf && analysed)
       const renderedSlides = enableGuided ? await renderGuidedSlideBlobs(pdf,setBusy) : []
       const slug = slugify(title.trim()) + '-' + crypto.randomUUID().slice(0, 8)
       const course = assertSaved(await supabase.from('courses')

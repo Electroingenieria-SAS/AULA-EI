@@ -274,7 +274,7 @@ export function BlockEditor({ courseId, phaseId, nextOrder, existing, done, setM
       }
 
       if (fileTypes.includes(form.type) && !file && !form.url.trim() && !existing?.asset_path) {
-        throw new Error('Sube un archivo o pega un enlace de Drive / OneDrive.')
+        throw new Error('Sube un archivo o pega un enlace público compatible (Canva, Drive o OneDrive).')
       }
 
       const payload = {
@@ -343,7 +343,7 @@ export function BlockEditor({ courseId, phaseId, nextOrder, existing, done, setM
       {(form.type === 'link' || fileTypes.includes(form.type)) && (
         <div className="resource-source-grid">
           <label>Enlace externo / Drive / OneDrive
-            <input value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} placeholder="https://…" />
+            <input value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} placeholder={form.type === 'presentation' ? 'Enlace de inserción de Canva, Drive o OneDrive' : 'https://…'} />
             <small className="helper-text">{form.type === 'link' ? 'Pega el enlace que abrirá el colaborador.' : 'Puedes usar un enlace si no quieres subir el archivo directamente.'}</small>
           </label>
           {fileTypes.includes(form.type) && (

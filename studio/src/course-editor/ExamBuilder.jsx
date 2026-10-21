@@ -8,7 +8,7 @@ import AiExamAssistant from './AiExamAssistant.jsx'
 
 const EMPTY_QUESTION = { prompt: '', a: '', b: '', c: '', d: '', correct: 'A' }
 
-export default function ExamBuilder({ courseId, courseTitle, canvaUrl = '', questions, refresh, setMessage }) {
+export default function ExamBuilder({ courseId, courseTitle, questions, refresh, setMessage }) {
   const [form, setForm] = useState(EMPTY_QUESTION)
   const [editingId, setEditingId] = useState(null)
   const [importOpen, setImportOpen] = useState(false)
@@ -191,7 +191,7 @@ export default function ExamBuilder({ courseId, courseTitle, canvaUrl = '', ques
         <span>La nota mínima del curso se configura en “Información”. Marca una respuesta correcta en cada pregunta.</span>
       </div>
       <div className="toolbar-buttons exam-toolbar">
-        <button className="secondary-button compact" type="button" aria-expanded={aiOpen} onClick={() => setAiOpen((value) => !value)}><Sparkles size={16} /> {aiOpen ? 'Ocultar sugerencias' : 'Sugerir con IA'}</button>
+        <button className="secondary-button compact" type="button" aria-expanded={aiOpen} onClick={() => setAiOpen((value) => !value)}><Sparkles size={16} /> {aiOpen ? 'Ocultar sugerencias' : 'Sugerir desde PDF'}</button>
         <button className="secondary-button compact" onClick={() => setImportOpen((value) => !value)}><Upload size={16} /> Importar</button>
         <button className="secondary-button compact" onClick={() => download('plantilla-examen-aula-ei.csv', template)}><Download size={16} /> Plantilla</button>
         <button className="secondary-button compact" onClick={() => download('preguntas-examen-aula-ei.csv', exportText)} disabled={!questions.length}><Download size={16} /> Exportar</button>
@@ -201,7 +201,6 @@ export default function ExamBuilder({ courseId, courseTitle, canvaUrl = '', ques
     {aiOpen && <AiExamAssistant
       courseId={courseId}
       title={courseTitle}
-      initialCanvaUrl={canvaUrl}
       existingQuestions={questions}
       refresh={refresh}
       setMessage={setMessage}

@@ -1,4 +1,5 @@
 import { extractPhraseFacts } from './local-question-phrases.js'
+import { generateAbcdOptions, mergeSlideEnumerations } from './local-answer-options.js'
 
 // Preguntas contextuales construidas localmente a partir de relaciones
 // explícitas del PDF. Sin LLM, servicios externos ni contenido inventado.
@@ -101,28 +102,9 @@ function factsFromPages(pages) {
   return all
 }
 
-function alternatives(correct, facts) {
-  const pool=facts.filter(f=>f.group===correct.group && f!==correct)
-    .filter(f=>keyFor(f.answer)!==keyFor(correct.answer))
-    .filter(f=>!keyFor(f.answer).includes(keyFor(correct.answer)) &&
-      !keyFor(correct.answer).includes(keyFor(f.answer)))
-    // Other topics, first; then same page topics if needed.
-    .sort((a,b)=>Number(a.page===correct.page)-Number(b.page===correct.page))
-  const picked=[]
-  const used=new Set([keyFor(correct.answer)])
-  for(const f of pool){
-    const key=keyFor(f.answer)
-    if(used.has(key))continue
-    if(picked.some(p=>key.includes(keyFor(p)) || keyFor(p).includes(key)))continue
-    used.add(key)
-    picked.push(f.answer)
-    if(picked.length>=3)break
-  }
-  return picked
-}
 
 export function generateLocalQuestions(pages, {maxQuestions=30}={}) {
-  const combined=[...factsFromPages(pages),...extractPhraseFacts(pages)]
+  const combined=mergeSlideEnumerations([...factsFromPages(pages),...extractPhraseFacts(pages)]).facts
   const keys=new Set()
   const facts=combined.filter(f=>{
     const key=f.page+'|'+keyFor(f.answer)+'|'+keyFor(f.theme)
@@ -130,29 +112,25 @@ export function generateLocalQuestions(pages, {maxQuestions=30}={}) {
     keys.add(key)
     return true
   })
-  const usable=facts.map(f=>({...f,distractors:alternatives(f,facts)}))
+  const usable=facts.map(f=>({...f,choice:generateAbcdOptions(f,facts,0)}))
   // Prioritise practical/causal relationships over definitions, then rotate pages.
   const ranked=usable.sort((a,b)=>{
-    const weight={Situación:0,Secuencia:1,Aplicación:2,Prevención:3,Causa:4,Consecuencia:5,Procedimiento:6,Función:7,Concepto:8}
+    const weight={Enumeración:0,Situación:1,Secuencia:2,Aplicación:3,Prevención:4,Causa:5,Consecuencia:6,Procedimiento:7,Función:8,Concepto:9,Elemento:10}
     return (weight[a.kind]??9)-(weight[b.kind]??9) || a.page-b.page
   })
   const output=[], pageCount=new Map(), usedPrompt=new Set()
-  // Keep answerable questions first, but never drop substantive prompts merely
-  // because the presentation cannot supply three distinct alternatives.
-  ranked.sort((a,b)=>b.distractors.length-a.distractors.length)
+  // Prioritise complete alternatives without suppressing useful partial drafts.
+  ranked.sort((a,b)=>Number(a.choice.missingOptions)-Number(b.choice.missingOptions))
   for(const f of ranked) {
     if(output.length>=maxQuestions)break
-    if((pageCount.get(f.page)||0)>=4 || usedPrompt.has(keyFor(f.prompt)))continue
-    const correctIndex=output.length%4
-    const options=[...f.distractors]
-    while(options.length<3)options.push('')
-    options.splice(correctIndex,0,f.answer)
+    if((pageCount.get(f.page)||0)>=4 || usedPrompt.has(keyFor(f.choice.prompt)))continue
+    const answer=generateAbcdOptions(f,facts,output.length%4)
     output.push({
-      page:f.page,prompt:f.prompt,options,correctIndex,
+      page:f.page,...answer,
       sourceExcerpt:f.sourceExcerpt,kind:f.kind,difficulty:f.difficulty,
-      missingOptions:f.distractors.length<3,selected:false,
+      selected:false,
     })
-    usedPrompt.add(keyFor(f.prompt))
+    usedPrompt.add(keyFor(answer.prompt))
     pageCount.set(f.page,(pageCount.get(f.page)||0)+1)
   }
   return output

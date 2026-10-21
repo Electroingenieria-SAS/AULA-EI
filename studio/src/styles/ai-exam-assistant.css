@@ -37,3 +37,6 @@
 .ai-exam-evidence{background:#f4f8fe;border-left:3px solid #88b3e5;border-radius:9px;padding:10px 12px;color:#415c7d;font-size:.81rem;line-height:1.5}
 .ai-exam-evidence strong{display:block;color:#24588b;margin-bottom:5px;font-size:.75rem}
 .ai-exam-evidence p{margin:0;overflow-wrap:anywhere}
+
+.ai-exam-suggested-answer{display:flex;align-items:flex-start;gap:7px;padding:10px 12px;border-radius:9px;background:#eaf7f2;color:#236448;font-size:.82rem;line-height:1.5;font-weight:700}
+.ai-exam-suggested-answer svg{flex:none;margin-top:2px}

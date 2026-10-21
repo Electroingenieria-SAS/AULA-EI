@@ -5,6 +5,7 @@ import {
 import { getError, signedAsset, supabase } from '../shared.js'
 import { appUrl } from '../../../src/paths.js'
 import ExamBuilder from './ExamBuilder.jsx'
+import GuidedSlideImporter from './GuidedSlideImporter.jsx'
 import {
   BlockEditor,
   BlockList,
@@ -304,6 +305,15 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
               title="Construye la ruta de aprendizaje"
               description="Organiza el curso en fases. Dentro de cada fase puedes combinar lecturas, videos, archivos, imágenes, enlaces, juegos y validaciones."
               icon={LayoutList}
+            />
+
+            <GuidedSlideImporter
+              courseId={course.id}
+              courseStatus={config.status}
+              phases={phases}
+              questions={questions}
+              refresh={load}
+              setMessage={setMessage}
             />
 
             <form className="phase-quick-create" onSubmit={addPhase}>

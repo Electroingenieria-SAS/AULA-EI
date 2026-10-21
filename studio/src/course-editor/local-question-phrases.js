@@ -58,7 +58,7 @@ function fromPair(page, head, text, evidence) {
 }
 function fromInstruction(page, item, heading) {
   const line=strip(item), context=strip(heading)
-  if(!meaningful(line,12)) return null
+  if(!meaningful(line,4)) return null
   const anchor=context || 'la capacitación'
   let match
   // Short instructions should still produce a content-specific question.

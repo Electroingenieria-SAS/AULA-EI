@@ -39,3 +39,5 @@
 @media(max-width:860px){.canva-import-backdrop{padding:0}.canva-import-dialog{max-height:100dvh;min-height:100dvh;border-radius:0}.canva-import-header,.canva-import-content,.canva-import-footer{padding:18px}.canva-import-content{grid-template-columns:1fr}.canva-import-footer{align-items:stretch;flex-direction:column}.canva-import-footer>div{justify-content:flex-end}.canva-import-error{margin:0 18px 14px}}
 
 .canva-question-evidence{background:#f4f8fe;border-left:3px solid #8db7e8;border-radius:7px;padding:9px 12px;font-size:.8rem;color:#365d87;line-height:1.45;overflow-wrap:anywhere}
+
+.canva-answer-hint{padding:9px 12px;border-radius:9px;background:#eaf7f2;color:#236448;font-weight:700;font-size:.82rem;line-height:1.5}

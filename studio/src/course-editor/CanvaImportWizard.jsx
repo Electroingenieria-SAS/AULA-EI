@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, CircleAlert, ExternalLink, File
 import { getError, slugify, supabase } from '../shared.js'
 import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { prepareCanvaPages, prepareCanvaQuestions } from './canva-import-model.js'
-import { MAX_PDF_BYTES, analyzeTrainingPdf } from './analyze-pdf-client.js'
+import { MAX_LOCAL_PDF_BYTES, analyzeLocalPdf } from './local-pdf-analysis.js'
 import '../styles/canva-import.css'
 
 
@@ -23,7 +23,6 @@ export default function CanvaImportWizard({ close, onCreated }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [pdf, setPdf] = useState(null)
-  const [consent, setConsent] = useState(false)
   const [pages, setPages] = useState([])
   const [questions, setQuestions] = useState([])
   const [analysed, setAnalysed] = useState(false)
@@ -36,14 +35,13 @@ export default function CanvaImportWizard({ close, onCreated }) {
 
   const analyzePdf = async () => {
     if (!pdf || !title.trim()) return setError('Escribe el título y adjunta el PDF exportado desde Canva.')
-    if (pdf.size > MAX_PDF_BYTES) return setError('El PDF debe pesar máximo 4 MB. Divide una presentación muy larga en partes.')
-    if (!consent) return setError('Confirma que el PDF puede enviarse al servicio de IA para generar sugerencias.')
+    if (pdf.size > MAX_LOCAL_PDF_BYTES) return setError('El PDF debe pesar máximo 12 MB. Divide una presentación muy larga en partes.')
     setError('')
-    setBusy('Analizando páginas y preparando preguntas…')
+    setBusy('Leyendo páginas localmente…')
     try {
-      const data = await analyzeTrainingPdf({ file: pdf, title, consent })
+      const data = await analyzeLocalPdf(pdf)
       const preparedPages = prepareCanvaPages(data?.pages)
-      if (!preparedPages.length) throw new Error('No se encontraron diapositivas con texto interpretable. Puedes importar el enlace sin IA.')
+      if (!preparedPages.length) throw new Error('El PDF no contiene suficientes diapositivas con texto. Puedes importar la presentación sin generar preguntas.')
       setPages(preparedPages)
       setQuestions(prepareCanvaQuestions(data?.suggested_questions))
       if (!description.trim()) setDescription(String(data.description || '').slice(0, 2000))
@@ -96,7 +94,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         type: 'text',
         title: 'Diapositiva ' + page.page + ' · ' + page.title,
         description: 'Idea principal: ' + page.takeaway,
-        content: { html: page.explanation, source_provider: 'canva_pdf', source_page: page.page },
+        content: { html: '<p>' + page.explanation.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;') + '</p>', source_provider: 'local_pdf', source_page: page.page },
         required: true,
         sort_order: index + 1,
         status: 'published',
@@ -134,7 +132,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         <div>
           <span className="eyebrow"><Sparkles size={15} /> Importación guiada · Canva</span>
           <h2 id="canva-import-title">Convierte tus diapositivas en capacitación</h2>
-          <p>Conserva la presentación original y prepara lecturas y preguntas sugeridas, siempre bajo tu revisión.</p>
+          <p>Conserva la presentación original. Al adjuntar un PDF, extraemos localmente su texto y sugerimos preguntas editables sin servicios de pago.</p>
         </div>
         <button type="button" className="icon-button" aria-label="Cerrar importación" disabled={Boolean(busy)} onClick={close}><X size={19}/></button>
       </header>
@@ -157,17 +155,17 @@ export default function CanvaImportWizard({ close, onCreated }) {
           </section>
 
           <section className="canva-import-section">
-            <div className="canva-import-step"><span>2</span><div><strong>Lecturas y preguntas sugeridas</strong><small>Adjunta el PDF exportado desde la misma presentación para analizar las páginas.</small></div></div>
+            <div className="canva-import-step"><span>2</span><div><strong>Lecturas y preguntas sugeridas</strong><small>El texto se extrae en el navegador mediante PDF.js, sin enviar el documento a ninguna API.</small></div></div>
             <label className="canva-import-file">
               <Upload size={24} />
               <span>{pdf ? pdf.name : 'Seleccionar PDF de la presentación'}</span>
-              <small>Opcional · hasta 4 MB. El enlace sin PDF también permite crear el curso.</small>
-              <input type="file" accept=".pdf,application/pdf" hidden onChange={(e) => { setPdf(e.target.files?.[0] || null); resetAnalysis(); setConsent(false) }}/>
+              <small>Opcional · hasta 12 MB, 50 páginas. El PDF se analiza localmente, sin API, créditos ni cargos.</small>
+              <input type="file" accept=".pdf,application/pdf" hidden onChange={(e) => { setPdf(e.target.files?.[0] || null); resetAnalysis();  }}/>
             </label>
-            {pdf && <label className="canva-import-consent"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}/><span>Autorizo el envío de este PDF al proveedor de IA configurado para analizarlo. No incluir información confidencial sin autorización.</span></label>}
-            <button type="button" className="secondary-button canva-analyze-button" disabled={Boolean(busy) || !pdf || !consent || !title.trim()} onClick={analyzePdf}>
+            
+            <button type="button" className="secondary-button canva-analyze-button" disabled={Boolean(busy) || !pdf || !title.trim()} onClick={analyzePdf}>
               {busy.startsWith('Analizando') ? <Loader2 size={17} className="spin"/> : <Sparkles size={17}/>}
-              {busy.startsWith('Analizando') ? busy : analysed ? 'Volver a generar sugerencias' : 'Analizar PDF y sugerir contenido'}
+              {busy.startsWith('Analizando') ? busy : analysed ? 'Volver a generar sugerencias' : 'Leer PDF y sugerir preguntas'}
             </button>
           </section>
         </div>
@@ -178,7 +176,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
             {embed ? <div className="canva-import-embed"><iframe src={embed} title="Vista previa de Canva" loading="lazy" allowFullScreen /><a href={embed} target="_blank" rel="noreferrer"><ExternalLink size={14}/> Abrir original</a></div> : <div className="canva-import-preview-placeholder"><Presentation size={34}/><span>La presentación aparecerá cuando pegues un enlace válido.</span></div>}
             {hasAnalysis && <div className="canva-import-review">
               <div className="canva-import-review-title"><BookOpen size={18}/><strong>{pages.length} explicaciones generadas</strong></div>
-              <small>Edita cualquier explicación antes de incorporarla al curso.</small>
+              <small>Son transcripciones del texto del PDF, no explicaciones generadas por IA. Revísalas antes de agregarlas.</small>
               {pages.map((page, index) => <details key={page.page + '-' + index}>
                 <summary>Diapositiva {page.page}: {page.title}</summary>
                 <label>Título<input value={page.title} onChange={(e) => changePage(index, {title:e.target.value})}/></label>

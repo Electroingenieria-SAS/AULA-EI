@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { BookOpenCheck, CheckCircle2, FileText, Images, Loader2, Sparkles, Upload } from 'lucide-react'
 import { getError, supabase } from '../shared.js'
-import { hasGuidedSlides } from '../../../src/guided-slides.js'
+import { hasGuidedSlides, isValidSlidePracticeQuestion } from '../../../src/guided-slides.js'
+import { generateLocalQuestions } from './local-question-generator.js'
 import { renderGuidedSlideBlobs, saveGuidedSlides } from './guided-slide-utils.js'
 import '../styles/guided-slides.css'
 
@@ -22,6 +23,13 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
     try {
       const slides=await renderGuidedSlideBlobs(file,setBusy)
       if(!slides.length)throw Error('El documento no contiene diapositivas.')
+      const contextual = generateLocalQuestions(slides.map(slide => ({
+        page:slide.index+1,text:slide.text||'',
+      })),{maxQuestions:120}).filter(isValidSlidePracticeQuestion)
+      if(!contextual.length && !available) {
+        throw Error('Este PDF solo contiene imágenes o no aporta texto suficiente para generar preguntas fiables. Para que aparezca una pregunta en cada avance, agrega primero preguntas al banco del curso o utiliza un PDF de Canva con texto seleccionable.')
+      }
+      const pagesWithContext = new Set(contextual.map(item=>item.page)).size
       const firstOrder=Math.min(0,...phases.map(x=>Number(x.sort_order)||0)) - 1
       const {data,error:phaseError}=await supabase.from('course_phases')
         .insert({course_id:courseId,title:'Presentación interactiva · preguntas por diapositiva',
@@ -29,11 +37,11 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
           sort_order:firstOrder}).select('id').single()
       if(phaseError)throw phaseError
       createdPhase=data.id
-      const count=await saveGuidedSlides({courseId,phaseId:createdPhase,slides,onProgress:setBusy})
-      setSuccess('Se incorporaron '+count+' diapositivas interactivas. Al pulsar Siguiente se abrirá una pregunta aleatoria del banco de preguntas.')
+      const count=await saveGuidedSlides({courseId,phaseId:createdPhase,slides,reviewFallback:available===0,onProgress:setBusy})
+      setSuccess('Se incorporaron '+count+' diapositivas interactivas. '+pagesWithContext+' páginas incluyen preguntas tomadas de su propio texto. Las restantes utilizarán '+(available>0?'el banco existente del curso.':'preguntas de repaso de otras páginas del mismo PDF.')+' Verifica las preguntas sugeridas antes de publicar.')
       setFile(null)
       await refresh()
-      setMessage(count+' diapositivas listas. Revisa el examen para confirmar que haya preguntas activas.')
+      setMessage(count+' diapositivas interactivas preparadas. Las preguntas emergentes son prácticas independientes del examen final.')
     }catch(e){
       if(createdPhase)await supabase.from('course_phases').delete().eq('id',createdPhase)
       setError(getError(e,'No fue posible preparar las diapositivas interactivas.'))
@@ -46,20 +54,20 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
       <div>
         <span className="eyebrow">Modo interactivo · 100 % gratis</span>
         <h3>Preguntas emergentes entre diapositivas</h3>
-        <p>Conserva la apariencia de Canva utilizando el PDF exportado. AULA EI mostrará cada página como una diapositiva independiente y, al avanzar, abrirá una pregunta aleatoria de las que aprobaste en el examen.</p>
+        <p>Sube un PDF y AULA EI convertirá sus páginas en diapositivas. Al avanzar mostrará preguntas vinculadas al texto de cada página, o preguntas del banco existente cuando el PDF solo contenga imágenes. Las preguntas automáticas son de práctica y no modifican el examen final.</p>
       </div>
     </div>
-    {already ? <div className="guided-slide-ready"><CheckCircle2 size={18}/> Este curso ya tiene diapositivas interactivas. Puedes revisarlas en la ruta de aprendizaje.</div> : <>
+    {already ? <div className="guided-slide-ready"><CheckCircle2 size={18}/> Este curso ya tiene diapositivas interactivas. Revísalas en la ruta de aprendizaje; para cargar una nueva versión sin duplicar el progreso hay que gestionar la fase anterior.</div> : <>
       <label className="guided-slide-file"><Upload size={17}/>
         <span>{file ? file.name : 'Adjuntar PDF de Canva (hasta 12 MB, máximo 50 páginas)'}</span>
         <input type="file" accept="application/pdf,.pdf" disabled={Boolean(busy)} onChange={e=>setFile(e.target.files?.[0]||null)}/>
       </label>
       <div className="guided-slide-options">
         <span><BookOpenCheck size={16}/> Preguntas activas disponibles: <strong>{available}</strong></span>
-        {available===0 && <span className="guided-slide-warning">Primero incorpora preguntas completas desde «Examen final → Sugerir desde PDF», para que aparezcan en los pop-ups.</span>}
+        {available===0 && <span className="guided-slide-warning">Si el PDF tiene texto seleccionable intentaremos generar preguntas sin usar servicios de pago. Si solo tiene imágenes, necesitarás preguntas en el banco del curso.</span>}
         {courseStatus==='published' && <span className="guided-slide-warning">Esta capacitación ya está publicada. Añadir diapositivas obligatorias cambiará el progreso de quienes la están cursando.</span>}
       </div>
-      <button className="primary-button" type="button" disabled={!file||Boolean(busy)||available===0} onClick={create}>
+      <button className="primary-button" type="button" disabled={!file||Boolean(busy)} onClick={create}>
         {busy?<Loader2 size={17} className="spin"/>:<Sparkles size={17}/>}
         {busy || 'Activar preguntas entre diapositivas'}
       </button>

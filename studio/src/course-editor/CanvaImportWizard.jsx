@@ -4,6 +4,8 @@ import { getError, slugify, supabase } from '../shared.js'
 import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
 import { prepareCanvaPages, prepareCanvaQuestions } from './canva-import-model.js'
 import { renderGuidedSlideBlobs, saveGuidedSlides } from './guided-slide-utils.js'
+import { generateLocalQuestions } from './local-question-generator.js'
+import { isValidSlidePracticeQuestion } from '../../../src/guided-slides.js'
 import '../styles/canva-import.css'
 
 const MAX_LOCAL_PDF_BYTES = 12 * 1024 * 1024
@@ -60,15 +62,23 @@ export default function CanvaImportWizard({ close, onCreated }) {
   const changePage = (index, patch) => setPages((list) => list.map((item, i) => i === index ? { ...item, ...patch } : item))
 
   const saveDraft = async () => {
-    if (!embed || !title.trim()) return setError('Se necesita un enlace válido de Canva y un título.')
+    if (!title.trim() || (!embed && !(pdf && guidedSlides))) {
+      return setError('Escribe el título y proporciona un PDF para el modo interactivo o un enlace de Canva.')
+    }
     if (chosen.some((question) => !questionIsReady(question))) return setError('Corrige todas las preguntas seleccionadas antes de guardar.')
-    if (guidedSlides && pdf && analysed && chosen.length === 0) return setError('Para abrir preguntas emergentes, selecciona al menos una pregunta completa o desactiva el modo guiado.')
     setBusy('Creando capacitación en borrador…')
     setError('')
     let createdId = null
     try {
-      const enableGuided = Boolean(guidedSlides && pdf && analysed)
+      const enableGuided = Boolean(guidedSlides && pdf)
       const renderedSlides = enableGuided ? await renderGuidedSlideBlobs(pdf,setBusy) : []
+      const autoPractice = enableGuided
+        ? generateLocalQuestions(renderedSlides.map(slide => ({page:slide.index+1,text:slide.text||''})),{maxQuestions:120})
+            .filter(isValidSlidePracticeQuestion)
+        : []
+      if (enableGuided && autoPractice.length === 0 && chosen.length === 0) {
+        throw new Error('El PDF no contiene texto suficiente para crear preguntas con respuestas fiables. Si son diapositivas convertidas en imágenes, crea antes un banco de preguntas o exporta desde Canva como PDF con texto seleccionable.')
+      }
       const slug = slugify(title.trim()) + '-' + crypto.randomUUID().slice(0, 8)
       const course = assertSaved(await supabase.from('courses')
         .insert({
@@ -86,7 +96,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         sort_order: renderedSlides.length ? 1 : 0,
       }).select('id').single(), 'Crear módulo')
 
-      const blocks = [{
+      const blocks = embed ? [{
         phase_id: phase.id,
         type: 'presentation',
         title: 'Presentación interactiva de Canva',
@@ -96,7 +106,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         sort_order: 0,
         status: 'published',
         completion_rule: { mode: 'manual' },
-      }]
+      }] : []
       pages.forEach((page, index) => blocks.push({
         phase_id: phase.id,
         type: 'text',
@@ -132,7 +142,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
           description:'Cada diapositiva se recorre dentro de AULA EI y abre una pregunta emergente al avanzar.',
           sort_order:0,
         }).select('id').single(),'Crear fase interactiva')
-        await saveGuidedSlides({courseId:createdId,phaseId:visualPhase.id,slides:renderedSlides,onProgress:setBusy})
+        await saveGuidedSlides({courseId:createdId,phaseId:visualPhase.id,slides:renderedSlides,reviewFallback:chosen.length===0,onProgress:setBusy})
       }
       await onCreated(createdId, 'Importación creada como borrador. El modo interactivo presenta preguntas al avanzar entre diapositivas. Revisa y publica cuando esté listo.')
     } catch (reason) {
@@ -150,7 +160,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         <div>
           <span className="eyebrow"><Sparkles size={15} /> Importación guiada · Canva</span>
           <h2 id="canva-import-title">Convierte tus diapositivas en capacitación</h2>
-          <p>Conserva la presentación original. El PDF se analiza frase por frase para proponer preguntas editables, incluso desde listas y frases cortas, sin servicios de pago.</p>
+          <p>Ahora puedes empezar únicamente con el PDF. AULA EI crea las diapositivas dentro del reproductor y propone preguntas vinculadas a su texto, sin API de pago. El enlace de Canva es opcional.</p>
         </div>
         <button type="button" className="icon-button" aria-label="Cerrar importación" disabled={Boolean(busy)} onClick={close}><X size={19}/></button>
       </header>
@@ -158,11 +168,11 @@ export default function CanvaImportWizard({ close, onCreated }) {
       <div className="canva-import-content">
         <div className="canva-import-column">
           <section className="canva-import-section">
-            <div className="canva-import-step"><span>1</span><div><strong>Presentación de Canva</strong><small>Canva → Compartir → Ver todo → Insertar → copiar enlace de inserción.</small></div></div>
+            <div className="canva-import-step"><span>1</span><div><strong>Presentación PDF o Canva</strong><small>El enlace es opcional si adjuntas un PDF en modo interactivo. Para incluir Canva como referencia, utiliza Compartir → Insertar.</small></div></div>
             <label>Título de la capacitación
               <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} placeholder="Ej. Inducción en seguridad industrial" />
             </label>
-            <label>Enlace público de Canva
+            <label>Enlace público de Canva (opcional)
               <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.canva.com/design/.../view?embed" />
               <small>Admite también el código iframe copiado desde Canva. Los enlaces privados o sin publicar no se podrán reproducir.</small>
             </label>
@@ -176,12 +186,12 @@ export default function CanvaImportWizard({ close, onCreated }) {
             <div className="canva-import-step"><span>2</span><div><strong>Lecturas y preguntas sugeridas</strong><small>El texto se extrae en el navegador mediante PDF.js, sin enviar el documento a ninguna API.</small></div></div>
             <label className="canva-import-file">
               <Upload size={24} />
-              <span>{pdf ? pdf.name : 'Seleccionar PDF de la presentación'}</span>
-              <small>Opcional · hasta 12 MB, 50 páginas. El PDF se analiza localmente, sin API, créditos ni cargos.</small>
+              <span>{pdf ? pdf.name : 'Subir PDF y generar diapositivas interactivas'}</span>
+              <small>Recomendado · hasta 12 MB y 50 páginas. El PDF se analiza localmente, sin API de pago. Si no tiene texto, no se inventan preguntas.</small>
               <input type="file" accept=".pdf,application/pdf" hidden onChange={(e) => { setPdf(e.target.files?.[0] || null); resetAnalysis(); }}/>
             </label>
             
-            {pdf && analysed && <label className="canva-import-consent">
+            {pdf && <label className="canva-import-consent">
               <input type="checkbox" checked={guidedSlides} onChange={(e)=>setGuidedSlides(e.target.checked)}/>
               <span>Activar presentación guiada con preguntas aleatorias emergentes al avanzar de diapositiva. AULA EI usará imágenes del PDF, manteniendo el enlace original de Canva como recurso adicional.</span>
             </label>}
@@ -227,7 +237,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         <span><FileText size={16}/> Siempre se creará como borrador. El examen final queda bajo control del administrador.</span>
         <div>
           <button type="button" className="secondary-button" disabled={Boolean(busy)} onClick={close}><ArrowLeft size={16}/> Cancelar</button>
-          <button type="button" className="primary-button" disabled={Boolean(busy) || !embed || !title.trim()} onClick={saveDraft}>
+          <button type="button" className="primary-button" disabled={Boolean(busy) || !title.trim() || (!embed && !(pdf && guidedSlides))} onClick={saveDraft}>
             {busy ? <Loader2 size={17} className="spin"/> : <ArrowRight size={17}/>} {busy || 'Crear borrador de capacitación'}
           </button>
         </div>

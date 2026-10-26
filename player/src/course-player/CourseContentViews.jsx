@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { safeExternalUrl } from '../../../src/security.js'
 import { normalizeCanvaEmbedUrl } from '../../../src/canva-embed.js'
+import { oneDriveVideoInfo } from '../../../src/onedrive-video.js'
 import { signedAsset } from '../supabase.js'
 import { ReadingContent } from './CoursePlayerViews.jsx'
 import LearningGame from '../games/LearningGame.jsx'
@@ -122,10 +123,12 @@ export function useCourseAsset(block) {
   const externalUrl = String(block?.content?.url || '').trim()
   const asset = signed.blockId === block?.id ? signed : { url: null, error: '' }
   const displayUrl = externalUrl ? normalizeExternalUrl(externalUrl, block?.type) : asset.url
+  const oneDriveVideo = block?.type === 'video' && externalUrl ? oneDriveVideoInfo(displayUrl) : null
   return {
     displayUrl,
+    needsOneDriveEmbed: oneDriveVideo?.kind === 'share',
     originalUrl: externalUrl ? safeExternalUrl(externalUrl) : asset.url,
-    isExternalEmbed: Boolean(displayUrl && isEmbedProvider(displayUrl)),
+    isExternalEmbed: Boolean(displayUrl && (oneDriveVideo?.kind === 'embed' || isEmbedProvider(displayUrl))),
     assetError: asset.error,
   }
 }
@@ -134,7 +137,7 @@ export function ContentExperience({ block, completed, asset, openImmersive }) {
   const [feedback, setFeedback] = useState('')
   const [selectedOption, setSelectedOption] = useState(null)
   const content = block.content || {}
-  const { displayUrl, originalUrl, assetError } = asset
+  const { displayUrl, originalUrl, assetError, needsOneDriveEmbed } = asset
 
   useEffect(() => {
     setFeedback('')
@@ -163,7 +166,15 @@ export function ContentExperience({ block, completed, asset, openImmersive }) {
     <div className="content-experience-body">
       {block.type === 'text' && <ReadingContent value={String(content.html ?? content.text ?? '')} />}
 
-      {block.type === 'video' && displayUrl && (
+      {block.type === 'video' && displayUrl && needsOneDriveEmbed && (
+        <div className="file-learning-card link-card" role="status">
+          <span><Video size={28} /></span>
+          <div><strong>Este enlace de OneDrive no permite reproducción integrada</strong><small>Se guardó un enlace para compartir, no el enlace de inserción del video. Puedes abrirlo en OneDrive. Para verlo aquí, el editor debe sustituirlo por el código Insertar de Microsoft Stream/OneDrive (o cargar el MP4).</small></div>
+          {originalUrl && <a href={originalUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} /> Abrir en OneDrive</a>}
+        </div>
+      )}
+
+      {block.type === 'video' && displayUrl && !needsOneDriveEmbed && (
         <div className="immersive-media-preview video-preview" onDoubleClick={() => openImmersive({ fullscreen: true })}>
           <div className="immersive-media-placeholder">
             <span className="immersive-media-icon"><PlayCircle size={42} /></span>

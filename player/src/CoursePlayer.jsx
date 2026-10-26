@@ -14,7 +14,7 @@ import { ContentExperience, CourseOutline, useCourseAsset } from './course-playe
 import ImageGallery from './course-player/ImageGallery.jsx'
 import StudyReview from './course-player/StudyReview.jsx'
 import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
-import { guidedLocalPracticeQuestion, shouldAskTransitionQuestion } from '../../src/guided-slides.js'
+import { shouldAskTransitionQuestion } from '../../src/guided-slides.js'
 import { appUrl, navigateLearner } from './navigation.js'
 import { invalidateCache } from '../../src/data-cache.js'
 import { supabase } from './supabase.js'
@@ -153,14 +153,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setPracticeAnswer(null)
     setPracticeVerdict(null)
     try {
-      // Per-page questions in a converted PDF are formative only, never part
-      // of the final exam. When the page contains no usable text, fall back
-      // to the existing verified server-side question bank.
-      const contextual = guidedLocalPracticeQuestion(currentBlock, seed)
-      if (contextual) {
-        setPracticeQuestion(contextual)
-        return
-      }
       const { data, error } = await supabase.rpc('get_course_practice_question', {
         p_course_id: courseId,
         p_seed: String(seed),
@@ -192,10 +184,6 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
     setPracticeAnswer(optionId)
     setPracticeVerdict(null)
-    if (practiceQuestion.origin === 'guided_pdf') {
-      setPracticeVerdict(optionId === practiceQuestion.correctOptionId)
-      return
-    }
     setPracticeChecking(true)
 
     try {

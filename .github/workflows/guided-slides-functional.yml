@@ -23,6 +23,11 @@ jobs:
           cache: npm
       - name: Install locked dependencies (security audited in separate required gate)
         run: npm ci --no-audit --no-fund
+      - name: Confirm patched sanitizer and package integrity
+        run: |
+          npm ls dompurify --all
+          npm audit --omit=dev --audit-level=high
+          npm view dompurify@3.4.17 dist.integrity
       - name: Verify source syntax and architecture
         run: |
           node --check studio/src/course-editor/guided-image-pack.js

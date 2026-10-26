@@ -2,8 +2,7 @@
 // course-assets bucket only after an authorized course editor explicitly asks.
 // No premium Canva/OpenAI service and no attempt to read cross-origin iframe state.
 import { supabase, uploadCourseAsset } from '../shared.js'
-import { guidedSlideContent, isValidSlidePracticeQuestion } from '../../../src/guided-slides.js'
-import { generateLocalQuestions } from './local-question-generator.js'
+import { guidedSlideContent } from '../../../src/guided-slides.js'
 
 export const MAX_GUIDED_SLIDES = 50
 const MAX_RENDER_WIDTH = 1440
@@ -32,12 +31,6 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
       onProgress('Preparando diapositiva ' + number + ' de ' + pdfDocument.numPages)
       const page = await pdfDocument.getPage(number)
       try {
-        // Reuse the same local PDF.js page for artwork and selectable text:
-        // no OCR, external API, or second PDF upload.
-        const textLayer = await page.getTextContent()
-        const text = textLayer.items.map(item =>
-          typeof item.str === 'string' ? item.str + (item.hasEOL ? '\n' : ' ') : ''
-        ).join('').slice(0, 10000)
         const nativeSize = page.getViewport({scale: 1})
         const ratio = Math.min(2, MAX_RENDER_WIDTH / nativeSize.width)
         const viewport = page.getViewport({scale: ratio})
@@ -55,7 +48,7 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
         }
         totalBytes += blob.size
         if(totalBytes>MAX_TOTAL_BYTES) throw new Error('Las diapositivas superan el límite de 20 MB. Comprime el PDF o divídelo en varios módulos.')
-        slides.push({index: number - 1,text,blob,
+        slides.push({index: number - 1,blob,
           filename: 'diapositiva-' + String(number).padStart(3,'0') + (blob.type === 'image/webp' ? '.webp' : '.png')})
       } finally { page.cleanup() }
     }
@@ -63,25 +56,10 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
   return slides
 }
 
-export async function saveGuidedSlides({courseId, phaseId, slides, reviewFallback = false, onProgress = () => {}}) {
+export async function saveGuidedSlides({courseId, phaseId, slides, source='pdf', onProgress = () => {}}) {
   if (!courseId || !phaseId || !Array.isArray(slides) || !slides.length) {
     throw new Error('No hay diapositivas válidas para guardar.')
   }
-  const questionsByPage = new Map()
-  const extracted = slides.map(slide => ({page: slide.index + 1, text: slide.text || ''}))
-  const proposals = generateLocalQuestions(extracted, {maxQuestions: 120})
-  for (const candidate of proposals.filter(isValidSlidePracticeQuestion)) {
-    const page = Number(candidate.page)
-    if (!questionsByPage.has(page)) questionsByPage.set(page, [])
-    if (questionsByPage.get(page).length < 3) {
-      const {prompt,options,correctIndex,sourceExcerpt} = candidate
-      questionsByPage.get(page).push({prompt,options,correctIndex,sourceExcerpt})
-    }
-  }
-  // Courses without an existing exam bank can reuse a sourced practice
-  // question from an earlier PDF page as a review, never as an official exam.
-  const reviewedFallback = questionsByPage.size ? [...questionsByPage.entries()].flatMap(([page,items]) =>
-    items.map(item => ({...item, source_page:page}))) : []
   const uploaded=[]
   try {
     for (const slide of slides) {
@@ -94,16 +72,8 @@ export async function saveGuidedSlides({courseId, phaseId, slides, reviewFallbac
       phase_id:phaseId,
       type:'image',
       title:'Diapositiva '+(index+1)+' de '+slides.length,
-      description:'Avanza con Siguiente para responder una pregunta de práctica aleatoria.',
-      content:{
-        ...guidedSlideContent(index,slides.length,'pdf_upload'),
-        practice_questions: questionsByPage.get(index+1) ||
-          (reviewFallback && reviewedFallback.length
-            ? [reviewedFallback.filter(item => item.source_page <= index+1).at(-1) ||
-                reviewedFallback[0]].map(({prompt,options,correctIndex,sourceExcerpt}) =>
-                  ({prompt,options,correctIndex,sourceExcerpt}))
-            : []),
-      },
+      description:'Al avanzar, responde una pregunta del banco existente de este curso.',
+      content:guidedSlideContent(index,slides.length,source),
       asset_path,
       sort_order:index,
       status:'published',

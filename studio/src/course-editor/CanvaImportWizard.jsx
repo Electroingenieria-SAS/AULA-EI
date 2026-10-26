@@ -90,11 +90,11 @@ export default function CanvaImportWizard({ close, onCreated }) {
         }).select('id').single(), 'Crear capacitación')
       createdId = course.id
 
-      const phase = assertSaved(await supabase.from('course_phases').insert({
+      const phase = (embed || pages.length) ? assertSaved(await supabase.from('course_phases').insert({
         course_id: createdId,
         title: 'Presentación y material de estudio',
         sort_order: renderedSlides.length ? 1 : 0,
-      }).select('id').single(), 'Crear módulo')
+      }).select('id').single(), 'Crear módulo') : null
 
       const blocks = embed ? [{
         phase_id: phase.id,
@@ -118,7 +118,7 @@ export default function CanvaImportWizard({ close, onCreated }) {
         status: 'published',
         completion_rule: { mode: 'manual' },
       }))
-      assertSaved(await supabase.from('content_blocks').insert(blocks), 'Crear contenidos')
+      if (blocks.length) assertSaved(await supabase.from('content_blocks').insert(blocks), 'Crear contenidos')
       for (let i = 0; i < chosen.length; i += 1) {
         const item = chosen[i]
         const question = assertSaved(await supabase.from('questions').insert({

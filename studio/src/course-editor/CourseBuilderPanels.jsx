@@ -3,6 +3,7 @@ import {
   Archive, ArrowDown, ArrowRight, ArrowUp, Check, CheckCircle2, CircleAlert, Edit3, ExternalLink, File, FileAudio, FileText, Gamepad2, Image, Link2, Loader2, Plus, Presentation, Rocket, Save, Settings2, ShieldCheck, Trash2, Upload, Video, X,
 } from 'lucide-react'
 import { getError, supabase, uploadCourseAsset } from '../shared.js'
+import { oneDriveVideoInfo } from '../../../src/onedrive-video.js'
 import { clampScore, exampleForType, statusLabel } from './course-utils.js'
 import { buildGameContent, gameLines } from '../../../player/src/games/game-data.js'
 import GameBlockFields from './GameBlockFields.jsx'
@@ -260,10 +261,15 @@ export function BlockEditor({ courseId, phaseId, nextOrder, existing, done, setM
       let assetPath = existing?.asset_path || null
       if (file) assetPath = await uploadCourseAsset(courseId, file)
 
+      // SharePoint view/share links are HTML pages. They cannot be played as
+      // MP4 streams inside a <video> tag or framed as though they were embeds.
+      const videoInfo = form.type === 'video' && form.url.trim() ? oneDriveVideoInfo(form.url) : null
+      if (videoInfo?.kind === 'invalid' && !file) throw new Error('Enlace de video inválido. Pega la URL HTTPS o el código Insertar (iframe) de Microsoft.')
+      if (videoInfo?.kind === 'share' && !file) throw new Error('Este es un enlace de uso compartido de OneDrive, no de inserción. Abre el video en OneDrive/Stream, elige Insertar y pega aquí el código iframe o sube el MP4.')
       let content = {}
       if (form.type === 'text') content = { html: form.text }
       else if (form.type === 'link') content = { url: form.url.trim() }
-      else if (fileTypes.includes(form.type)) content = { url: form.url.trim() }
+      else if (fileTypes.includes(form.type)) content = { url: file ? '' : form.type === 'video' && videoInfo ? videoInfo.url : form.url.trim() }
       else if (form.type === 'validation') {
         const options = [form.optionA, form.optionB, form.optionC, form.optionD].map((value) => value.trim()).filter(Boolean)
         if (!form.prompt.trim() || options.length < 2) throw new Error('Completa la pregunta y al menos dos opciones de respuesta.')
@@ -344,7 +350,8 @@ export function BlockEditor({ courseId, phaseId, nextOrder, existing, done, setM
         <div className="resource-source-grid">
           <label>Enlace externo / Drive / OneDrive
             <input value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} placeholder={form.type === 'presentation' ? 'Enlace de inserción de Canva, Drive o OneDrive' : 'https://…'} />
-            <small className="helper-text">{form.type === 'link' ? 'Pega el enlace que abrirá el colaborador.' : 'Puedes usar un enlace si no quieres subir el archivo directamente.'}</small>
+            <small className="helper-text">{form.type === 'link' ? 'Pega el enlace que abrirá el colaborador.' : form.type === 'video' ? 'En OneDrive empresarial: abre el video → Insertar → Copiar código iframe y pégalo aquí. También puedes subir el MP4. Un enlace de Compartir no reproduce el video dentro de Aula EI.' : 'Puedes usar un enlace si no quieres subir el archivo directamente.'}</small>
+            {form.type === 'video' && oneDriveVideoInfo(form.url).kind === 'share' && <small className="helper-text" role="alert">Este es un enlace para compartir; solicita el código de inserción de Microsoft Stream/OneDrive antes de guardar.</small>}
           </label>
           {fileTypes.includes(form.type) && (
             <label className="resource-upload-box">

@@ -49,4 +49,13 @@ for(const c of [uploader,media,importer,newCourse]){
   assert.doesNotMatch(c,/generateLocalQuestions|generateAbcdOptions|practice_questions:/,'No AI or question generation in slide import.')
 }
 assert.doesNotMatch(player,/guidedLocalPracticeQuestion|practiceQuestion.origin === 'guided_pdf'/,'Only course bank questions are used.')
+
+assert.ok(player.includes('selectBlock={requestResourceTransition}'),'Selecting another resource from the outline must request a practice question.')
+assert.ok(player.includes('return requestResourceTransition(allBlocks[currentIndex - 1].id)'),'Previous navigation must use the practice gate.')
+assert.ok(player.includes('const goNext = () => requestResourceTransition('),'Next navigation must use the practice gate.')
+assert.ok(player.includes("completionToken !== 'completed-final-resource'"),'A React click event must not bypass the official exam gate.')
+assert.ok(uploader.includes('export async function replaceGuidedSlides'),'Editors must be able to replace revised slides.')
+assert.ok(uploader.includes('id:old.id'),'Existing slide IDs must be preserved across same-length updates.')
+assert.ok(importer.includes('replaceGuidedSlides('),'The existing course must support revised slides.')
+assert.ok(importer.includes("status:'draft',required:false"),'Previous version must be preserved when slide count changes.')
 console.log('Guided PDF, image and ZIP packages + existing-bank popup transitions: OK')

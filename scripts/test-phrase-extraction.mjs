@@ -44,5 +44,6 @@ const importer=readFileSync('studio/src/course-editor/CanvaImportWizard.jsx','ut
 assert.ok(editor.includes('incompleteCount'))
 // Validate exact comparison exists in the validator, without depending on a component ref.
 assert.ok(editor.includes('new Set(q.options.map(normalize))') || editor.includes('new Set(q.options.map('))
-assert.ok(importer.includes('Requiere completar alternativas'))
+assert.ok(!importer.includes('generateLocalQuestions'), 'La importación de diapositivas no debe generar preguntas.')
+assert.ok(editor.includes('incompleteCount'), 'El generador opcional debe conservar la edición de alternativas incompletas.')
 console.log('Phrase-by-phrase PDF analysis and editable partial questions: OK')

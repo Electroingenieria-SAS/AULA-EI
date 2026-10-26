@@ -1,0 +1,42 @@
+name: Guided Slides Functional Validation
+on:
+  pull_request:
+    paths:
+      - 'studio/src/course-editor/**'
+      - 'studio/src/CoursesManager.jsx'
+      - 'player/src/CoursePlayer.jsx'
+      - 'src/guided-slides.js'
+      - 'scripts/test-guided-slides.mjs'
+      - 'scripts/test-canva-import.mjs'
+      - '.github/workflows/guided-slides-functional.yml'
+permissions:
+  contents: read
+jobs:
+  guided-slides:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies (security audited in separate required gate)
+        run: npm ci --no-audit --no-fund
+      - name: Confirm patched sanitizer and package integrity
+        run: |
+          npm ls dompurify --all
+          npm audit --omit=dev --audit-level=high
+          npm view dompurify@3.4.17 dist.integrity
+      - name: Verify source syntax and architecture
+        run: |
+          node --check studio/src/course-editor/guided-image-pack.js
+          node --check studio/src/course-editor/guided-slide-utils.js
+          npm run check:architecture
+      - name: Verify guided slides, question popups and existing Canva tests
+        run: |
+          npm run test:guided-slides
+          npm run test:canva-import
+          npm run test:course-navigation
+      - name: Bundle production UI without deploying
+        run: npx vite build

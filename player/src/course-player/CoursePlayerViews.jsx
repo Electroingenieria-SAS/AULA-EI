@@ -90,7 +90,7 @@ export function PracticeGateContent({ question, selected, verdict, checking, sel
             </button>
           </footer>
 
-          <div className="practice-gate-target">Siguiente: <strong>{targetTitle}</strong></div>
+          <div className="practice-gate-target">Destino: <strong>{targetTitle}</strong></div>
         </>
       ) : (
         <div className="practice-gate-error">

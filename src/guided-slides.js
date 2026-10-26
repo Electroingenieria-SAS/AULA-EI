@@ -17,6 +17,8 @@ export function hasGuidedSlides(phases){
   return Array.isArray(phases)
     && phases.some(phase=>(phase.blocks||[]).some(isGuidedSlide))
 }
-export function shouldAskTransitionQuestion(block,alreadyCompleted){
-  return !alreadyCompleted || isGuidedSlide(block)
+// A practice checkpoint belongs to the navigation event, never to progress state.
+// Replaying a completed, edited or previously visited resource still asks.
+export function shouldAskTransitionQuestion(block,_alreadyCompleted){
+  return Boolean(block && block.status !== 'draft')
 }

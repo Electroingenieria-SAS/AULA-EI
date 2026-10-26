@@ -56,7 +56,7 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
   return slides
 }
 
-export async function saveGuidedSlides({courseId, phaseId, slides, onProgress = () => {}}) {
+export async function saveGuidedSlides({courseId, phaseId, slides, source='pdf', onProgress = () => {}}) {
   if (!courseId || !phaseId || !Array.isArray(slides) || !slides.length) {
     throw new Error('No hay diapositivas válidas para guardar.')
   }
@@ -72,8 +72,8 @@ export async function saveGuidedSlides({courseId, phaseId, slides, onProgress = 
       phase_id:phaseId,
       type:'image',
       title:'Diapositiva '+(index+1)+' de '+slides.length,
-      description:'Avanza con Siguiente para responder una pregunta de práctica aleatoria.',
-      content:guidedSlideContent(index,slides.length),
+      description:'Al avanzar, responde una pregunta del banco existente de este curso.',
+      content:guidedSlideContent(index,slides.length,source),
       asset_path,
       sort_order:index,
       status:'published',
@@ -85,6 +85,51 @@ export async function saveGuidedSlides({courseId, phaseId, slides, onProgress = 
     return values.length
   }catch(error){
     // On upload errors, avoid abandoned storage files where possible.
+    if(uploaded.length)await supabase.storage.from('course-assets').remove(uploaded)
+    throw error
+  }
+}
+
+
+// Replaces a slide package with the SAME number of pages in one database
+// statement, retaining content_blocks.id and therefore employee progress.
+// New paths are uploaded before the swap; previous blobs are deliberately
+// retained to avoid invalidating resources already open in another session.
+export async function replaceGuidedSlides({courseId, blocks, slides, source='pdf', onProgress=()=>{}}) {
+  if (!courseId || !Array.isArray(blocks) || !blocks.length ||
+    !Array.isArray(slides) || slides.length!==blocks.length) {
+    throw new Error('Para conservar el avance, la actualización debe tener el mismo número de diapositivas.')
+  }
+  const uploaded=[]
+  try {
+    for (let index=0;index<slides.length;index++) {
+      const slide=slides[index]
+      onProgress('Actualizando diapositiva '+(index+1)+' de '+slides.length)
+      const file=new File([slide.blob],slide.filename,{type:slide.blob.type})
+      uploaded.push(await uploadCourseAsset(courseId,file))
+    }
+    const values=blocks.map((old,index)=>({
+      id:old.id,
+      phase_id:old.phase_id,
+      type:'image',
+      title:'Diapositiva '+(index+1)+' de '+slides.length,
+      description:'Al avanzar, responde una pregunta del banco existente del curso.',
+      content:guidedSlideContent(index,slides.length,source),
+      asset_path:uploaded[index],
+      sort_order:index,
+      status:'published',
+      required:true,
+      completion_rule:{mode:'manual'},
+    }))
+    const {data,error}=await supabase.from('content_blocks')
+      .upsert(values,{onConflict:'id'}).select('id')
+    if(error)throw error
+    if((data||[]).length!==values.length) {
+      throw new Error('La base de datos no confirmó todas las diapositivas actualizadas.')
+    }
+    return values.length
+  } catch(error) {
+    // Only remove newly uploaded assets on failure. Never delete old assets.
     if(uploaded.length)await supabase.storage.from('course-assets').remove(uploaded)
     throw error
   }

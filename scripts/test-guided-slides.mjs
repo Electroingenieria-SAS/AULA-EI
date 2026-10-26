@@ -13,8 +13,13 @@ for(let i=0;i<slides.length;i++){
 }
 const standard={type:'presentation',content:{url:'https://www.canva.com/design/123/view?embed'}}
 assert.equal(isGuidedSlide(standard),false)
-assert.equal(shouldAskTransitionQuestion(standard,true),false)
+assert.equal(shouldAskTransitionQuestion(standard,true),true)
 assert.equal(shouldAskTransitionQuestion(standard,false),true)
+assert.equal(shouldAskTransitionQuestion({...standard,status:'draft'},true),false)
+assert.equal(shouldAskTransitionQuestion(null,false),false)
+assert.equal(shouldAskTransitionQuestion({type:'file',status:'published'},true),true)
+assert.equal(shouldAskTransitionQuestion({type:'video',status:'published'},true),true)
+assert.equal(shouldAskTransitionQuestion({type:'image',status:'published'},true),true)
 assert.equal(hasGuidedSlides([{blocks:[standard]}]),false)
 assert.equal(hasGuidedSlides([{blocks:[standard,...slides]}]),true)
 

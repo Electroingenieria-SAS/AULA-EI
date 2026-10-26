@@ -127,7 +127,7 @@ export default function CoursesManager({ courses, refresh, setMessage }) {
         </div>
         <div className="canva-import-trigger">
           <button className="secondary-button" onClick={() => setImportOpen(true)}>
-            <Sparkles size={18} /> Importar desde Canva
+            <Sparkles size={18} /> Importar PDF o imágenes
           </button>
           <button className="primary-button courses-create-button" onClick={() => setCreateOpen(true)}>
             <Plus size={18} /> Nueva capacitación

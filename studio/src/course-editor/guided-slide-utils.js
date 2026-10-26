@@ -63,7 +63,7 @@ export async function renderGuidedSlideBlobs(file, onProgress = () => {}) {
   return slides
 }
 
-export async function saveGuidedSlides({courseId, phaseId, slides, onProgress = () => {}}) {
+export async function saveGuidedSlides({courseId, phaseId, slides, reviewFallback = false, onProgress = () => {}}) {
   if (!courseId || !phaseId || !Array.isArray(slides) || !slides.length) {
     throw new Error('No hay diapositivas válidas para guardar.')
   }
@@ -78,6 +78,10 @@ export async function saveGuidedSlides({courseId, phaseId, slides, onProgress = 
       questionsByPage.get(page).push({prompt,options,correctIndex,sourceExcerpt})
     }
   }
+  // Courses without an existing exam bank can reuse a sourced practice
+  // question from an earlier PDF page as a review, never as an official exam.
+  const reviewedFallback = questionsByPage.size ? [...questionsByPage.entries()].flatMap(([page,items]) =>
+    items.map(item => ({...item, source_page:page}))) : []
   const uploaded=[]
   try {
     for (const slide of slides) {
@@ -93,7 +97,12 @@ export async function saveGuidedSlides({courseId, phaseId, slides, onProgress = 
       description:'Avanza con Siguiente para responder una pregunta de práctica aleatoria.',
       content:{
         ...guidedSlideContent(index,slides.length,'pdf_upload'),
-        practice_questions:questionsByPage.get(index+1)||[],
+        practice_questions: questionsByPage.get(index+1) ||
+          (reviewFallback && reviewedFallback.length
+            ? [reviewedFallback.filter(item => item.source_page <= index+1).at(-1) ||
+                reviewedFallback[0]].map(({prompt,options,correctIndex,sourceExcerpt}) =>
+                  ({prompt,options,correctIndex,sourceExcerpt}))
+            : []),
       },
       asset_path,
       sort_order:index,

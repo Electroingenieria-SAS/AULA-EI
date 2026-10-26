@@ -256,17 +256,17 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     return true
   }
 
-  const goNext = async () => {
-    if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy || practiceGateOpen) return
-    const next = allBlocks[currentIndex + 1] || null
-    // Guided slide images can report a real page transition, unlike the
-    // cross-origin Canva iframe. Ask again on each forward slide advance.
+  // All resource changes use this gate. Progress can already be marked
+  // complete, and editors may have replaced the content at the same block ID.
+  const requestResourceTransition = async (targetId) => {
+    if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy || practiceGateOpen ||
+      (targetId && targetId === currentBlockId)) return
     if (!shouldAskTransitionQuestion(currentBlock,completed.has(currentBlockId))) {
-      if (next) selectBlock(next.id)
+      if (targetId) selectBlock(targetId)
       else await startExam()
       return
     }
-    setPracticeNextBlockId(next?.id || null)
+    setPracticeNextBlockId(targetId || null)
     setPracticeGateOpen(true)
     try {
       await loadPracticeQuestion(crypto.randomUUID())
@@ -275,6 +275,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       setPracticeQuestion(null)
     }
   }
+
+  const goNext = () => requestResourceTransition(allBlocks[currentIndex + 1]?.id || null)
 
   const continueAfterPractice = async () => {
     if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy || practiceChecking) return
@@ -343,7 +345,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
   const goPrevious = () => {
     if (currentIndex <= 0) return
-    selectBlock(allBlocks[currentIndex - 1].id)
+    return requestResourceTransition(allBlocks[currentIndex - 1].id)
   }
 
   const startExam = async (justCompletedFinalResource = false) => {
@@ -450,7 +452,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         examLoading={examLoading}
         phaseStats={phaseStats}
         isLockedAtIndex={isLockedAtIndex}
-        selectBlock={selectBlock}
+        selectBlock={requestResourceTransition}
         startExam={startExam}
         open={outlineOpen}
         close={() => setOutlineOpen(false)}

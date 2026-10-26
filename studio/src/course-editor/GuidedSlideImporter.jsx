@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { BookOpenCheck, CheckCircle2, FileText, FolderOpen, Images, Loader2, Upload } from 'lucide-react'
 import { getError, supabase } from '../shared.js'
-import { hasGuidedSlides } from '../../../src/guided-slides.js'
-import { saveGuidedSlides } from './guided-slide-utils.js'
+import { hasGuidedSlides, isGuidedSlide } from '../../../src/guided-slides.js'
+import { replaceGuidedSlides, saveGuidedSlides } from './guided-slide-utils.js'
 import { classifyGuidedUpload, renderGuidedMedia } from './guided-image-pack.js'
 import '../styles/guided-slides.css'
 
@@ -12,6 +12,9 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
   const [error,setError]=useState('')
   const [success,setSuccess]=useState('')
   const already=hasGuidedSlides(phases)
+  const existingPhase=(phases||[]).find(p=>(p.blocks||[]).some(b=>isGuidedSlide(b)&&b.status!=='draft'))
+  const existingBlocks=(existingPhase?.blocks||[]).filter(b=>isGuidedSlide(b)&&b.status!=='draft')
+    .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
   // Practice transitions reuse the course's active questions and answer options.
   const available=(questions||[]).filter(q=>q.active!==false &&
     (q.options||[]).length>=2 && (q.options||[]).some(o=>o.is_correct)).length
@@ -22,17 +25,28 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
   }
 
   const create=async()=>{
-    if(!files.length || busy || already || !available)return
+    if(!files.length || busy || !available)return
     setError('');setSuccess('')
     if(courseStatus==='published' && !window.confirm(
-      'Esta capacitación ya está publicada. Agregar diapositivas obligatorias puede cambiar el avance pendiente de los participantes. ¿Quieres continuar?'
+      'Vas a actualizar una capacitación publicada. Si cambia el número de diapositivas, se creará una versión nueva y podrá cambiar el progreso pendiente de los trabajadores. ¿Continuar?'
     )) return
     let createdPhase=null
     setBusy('Leyendo archivo y contando diapositivas…')
     try {
       const {slides,source}=await renderGuidedMedia(files,setBusy)
       if(!slides.length)throw Error('El paquete no contiene diapositivas.')
-      const firstOrder=Math.min(0,...phases.map(p=>Number(p.sort_order)||0))-1
+      if(existingBlocks.length && existingBlocks.length===slides.length) {
+        const count=await replaceGuidedSlides({courseId,blocks:existingBlocks,slides,source,onProgress:setBusy})
+        setSuccess(count+' diapositivas actualizadas. Se conservó el avance de los trabajadores y las preguntas seguirán apareciendo en cada avance, incluso al repetir el curso.')
+        setFiles([])
+        await refresh()
+        setMessage('Paquete actualizado sin reiniciar el progreso: las preguntas permanecen activas.')
+        return
+      }
+      // A changed page count creates a NEW course version while retaining
+      // the original rows as drafts for progress/audit traceability.
+      const firstOrder=existingPhase ? Number(existingPhase.sort_order)||0 :
+        Math.min(0,...phases.map(p=>Number(p.sort_order)||0))-1
       const {data,error:phaseError}=await supabase.from('course_phases').insert({
         course_id:courseId,
         title:'Presentación interactiva · '+slides.length+' diapositivas',
@@ -42,10 +56,16 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
       if(phaseError)throw phaseError
       createdPhase=data.id
       const count=await saveGuidedSlides({courseId,phaseId:createdPhase,slides,source,onProgress:setBusy})
-      setSuccess(count+' diapositivas incorporadas. Cada vez que pulses Siguiente aparecerá una pregunta aleatoria del banco de '+available+' preguntas activas. No se generaron preguntas.')
+      if(existingBlocks.length) {
+        const oldIds=existingBlocks.map(block=>block.id)
+        const {error:archiveError}=await supabase.from('content_blocks')
+          .update({status:'draft',required:false}).in('id',oldIds)
+        if(archiveError)throw archiveError
+      }
+      setSuccess(count+' diapositivas '+(existingBlocks.length?'publicadas en una nueva versión; se conserva el historial anterior.':'incorporadas.')+' Al avanzar siempre se pregunta, incluso después de completar o volver a abrir la capacitación.')
       setFiles([])
       await refresh()
-      setMessage('Presentación interactiva lista: '+count+' diapositivas, con preguntas existentes del examen como práctica.')
+      setMessage('Presentación interactiva lista: '+count+' diapositivas y preguntas recurrentes del banco existente.')
     }catch(e){
       if(createdPhase)await supabase.from('course_phases').delete().eq('id',createdPhase)
       setError(getError(e,'No fue posible preparar el paquete de diapositivas.'))
@@ -67,9 +87,11 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
         <p>Aula EI detecta cada página o imagen, las ordena y las presenta una a una. Al pulsar Siguiente se abre una pregunta aleatoria del banco de esta capacitación, sin analizar el texto ni crear preguntas nuevas.</p>
       </div>
     </div>
-    {already ? <div className="guided-slide-ready">
-      <CheckCircle2 size={18}/> Esta capacitación ya tiene un paquete interactivo. Está disponible en la ruta de aprendizaje. Para sustituirlo sin alterar el historial, gestiona primero su fase anterior.
-    </div> : <>
+    {already && <div className="guided-slide-ready"><CheckCircle2 size={18}/>
+      Hay {existingBlocks.length} diapositivas activas. Puedes cargar las imágenes actualizadas:
+      si el número es igual, se sustituyen sin borrar el avance; si cambia, se publica una nueva versión manteniendo el historial.
+    </div>}
+    <>
       <label className="guided-slide-file"><Upload size={17}/>
         <span>{files.length ? files.length+' archivo(s) seleccionado(s)' : 'Seleccionar PDF, ZIP o varias imágenes PNG, JPG, WebP'}</span>
         <input type="file" accept=".pdf,.zip,.png,.jpg,.jpeg,.webp,application/pdf,application/zip,image/png,image/jpeg,image/webp"
@@ -93,7 +115,7 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
         {busy?<Loader2 size={17} className="spin"/>:<Images size={17}/>}
         {busy||'Crear presentación interactiva'}
       </button>
-    </>}
+    </>
     <p className="guided-slide-fineprint"><FileText size={14}/>
       Canva no permite detectar los cambios de página dentro de su visor externo. Descarga desde Canva un PDF, o desde Google Drive la carpeta como ZIP y súbela aquí. Un enlace de carpeta de Drive no proporciona por sí solo un listado autorizado de sus imágenes.
     </p>

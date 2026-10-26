@@ -143,7 +143,24 @@ async function unzipImages(file) {
       }
       try {
         const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
-        raw=new Uint8Array(await new Response(stream).arrayBuffer())
+        const reader=stream.getReader()
+        const chunks=[]
+        let count=0
+        try {
+          while(true) {
+            const {value,done}=await reader.read()
+            if(done)break
+            count+=value.byteLength
+            if(count>item.uncompressed || count>MAX_IMAGE_BYTES) {
+              await reader.cancel()
+              throw new Error('El ZIP excede el límite de tamaño al descomprimir.')
+            }
+            chunks.push(value)
+          }
+        } finally {reader.releaseLock()}
+        raw=new Uint8Array(count)
+        let at=0
+        for(const chunk of chunks){raw.set(chunk,at);at+=chunk.length}
       } catch {
         throw new Error('No se pudo descomprimir el ZIP. Extrae las imágenes y selecciónalas directamente.')
       }

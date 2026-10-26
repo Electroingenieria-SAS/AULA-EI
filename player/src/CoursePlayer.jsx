@@ -309,7 +309,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       // The final checkpoint also unlocks the exam after its current
       // resource is completed; existing completion history is preserved.
       const ready = requiredBlocks.every(block => completed.has(block.id) || block.id === currentBlockId)
-      if (ready) await startExam(true)
+      if (ready) await startExam('completed-final-resource')
       else setMessage('Completa primero los contenidos obligatorios restantes.')
     }
   }
@@ -338,7 +338,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       // The final checkpoint also unlocks the exam after its current
       // resource is completed; existing completion history is preserved.
       const ready = requiredBlocks.every(block => completed.has(block.id) || block.id === currentBlockId)
-      if (ready) await startExam(true)
+      if (ready) await startExam('completed-final-resource')
       else setMessage('Completa primero los contenidos obligatorios restantes.')
     }
   }
@@ -348,8 +348,10 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     return requestResourceTransition(allBlocks[currentIndex - 1].id)
   }
 
-  const startExam = async (justCompletedFinalResource = false) => {
-    if (!examUnlocked && !justCompletedFinalResource) {
+  const startExam = async (completionToken = null) => {
+    // React click handlers pass a truthy event object. Never interpret that
+    // event as authorization to bypass the official completion gate.
+    if (!examUnlocked && completionToken !== 'completed-final-resource') {
       setMessage('Completa primero todos los contenidos obligatorios.')
       return
     }

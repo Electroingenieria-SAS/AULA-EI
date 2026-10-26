@@ -303,7 +303,13 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setPracticeAdvanceBusy(false)
 
     if (target) selectBlock(target)
-    else if (!immersiveOpen) window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    else {
+      // The final checkpoint also unlocks the exam after its current
+      // resource is completed; existing completion history is preserved.
+      const ready = requiredBlocks.every(block => completed.has(block.id) || block.id === currentBlockId)
+      if (ready) await startExam(true)
+      else setMessage('Completa primero los contenidos obligatorios restantes.')
+    }
   }
 
   const continueWithoutPractice = async () => {
@@ -326,7 +332,13 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setPracticeAdvanceBusy(false)
 
     if (target) selectBlock(target)
-    else if (!immersiveOpen) window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    else {
+      // The final checkpoint also unlocks the exam after its current
+      // resource is completed; existing completion history is preserved.
+      const ready = requiredBlocks.every(block => completed.has(block.id) || block.id === currentBlockId)
+      if (ready) await startExam(true)
+      else setMessage('Completa primero los contenidos obligatorios restantes.')
+    }
   }
 
   const goPrevious = () => {
@@ -334,8 +346,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     selectBlock(allBlocks[currentIndex - 1].id)
   }
 
-  const startExam = async () => {
-    if (!examUnlocked) {
+  const startExam = async (justCompletedFinalResource = false) => {
+    if (!examUnlocked && !justCompletedFinalResource) {
       setMessage('Completa primero todos los contenidos obligatorios.')
       return
     }

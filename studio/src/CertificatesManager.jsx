@@ -7,7 +7,7 @@ import {
 import { getError, supabase } from './shared.js'
 import { appUrl } from '../../src/paths.js'
 
-export default function CertificatesManager({ setMessage }) {
+export default function CertificatesManager({ setMessage, readOnly = false }) {
   const [ranking, setRanking] = useState([])
   const [pending, setPending] = useState([])
   const [loading, setLoading] = useState(true)
@@ -69,12 +69,12 @@ export default function CertificatesManager({ setMessage }) {
     setLoadIssue('')
     try {
       const [rankingResult, pendingResult] = await Promise.all([
-        supabase.rpc('admin_certificate_ranking'),
-        supabase.rpc('admin_completed_without_certificate'),
+        supabase.rpc(readOnly ? 'creator_certificate_ranking' : 'admin_certificate_ranking'),
+        readOnly ? Promise.resolve({ data: [], error: null }) : supabase.rpc('admin_completed_without_certificate'),
       ])
 
       let rankingRows = rankingResult.error ? null : (rankingResult.data || [])
-      if (!rankingRows?.length) {
+      if (!readOnly && !rankingRows?.length) {
         try {
           const fallbackRows = await loadRankingFallback()
           if (fallbackRows.length) rankingRows = fallbackRows
@@ -196,6 +196,7 @@ export default function CertificatesManager({ setMessage }) {
   }
 
   const generate = async (item) => {
+    if (readOnly) return setMessage('Solo un administrador puede generar certificados.')
     const key = item.course_id + '-' + item.user_id
     const reservedTab = window.open('about:blank', '_blank')
     if (reservedTab) reservedTab.opener = null
@@ -245,7 +246,7 @@ export default function CertificatesManager({ setMessage }) {
         <div>
           <span className="eyebrow">Ranking y certificados</span>
           <h2>Consulta y controla la certificación desde un solo lugar.</h2>
-          <p>Busca certificados, revisa puntajes, abre documentos sin salir del módulo y corrige casos completados que aún no tengan certificado.</p>
+          <p>{readOnly ? 'Consulta el ranking, revisa puntajes, abre certificados oficiales y comparte sus enlaces.' : 'Busca certificados, revisa puntajes, abre documentos sin salir del módulo y corrige casos completados que aún no tengan certificado.'}</p>
         </div>
         <button className="secondary-button compact" onClick={load} disabled={loading}><RefreshCw className={loading ? 'spin' : ''} size={16} /> Actualizar</button>
       </div>
@@ -255,7 +256,7 @@ export default function CertificatesManager({ setMessage }) {
         <Metric label="Personas certificadas" value={metrics.people} icon={Users} tone="slate" />
         <Metric label="Capacitaciones" value={metrics.courses} icon={BookOpen} tone="violet" />
         <Metric label="Puntaje promedio" value={metrics.average + '%'} icon={GraduationCap} tone="yellow" />
-        <Metric label="Pendientes" value={metrics.pending} icon={FileCheck2} tone={metrics.pending ? 'red' : 'green'} />
+        {!readOnly && <Metric label="Pendientes" value={metrics.pending} icon={FileCheck2} tone={metrics.pending ? 'red' : 'green'} />}
       </div>
     </section>
 
@@ -267,7 +268,7 @@ export default function CertificatesManager({ setMessage }) {
     <section className="panel-card certificates-workspace">
       <div className="certificate-view-switch">
         <button className={view === 'issued' ? 'active' : ''} onClick={() => setView('issued')}><BadgeCheck size={17} /> Emitidos <span>{metrics.issued}</span></button>
-        <button className={view === 'pending' ? 'active' : ''} onClick={() => setView('pending')}><FileCheck2 size={17} /> Pendientes <span className={metrics.pending ? 'attention' : ''}>{metrics.pending}</span></button>
+        {!readOnly && <button className={view === 'pending' ? 'active' : ''} onClick={() => setView('pending')}><FileCheck2 size={17} /> Pendientes <span className={metrics.pending ? 'attention' : ''}>{metrics.pending}</span></button>}
       </div>
 
       {view === 'issued' ? <>

@@ -34,9 +34,10 @@ export default function CertificateApp({ sessionUser = null }) {
         if (!code) throw new Error('No se recibió el código del certificado.')
         if (!sessionUser) throw new Error('Debes iniciar sesión para abrir este certificado.')
 
+        const creatorReader = sessionUser.app_metadata?.aula_ei_role === 'creador_contenido'
         const [{ data: certificateData, error: certificateError }, { data: signatureData, error: signatureError }] = await Promise.all([
-          supabase.rpc('get_certificate_by_code', { p_certificate_code: code }),
-          supabase.rpc('get_certificate_signatures', { p_certificate_code: code }),
+          supabase.rpc(creatorReader ? 'creator_get_certificate_by_code' : 'get_certificate_by_code', { p_certificate_code: code }),
+          supabase.rpc(creatorReader ? 'creator_get_certificate_signatures' : 'get_certificate_signatures', { p_certificate_code: code }),
         ])
         if (certificateError) throw certificateError
 
@@ -225,6 +226,8 @@ export default function CertificateApp({ sessionUser = null }) {
     }
   }
 
+  const readOnlyCertificate = sessionUser?.app_metadata?.aula_ei_role === 'creador_contenido' && row?.user_id !== sessionUser?.id
+
   if (loading) return <StatePage icon={Loader2} spin title="Cargando certificado…" text="Validando el certificado, las firmas y sus recursos." />
   if (error || !certificate) return <StatePage icon={XCircle} title="No fue posible abrir el certificado" text={error || 'No se recibió información suficiente.'} error />
 
@@ -251,7 +254,7 @@ export default function CertificateApp({ sessionUser = null }) {
     </header>
 
     <section className="certificate-signature-bar">
-      <SignatureControl
+      {!readOnlyCertificate && <SignatureControl
         label="Firma participante"
         type="participant"
         value={participantSignature}
@@ -259,8 +262,8 @@ export default function CertificateApp({ sessionUser = null }) {
         onUpload={uploadSignature}
         onPaste={pasteSignature}
         onClear={clearSignature}
-      />
-      <SignatureControl
+      />}
+      {!readOnlyCertificate && <SignatureControl
         label="Firma responsable"
         type="admin"
         value={adminSignature}
@@ -268,7 +271,8 @@ export default function CertificateApp({ sessionUser = null }) {
         onUpload={uploadSignature}
         onPaste={pasteSignature}
         onClear={clearSignature}
-      />
+      />}
+      {readOnlyCertificate && <p role="status">Certificado de otro participante: consulta autorizada, sin permisos para alterar las firmas.</p>}
       <div className={'certificate-completeness ' + (complete ? 'complete' : 'incomplete')}>
         {complete ? <CheckCircle2 size={18} /> : <ShieldCheck size={18} />}
         <div><strong>{complete ? 'Certificado listo' : 'Firmas pendientes'}</strong><span>{complete ? 'PDF y PNG habilitados' : 'Completa ambas firmas para exportar'}</span></div>

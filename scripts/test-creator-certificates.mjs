@@ -23,7 +23,7 @@ assert.ok(sql.includes('CREATE OR REPLACE FUNCTION public.creator_get_certificat
 assert.ok(sql.includes('CREATE OR REPLACE FUNCTION public.creator_get_certificate_signatures'))
 assert.ok(sql.includes('SECURITY DEFINER'))
 assert.ok(sql.includes('auth.uid() IS NULL'))
-assert.ok(sql.includes("= 'creador_contenido'"))
+assert.ok(sql.includes("<> 'creador_contenido'"), "Only creators pass the fail-closed role guard.")
 assert.ok(sql.includes('REVOKE ALL ON FUNCTION public.creator_certificate_ranking() FROM PUBLIC,anon'))
 assert.ok(!sql.includes('admin_generate_certificate'))
 assert.ok(!sql.includes('DISABLE ROW LEVEL SECURITY'))

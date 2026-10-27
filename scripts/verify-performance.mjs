@@ -94,7 +94,8 @@ for (const required of [
 ]) {
   if (!studioModules.includes(required)) throw new Error('Registro lazy de Studio incompleto: ' + required)
 }
-if (!studioData.includes("['assignments', 'users', 'compliance'].includes(tab)")) {
+if (!studioData.includes("tab === 'assignments' || (canAdmin && ['users', 'compliance'].includes(tab))")
+    || !studioData.includes('!loaded.profiles && !loading.profiles')) {
   throw new Error('Studio debe diferir la carga de perfiles hasta que una pestaña los necesite.')
 }
 for (const forbidden of ['flushSync', 'document.startViewTransition']) {

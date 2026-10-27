@@ -20,7 +20,7 @@ const MOBILE_ASSIGNMENT_COLUMN_LABELS = {
   due_at: 'Fecha límite',
 }
 
-export default function AssignmentsCenter({ courses, profiles, enrollments, refresh, setMessage }) {
+export default function AssignmentsCenter({ courses, profiles, enrollments, refresh, setMessage, creatorMode = false }) {
   const publishedCourses = useMemo(() => courses.filter((course) => course.status === 'published'), [courses])
   const [courseId, setCourseId] = useState(publishedCourses[0]?.id || '')
   const [courseQuery, setCourseQuery] = useState('')
@@ -138,6 +138,46 @@ export default function AssignmentsCenter({ courses, profiles, enrollments, refr
     if (deadlinePolicy === 'set' && !dueDate) return setMessage('Selecciona la fecha límite que deseas aplicar.')
     setBusy(true)
     try {
+      if (creatorMode) {
+        // Creators may issue fresh assignments and reactivate expired/cancelled
+        // ones, but must never rewrite a learner's completion or progress.
+        const fresh = selectedRows.filter((person) => !enrollmentMap.has(person.id))
+        const reactivated = selectedRows.filter((person) =>
+          ['cancelled', 'expired'].includes(enrollmentMap.get(person.id)?.status))
+        const editable = selectedRows.filter((person) => {
+          const current = enrollmentMap.get(person.id)
+          return current && current.status !== 'completed' && !['cancelled', 'expired'].includes(current.status)
+        })
+        for (const batch of chunks(fresh, 250)) {
+          const { error } = await supabase.from('enrollments').insert(
+            batch.map((person) => ({
+              course_id: selectedCourse.id, user_id: person.id,
+              status: 'assigned', due_at: deadlinePolicy === 'set' ? dueDate : null,
+            }))
+          )
+          if (error) throw error
+        }
+        for (const batch of chunks(reactivated, 200)) {
+          const patch = { status: 'assigned' }
+          if (deadlinePolicy !== 'keep') patch.due_at = deadlinePolicy === 'set' ? dueDate : null
+          const { error } = await supabase.from('enrollments').update(patch)
+            .in('id', batch.map((person) => enrollmentMap.get(person.id).id))
+          if (error) throw error
+        }
+        if (deadlinePolicy !== 'keep') {
+          for (const batch of chunks(editable, 200)) {
+            const { error } = await supabase.from('enrollments')
+              .update({ due_at: deadlinePolicy === 'set' ? dueDate : null })
+              .in('id', batch.map((person) => enrollmentMap.get(person.id).id))
+            if (error) throw error
+          }
+        }
+        const skipped = selectedRows.filter((person) => enrollmentMap.get(person.id)?.status === 'completed').length
+        setMessage(`${fresh.length + reactivated.length} nueva(s) o reactivada(s), ${editable.length} conservada(s).${skipped ? ' ' + skipped + ' completada(s) protegida(s).' : ''}`)
+        setRowSelection({})
+        await refresh()
+        return
+      }
       const payload = selectedRows.map((person) => {
         const current = enrollmentMap.get(person.id)
         let dueAt = current?.due_at || null

@@ -21,6 +21,7 @@ export default function App({ initialProfile = null }) {
   const [tab, setTab] = useState('courses')
   const {
     canAdmin,
+    canAssign,
     message,
     setMessage,
     courses,
@@ -70,8 +71,8 @@ export default function App({ initialProfile = null }) {
 
   const tabs = [
     ['courses', 'Capacitaciones', BookOpen],
+    ...(canAssign ? [['assignments', 'Asignaciones', ClipboardList]] : []),
     ...(canAdmin ? [
-      ['assignments', 'Asignaciones', ClipboardList],
       ['users', 'Usuarios y roles', Users],
       ['compliance', 'Formación y cumplimiento', Briefcase],
       ['certificates', 'Ranking y certificados', GraduationCap],
@@ -135,7 +136,7 @@ export default function App({ initialProfile = null }) {
           {!tabReady ? <StudioLoading inline text="Preparando esta sección…" /> : (
             <Suspense fallback={<StudioLoading inline text="Cargando herramienta…" />}>
               {tab === 'courses' && <CoursesManager courses={courses} refresh={refreshCurrent} setMessage={setMessage} />}
-              {tab === 'assignments' && canAdmin && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={refreshCurrent} setMessage={setMessage} />}
+              {tab === 'assignments' && canAssign && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={refreshCurrent} setMessage={setMessage} creatorMode={!canAdmin} />}
               {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={refreshCurrent} setMessage={setMessage} />}
               {tab === 'compliance' && canAdmin && <ComplianceCenter courses={courses} profiles={profiles} setMessage={setMessage} />}
               {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}

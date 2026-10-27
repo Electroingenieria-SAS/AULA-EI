@@ -106,7 +106,7 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
       percent: Math.round((completed / requiredChecks.length) * 100),
       ready: requiredChecks.every((item) => item.done),
     }
-  }, [config.title, config.description, config.cover_path, coverFile, phases.length, totalBlocks, questions.length])
+  }, [config.title, config.description, config.cover_path, coverFile, phases.length, totalBlocks, questions])
 
   const updateConfig = (patch) => {
     setConfig((current) => ({ ...current, ...patch }))

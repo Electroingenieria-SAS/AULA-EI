@@ -69,13 +69,14 @@ export default function App({ initialProfile = null }) {
 
   if (!loaded.courses && loading.courses) return <StudioLoading text="Cargando capacitaciones…" />
 
+  const canViewCertificates = canAdmin || profile.role === 'creador_contenido'
   const tabs = [
     ['courses', 'Capacitaciones', BookOpen],
     ...(canAssign ? [['assignments', 'Asignaciones', ClipboardList]] : []),
+    ...(canViewCertificates ? [['certificates', 'Ranking y certificados', GraduationCap]] : []),
     ...(canAdmin ? [
       ['users', 'Usuarios y roles', Users],
       ['compliance', 'Formación y cumplimiento', Briefcase],
-      ['certificates', 'Ranking y certificados', GraduationCap],
       ['legal', 'Privacidad y legal', FileText],
     ] : []),
   ]
@@ -139,7 +140,7 @@ export default function App({ initialProfile = null }) {
               {tab === 'assignments' && canAssign && <AssignmentsCenter courses={courses} profiles={profiles} enrollments={enrollments} refresh={refreshCurrent} setMessage={setMessage} creatorMode={!canAdmin} />}
               {tab === 'users' && canAdmin && <UsersManager profile={profile} profiles={profiles} enrollments={enrollments} refresh={refreshCurrent} setMessage={setMessage} />}
               {tab === 'compliance' && canAdmin && <ComplianceCenter courses={courses} profiles={profiles} setMessage={setMessage} />}
-              {tab === 'certificates' && canAdmin && <CertificatesManager setMessage={setMessage} />}
+              {tab === 'certificates' && canViewCertificates && <CertificatesManager setMessage={setMessage} readOnly={!canAdmin} />}
               {tab === 'legal' && canAdmin && <LegalComplianceManager profile={profile} setMessage={setMessage} />}
             </Suspense>
           )}

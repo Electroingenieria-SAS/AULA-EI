@@ -37,10 +37,10 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
       if(!slides.length)throw Error('El paquete no contiene diapositivas.')
       if(existingBlocks.length && existingBlocks.length===slides.length) {
         const count=await replaceGuidedSlides({courseId,blocks:existingBlocks,slides,source,onProgress:setBusy})
-        setSuccess(count+' diapositivas actualizadas. Se conservó el avance de los trabajadores y las preguntas seguirán apareciendo en cada avance, incluso al repetir el curso.')
+        setSuccess(count+' diapositivas actualizadas. Se conservó el avance de los trabajadores y seguirán apareciendo como máximo dos preguntas aleatorias durante el recorrido.')
         setFiles([])
         await refresh()
-        setMessage('Paquete actualizado sin reiniciar el progreso: las preguntas permanecen activas.')
+        setMessage('Paquete actualizado sin reiniciar el progreso: el límite de dos preguntas se mantiene.')
         return
       }
       // A changed page count creates a NEW course version while retaining
@@ -50,7 +50,7 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
       const {data,error:phaseError}=await supabase.from('course_phases').insert({
         course_id:courseId,
         title:'Presentación interactiva · '+slides.length+' diapositivas',
-        description:'El visor de Aula EI muestra cada imagen y abre una pregunta existente al avanzar.',
+        description:'El visor de Aula EI muestra cada imagen e intercala hasta dos preguntas aleatorias durante la capacitación.',
         sort_order:firstOrder,
       }).select('id').single()
       if(phaseError)throw phaseError
@@ -62,10 +62,10 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
           .update({status:'draft',required:false}).in('id',oldIds)
         if(archiveError)throw archiveError
       }
-      setSuccess(count+' diapositivas '+(existingBlocks.length?'publicadas en una nueva versión; se conserva el historial anterior.':'incorporadas.')+' Al avanzar siempre se pregunta, incluso después de completar o volver a abrir la capacitación.')
+      setSuccess(count+' diapositivas '+(existingBlocks.length?'publicadas en una nueva versión; se conserva el historial anterior.':'incorporadas.')+' Durante la capacitación se intercalarán como máximo dos preguntas aleatorias, sin repetirlas al retroceder.')
       setFiles([])
       await refresh()
-      setMessage('Presentación interactiva lista: '+count+' diapositivas y preguntas recurrentes del banco existente.')
+      setMessage('Presentación interactiva lista: '+count+' diapositivas y hasta dos preguntas aleatorias del banco existente.')
     }catch(e){
       if(createdPhase)await supabase.from('course_phases').delete().eq('id',createdPhase)
       setError(getError(e,'No fue posible preparar el paquete de diapositivas.'))
@@ -84,7 +84,7 @@ export default function GuidedSlideImporter({courseId, courseStatus, phases, que
       <div>
         <span className="eyebrow">Presentación interactiva · sin generar preguntas</span>
         <h3>Carga PDF, imágenes o un paquete ZIP</h3>
-        <p>Aula EI detecta cada página o imagen, las ordena y las presenta una a una. Al pulsar Siguiente se abre una pregunta aleatoria del banco de esta capacitación, sin analizar el texto ni crear preguntas nuevas.</p>
+        <p>Aula EI detecta cada página o imagen, las ordena y las presenta una a una. Durante la capacitación aparecen como máximo dos preguntas aleatorias del banco existente, repartidas por el recorrido, sin generar preguntas nuevas ni interrumpir cada diapositiva.</p>
       </div>
     </div>
     {already && <div className="guided-slide-ready"><CheckCircle2 size={18}/>

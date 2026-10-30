@@ -19,7 +19,7 @@ import {
   RoleBadge,
   UserDetailDrawer,
 } from './users/UserPanels.jsx'
-import { ROLE_OPTIONS, csvCell, formatDate, initials } from './users/user-utils.js'
+import { ROLE_OPTIONS, csvCell, formatDate, initials, getManagedFunctionError } from './users/user-utils.js'
 
 const EMPTY_FORM = { full_name: '', email: '', password: '', role: 'colaborador' }
 export default function UsersManager({ profile, profiles, enrollments = [], refresh, setMessage }) {
@@ -212,7 +212,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
           role: form.role,
         },
       })
-      if (error) throw new Error(String(data?.error || error.message || 'No fue posible crear el usuario.'))
+      if (error) throw new Error(await getManagedFunctionError(error, data, 'No fue posible crear el usuario.'))
       if (data?.ok === false) throw new Error(String(data.error || 'No fue posible crear el usuario.'))
       const password = String(data?.temporary_password || form.password.trim() || '')
       setGeneratedPassword(password)

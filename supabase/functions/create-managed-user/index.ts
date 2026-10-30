@@ -116,11 +116,6 @@ serve(async (req) => {
     if (!["admin", "super_admin"].includes(callerRole)) return fail("Solo Admin o Super Admin pueden crear usuarios.", "FORBIDDEN");
     if (!await validateLiveAdminSession(admin, caller.id, token)) return fail("Tu sesión administrativa no está activa o no tiene MFA verificado. Vuelve a autenticarte.", "MFA_REQUIRED");
 
-    if (!await consumeRateLimit(admin, "create_managed_user", caller.id, 10, 600)) {
-      await admin.from("audit_logs").insert({ actor_id: caller.id, action: "rate_limit_block", entity_type: "security", entity_id: caller.id, metadata: { scope: "create_managed_user" } });
-      return reply({ ok: false, code: "RATE_LIMITED", error: "Demasiadas operaciones administrativas. Intenta nuevamente más tarde." }, 429);
-    }
-
     const body = await req.json();
     const email = String(body.email || "").trim().toLowerCase();
     const fullName = String(body.full_name || body.fullName || "").trim();
@@ -135,6 +130,33 @@ serve(async (req) => {
     const finalPassword = requestedPassword || generateTemporaryPassword();
     const invalidPassword = passwordError(finalPassword, email);
     if (invalidPassword) return fail(invalidPassword, "INVALID_PASSWORD");
+
+    // Account creation has its own rate limit, independent of the frontend
+    // origin. Validate inputs first, so malformed forms do not consume quota.
+    // Keep this limit behind an active admin account and live AAL2 MFA.
+    const createLimit = 30;
+    const createWindowSeconds = 600;
+    if (!await consumeRateLimit(admin, "create_managed_user", caller.id, createLimit, createWindowSeconds)) {
+      const { data: windowState } = await admin.from("aula_security_rate_limits")
+        .select("bucket_started_at")
+        .eq("scope", "create_managed_user")
+        .eq("actor_id", caller.id)
+        .maybeSingle();
+      const windowStart = Date.parse(String(windowState?.bucket_started_at || ""));
+      const secondsRemaining = Number.isFinite(windowStart)
+        ? Math.max(1, Math.ceil((windowStart + createWindowSeconds * 1000 - Date.now()) / 1000))
+        : createWindowSeconds;
+      const minutesRemaining = Math.ceil(secondsRemaining / 60);
+      await admin.from("audit_logs").insert({
+        actor_id: caller.id, action: "rate_limit_block", entity_type: "security",
+        entity_id: caller.id, metadata: { scope: "create_managed_user", limit: createLimit },
+      });
+      return reply({
+        ok: false, code: "RATE_LIMITED",
+        error: `Se alcanzó el límite de ${createLimit} intentos de creación en 10 minutos. Vuelve a intentarlo en aproximadamente ${minutesRemaining} minuto(s).`,
+        retry_after_seconds: secondsRemaining,
+      }, 429);
+    }
 
     let breachCheck = "clean";
     try {

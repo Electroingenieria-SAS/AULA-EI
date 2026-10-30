@@ -26,7 +26,8 @@ const randomIndex = (length,random) => Math.min(length-1,Math.floor(Math.max(0,M
 // Choose two different checkpoints across both halves of the unfinished course.
 export function createPracticePlan(blocks,completed = new Set(),history = [],random = Math.random) {
   const finished = completed instanceof Set ? completed : new Set(completed || [])
-  const past = (history || []).filter(item => item?.block_id && item?.data?.practice_question_id)
+  const courseIds = new Set((blocks || []).map(block => block.id))
+  const past = (history || []).filter(item => courseIds.has(item?.block_id) && item?.data?.practice_question_id)
   const asked = [...new Set(past.map(item => item.block_id))].slice(0,MAX_PRACTICE_QUESTIONS)
   const questionIds = [...new Set(past.map(item => item.data.practice_question_id))]
   const remaining = (blocks || []).filter(block => block?.id && block.status !== 'draft' && !finished.has(block.id)).map(block => block.id)

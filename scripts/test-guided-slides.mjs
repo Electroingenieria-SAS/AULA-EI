@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { guidedSlideContent,isGuidedSlide,hasGuidedSlides,shouldAskTransitionQuestion } from '../src/guided-slides.js'
+import { guidedSlideContent,isGuidedSlide,hasGuidedSlides,createPracticePlan,restorePracticePlan,recordPracticeCheckpoint,shouldAskTransitionQuestion,MAX_PRACTICE_QUESTIONS } from '../src/guided-slides.js'
 
 const slides=Array.from({length:5},(_,i)=>({type:'image',content:guidedSlideContent(i,5,'zip'),id:'slide-'+i}))
 for(let i=0;i<slides.length;i++){
@@ -8,18 +8,32 @@ for(let i=0;i<slides.length;i++){
   assert.equal(slides[i].content.slide_total,5)
   assert.equal(slides[i].content.source,'zip')
   assert.equal(isGuidedSlide(slides[i]),true)
-  assert.equal(shouldAskTransitionQuestion(slides[i],true),true,'Advancing a completed slide still prompts a question.')
-  assert.equal(shouldAskTransitionQuestion(slides[i],false),true)
 }
 const standard={type:'presentation',content:{url:'https://www.canva.com/design/123/view?embed'}}
 assert.equal(isGuidedSlide(standard),false)
-assert.equal(shouldAskTransitionQuestion(standard,true),true)
-assert.equal(shouldAskTransitionQuestion(standard,false),true)
-assert.equal(shouldAskTransitionQuestion({...standard,status:'draft'},true),false)
-assert.equal(shouldAskTransitionQuestion(null,false),false)
-assert.equal(shouldAskTransitionQuestion({type:'file',status:'published'},true),true)
-assert.equal(shouldAskTransitionQuestion({type:'video',status:'published'},true),true)
-assert.equal(shouldAskTransitionQuestion({type:'image',status:'published'},true),true)
+assert.equal(MAX_PRACTICE_QUESTIONS,2)
+const schedule=createPracticePlan(slides,new Set(),[],()=>0)
+assert.deepEqual(schedule.checkpoints,['slide-0','slide-3'],'Two checkpoints in different halves')
+const varied=createPracticePlan(slides,new Set(),[],()=>0.999)
+assert.deepEqual(varied.checkpoints,['slide-2','slide-4'],'The checkpoints vary by learner')
+for(const slide of slides) {
+  assert.equal(shouldAskTransitionQuestion(slide,false,schedule),schedule.checkpoints.includes(slide.id))
+  assert.equal(shouldAskTransitionQuestion(slide,true,schedule),false,'Completed slides do not ask')
+  assert.equal(shouldAskTransitionQuestion(slide,false,schedule,false),false,'Previous slides never ask')
+}
+const afterFirst=recordPracticeCheckpoint(schedule,'slide-0','question-1')
+assert.equal(shouldAskTransitionQuestion(slides[0],false,afterFirst),false,'A checkpoint never repeats')
+const restored=restorePracticePlan(afterFirst,slides,new Set(['slide-0']),[{block_id:'slide-0',data:{practice_question_id:'question-1'}}],()=>0.5)
+assert.deepEqual(restored,afterFirst,'Refresh retains both checkpoint positions and answers')
+const afterSecond=recordPracticeCheckpoint(afterFirst,'slide-3','question-2')
+assert.equal(afterSecond.asked.length,2)
+assert.equal(shouldAskTransitionQuestion(slides[4],false,afterSecond),false,'Only two questions per course')
+assert.equal(restorePracticePlan(null,slides,new Set(slides.map(x=>x.id)),[],()=>0).checkpoints.length,0,'Completed courses do not interrupt review')
+assert.equal(createPracticePlan(slides,new Set(['slide-0','slide-1','slide-2','slide-3']),[],()=>0).checkpoints.length,1,'Short remaining courses ask at most once')
+assert.equal(createPracticePlan(slides,new Set(),[{block_id:'slide-0',data:{practice_question_id:'q1'}},{block_id:'slide-1',data:{practice_question_id:'q2'}}],()=>0).checkpoints.length,0,'Previous answered questions count toward the cap')
+assert.equal(shouldAskTransitionQuestion({...slides[0],status:'draft'},false,schedule),false)
+assert.equal(shouldAskTransitionQuestion(null,false,schedule),false)
+assert.equal(shouldAskTransitionQuestion(standard,false,schedule),false)
 assert.equal(hasGuidedSlides([{blocks:[standard]}]),false)
 assert.equal(hasGuidedSlides([{blocks:[standard,...slides]}]),true)
 
@@ -42,7 +56,7 @@ assert.ok(importer.includes('Crear presentación interactiva'))
 assert.ok(importer.includes('renderGuidedMedia('))
 assert.ok(builder.includes('<GuidedSlideImporter'))
 assert.ok(newCourse.includes('renderGuidedMedia(') && newCourse.includes('saveGuidedSlides('))
-assert.ok(player.includes('shouldAskTransitionQuestion(currentBlock,completed.has(currentBlockId))'))
+assert.ok(player.includes('shouldAskTransitionQuestion(currentBlock,completed.has(currentBlockId),practicePlan,forward)'))
 assert.ok(player.includes('get_course_practice_question')&&player.includes('check_course_practice_answer'))
 assert.ok(player.includes('<PracticeGateModal')&&player.includes('practiceNode='))
 for(const c of [uploader,media,importer,newCourse]){
@@ -50,12 +64,14 @@ for(const c of [uploader,media,importer,newCourse]){
 }
 assert.doesNotMatch(player,/guidedLocalPracticeQuestion|practiceQuestion.origin === 'guided_pdf'/,'Only course bank questions are used.')
 
-assert.ok(player.includes('selectBlock={requestResourceTransition}'),'Selecting another resource from the outline must request a practice question.')
-assert.ok(player.includes('return requestResourceTransition(allBlocks[currentIndex - 1].id)'),'Previous navigation must use the practice gate.')
+assert.ok(player.includes('selectBlock={requestResourceTransition}'),'The outline must use the common navigation path.')
+assert.ok(player.includes('return requestResourceTransition(allBlocks[currentIndex - 1].id)'),'Previous navigation must reuse the common path.')
 assert.ok(player.includes('const goNext = () => requestResourceTransition('),'Next navigation must use the practice gate.')
 assert.ok(player.includes("completionToken !== 'completed-final-resource'"),'A React click event must not bypass the official exam gate.')
 assert.ok(uploader.includes('export async function replaceGuidedSlides'),'Editors must be able to replace revised slides.')
 assert.ok(uploader.includes('id:old.id'),'Existing slide IDs must be preserved across same-length updates.')
 assert.ok(importer.includes('replaceGuidedSlides('),'The existing course must support revised slides.')
 assert.ok(importer.includes("status:'draft',required:false"),'Previous version must be preserved when slide count changes.')
-console.log('Guided PDF, image and ZIP packages + existing-bank popup transitions: OK')
+assert.ok(player.includes('const saved = await completeBlock(currentBlockId)'),'Progress must save without a popup.')
+assert.ok(player.includes('recordAnsweredPractice('),'Answered checkpoints must persist.')
+console.log('Guided slides and two persistent, random practice checkpoints: OK')

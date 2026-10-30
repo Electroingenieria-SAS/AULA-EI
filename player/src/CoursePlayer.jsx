@@ -14,7 +14,7 @@ import { ContentExperience, CourseOutline, useCourseAsset } from './course-playe
 import ImageGallery from './course-player/ImageGallery.jsx'
 import StudyReview from './course-player/StudyReview.jsx'
 import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
-import { shouldAskTransitionQuestion } from '../../src/guided-slides.js'
+import { restorePracticePlan, shouldAskTransitionQuestion, recordPracticeCheckpoint } from '../../src/guided-slides.js'
 import { appUrl, navigateLearner } from './navigation.js'
 import { invalidateCache } from '../../src/data-cache.js'
 import { supabase } from './supabase.js'
@@ -29,6 +29,7 @@ const ACHIEVEMENTS = [
 
 export default function CoursePlayer({ suppliedSessionUser = null }) {
   const stageRef = useRef(null)
+  const transitionBusyRef = useRef(false)
   const [sessionUser, setSessionUser] = useState(suppliedSessionUser)
   const [course, setCourse] = useState(null)
   const [enrollment, setEnrollment] = useState(null)
@@ -51,6 +52,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const [practiceGateOpen, setPracticeGateOpen] = useState(false)
   const [practiceNextBlockId, setPracticeNextBlockId] = useState(null)
   const [practiceAdvanceBusy, setPracticeAdvanceBusy] = useState(false)
+  const [practicePlan, setPracticePlan] = useState(null)
 
   const courseId = useMemo(() => {
     const match = window.location.hash.match(/^#\/course\/([^/?#]+)/)
@@ -106,6 +108,15 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       const firstIncomplete = allBlocks.find((block) => !finished.has(block.id))
       const initial = firstIncomplete || allBlocks[allBlocks.length - 1] || null
 
+      // Personal checkpoint positions survive page refresh; server progress
+      // also prevents more than two questions on another device.
+      const practiceKey = practiceStorageKey(user.id,courseId)
+      let savedPlan = null
+      try { savedPlan = JSON.parse(window.localStorage.getItem(practiceKey) || 'null') } catch {}
+      const plan = restorePracticePlan(savedPlan,allBlocks,finished,progressResult.data || [])
+      setPracticePlan(plan)
+      try { window.localStorage.setItem(practiceKey,JSON.stringify(plan)) } catch {}
+
       setCourse(normalized)
       setCompleted(finished)
       setCurrentBlockId((current) => current && allBlocks.some((block) => block.id === current) ? current : initial?.id || null)
@@ -153,27 +164,31 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setPracticeAnswer(null)
     setPracticeVerdict(null)
     try {
-      const { data, error } = await supabase.rpc('get_course_practice_question', {
-        p_course_id: courseId,
-        p_seed: String(seed),
-      })
+      const seen = new Set(practicePlan?.questionIds || [])
+      let candidate = null
+      let rpcError = null
+      // A different seed is tried when a question was already used.
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const { data, error } = await supabase.rpc('get_course_practice_question', {
+          p_course_id: courseId,
+          p_seed: String(seed) + ':' + attempt,
+        })
+        if (error) { rpcError = error; break }
+        candidate = data || null
+        if (!candidate || !seen.has(candidate.id)) break
+      }
 
-      if (error) {
-        // Compatibility fallback. Staff can preview the exam at any point;
-        // learners can only use this path once their final exam is unlocked.
+      if (rpcError) {
+        // Compatibility fallback; exam access remains separately protected.
         const fallback = await supabase.rpc('get_exam_questions', { p_course_id: courseId })
         if (!fallback.error && Array.isArray(fallback.data) && fallback.data.length) {
-          const index = seededIndex(String(seed), fallback.data.length)
-          setPracticeQuestion(fallback.data[index])
-          setPracticeAnswer(null)
-          setPracticeVerdict(null)
+          const unused = fallback.data.filter(item => !seen.has(item.id))
+          const pool = unused.length ? unused : fallback.data
+          setPracticeQuestion(pool[seededIndex(String(seed),pool.length)])
         }
         return
       }
-
-      setPracticeQuestion(data || null)
-      setPracticeAnswer(null)
-      setPracticeVerdict(null)
+      setPracticeQuestion(candidate)
     } finally {
       setPracticeLoading(false)
     }
@@ -256,27 +271,50 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     return true
   }
 
-  // All resource changes use this gate. Progress can already be marked
-  // complete, and editors may have replaced the content at the same block ID.
+  // Only two randomly selected forward transitions prompt a question.
+  // All other advances still save progress and respect the final exam gate.
   const requestResourceTransition = async (targetId) => {
     if (currentIndex < 0 || practiceLoading || practiceAdvanceBusy || practiceGateOpen ||
-      (targetId && targetId === currentBlockId)) return
-    if (!shouldAskTransitionQuestion(currentBlock,completed.has(currentBlockId))) {
-      if (targetId) selectBlock(targetId)
-      else await startExam()
-      return
-    }
-    setPracticeNextBlockId(targetId || null)
-    setPracticeGateOpen(true)
+      transitionBusyRef.current || (targetId && targetId === currentBlockId)) return
+    const targetIndex = targetId ? allBlocks.findIndex(block => block.id === targetId) : allBlocks.length
+    if (targetIndex < 0) return
+    const forward = targetIndex > currentIndex
+    transitionBusyRef.current = true
     try {
-      await loadPracticeQuestion(crypto.randomUUID())
-    } catch {
-      setPracticeLoading(false)
-      setPracticeQuestion(null)
+      if (shouldAskTransitionQuestion(currentBlock,completed.has(currentBlockId),practicePlan,forward)) {
+        setPracticeNextBlockId(targetId || null)
+        setPracticeGateOpen(true)
+        try {
+          await loadPracticeQuestion(crypto.randomUUID())
+        } catch {
+          setPracticeLoading(false)
+          setPracticeQuestion(null)
+        }
+        return
+      }
+
+      if (forward) {
+        const saved = await completeBlock(currentBlockId)
+        if (!saved) return
+      }
+      if (targetId) selectBlock(targetId)
+      else {
+        const ready = requiredBlocks.every(block => completed.has(block.id) || block.id === currentBlockId)
+        if (ready) await startExam('completed-final-resource')
+        else setMessage('Completa primero los contenidos obligatorios restantes.')
+      }
+    } finally {
+      transitionBusyRef.current = false
     }
   }
 
   const goNext = () => requestResourceTransition(allBlocks[currentIndex + 1]?.id || null)
+
+  const recordAnsweredPractice = (questionId = null) => {
+    const next = recordPracticeCheckpoint(practicePlan,currentBlockId,questionId)
+    setPracticePlan(next)
+    try { window.localStorage.setItem(practiceStorageKey(sessionUser.id,courseId),JSON.stringify(next)) } catch {}
+  }
 
   const continueAfterPractice = async () => {
     if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy || practiceChecking) return
@@ -294,6 +332,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       practice_correct: typeof practiceVerdict === 'boolean' ? practiceVerdict : null,
     })
     if (!saved) { setPracticeAdvanceBusy(false); return }
+    recordAnsweredPractice(practiceQuestion?.id || null)
 
     const target = practiceNextBlockId
     setPracticeGateOpen(false)
@@ -323,6 +362,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       practice_unavailable: true,
     })
     if (!saved) { setPracticeAdvanceBusy(false); return }
+    recordAnsweredPractice()
 
     const target = practiceNextBlockId
     setPracticeGateOpen(false)
@@ -587,6 +627,10 @@ function seededIndex(seed, length) {
   let hash = 0
   for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0
   return Math.abs(hash) % length
+}
+
+function practiceStorageKey(userId,courseId) {
+  return 'aula-ei:practice:v2:' + userId + ':' + courseId
 }
 
 function dateLabel(value) {

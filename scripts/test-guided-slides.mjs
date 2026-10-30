@@ -31,6 +31,7 @@ assert.equal(shouldAskTransitionQuestion(slides[4],false,afterSecond),false,'Onl
 assert.equal(restorePracticePlan(null,slides,new Set(slides.map(x=>x.id)),[],()=>0).checkpoints.length,0,'Completed courses do not interrupt review')
 assert.equal(createPracticePlan(slides,new Set(['slide-0','slide-1','slide-2','slide-3']),[],()=>0).checkpoints.length,1,'Short remaining courses ask at most once')
 assert.equal(createPracticePlan(slides,new Set(),[{block_id:'slide-0',data:{practice_question_id:'q1'}},{block_id:'slide-1',data:{practice_question_id:'q2'}}],()=>0).checkpoints.length,0,'Previous answered questions count toward the cap')
+assert.equal(createPracticePlan(slides,new Set(),[{block_id:'from-another-course',data:{practice_question_id:'q1'}}],()=>0).checkpoints.length,2,'Questions from another course must not count')
 assert.equal(shouldAskTransitionQuestion({...slides[0],status:'draft'},false,schedule),false)
 assert.equal(shouldAskTransitionQuestion(null,false,schedule),false)
 assert.equal(shouldAskTransitionQuestion(standard,false,schedule),false)

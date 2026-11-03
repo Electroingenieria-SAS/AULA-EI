@@ -70,7 +70,7 @@ const CertificateTemplate = forwardRef(function CertificateTemplate({ certificat
         <path d="M3255 2505 H2650 L3255 2095 Z" fill="none" stroke="#F8D000" strokeWidth="5" />
 
         {/* Viñeta institucional a color (PNG transparente): misma plantilla para certificados emitidos y futuros. */}
-        <image href={certificate.vignetteData} x="2714" y="290" width="312" height="258" preserveAspectRatio="xMidYMid meet" />
+        <image href={certificate.vignetteData} x="2714" y="290" width="312" height="258" preserveAspectRatio="xMidYMid meet" opacity="0.78" />
 
         <g opacity="0.12" fill="none" stroke="#C99A22" strokeWidth="4">
           <path d="M370 455 C170 790 170 1730 430 2055" />

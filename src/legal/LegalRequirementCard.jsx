@@ -27,7 +27,7 @@ export default function LegalRequirementCard({ requirement, index, checked, busy
           <small><FileText size={13} /> {requirement.code} · Versión {requirement.version}</small>
         </span>
         <span className={checked ? 'legal-policy-state complete' : 'legal-policy-state'}>
-          {checked ? <><CheckCircle2 size={14} /> Confirmado</> : 'Pendiente de confirmar'}
+          {checked ? <><CheckCircle2 size={14} /> Confirmado</> : 'Pendiente'}
         </span>
         <ChevronDown className="legal-policy-chevron" size={19} />
       </summary>

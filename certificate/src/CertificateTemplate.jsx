@@ -69,19 +69,8 @@ const CertificateTemplate = forwardRef(function CertificateTemplate({ certificat
         <path d="M3300 2550 H2580 L3300 2020 Z" fill="url(#eiBlueGradient)" />
         <path d="M3255 2505 H2650 L3255 2095 Z" fill="none" stroke="#F8D000" strokeWidth="5" />
 
-        <g opacity="0.11" fill="#A0A8B0">
-          <circle cx="2870" cy="300" r="26" />
-          <circle cx="2810" cy="345" r="26" />
-          <circle cx="2930" cy="345" r="26" />
-          <circle cx="2750" cy="410" r="26" />
-          <circle cx="2870" cy="410" r="26" fill="#F8D000" />
-          <circle cx="2990" cy="410" r="26" />
-          <circle cx="2810" cy="475" r="26" />
-          <circle cx="2870" cy="475" r="26" fill="#F8D000" />
-          <circle cx="2930" cy="475" r="26" />
-          <circle cx="2840" cy="550" r="26" />
-          <circle cx="2900" cy="550" r="26" />
-        </g>
+        {/* Viñeta institucional a color (PNG transparente): misma plantilla para certificados emitidos y futuros. */}
+        <image href={certificate.vignetteData} x="2714" y="290" width="312" height="258" preserveAspectRatio="xMidYMid meet" />
 
         <g opacity="0.12" fill="none" stroke="#C99A22" strokeWidth="4">
           <path d="M370 455 C170 790 170 1730 430 2055" />

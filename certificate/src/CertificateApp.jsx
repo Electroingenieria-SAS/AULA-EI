@@ -15,6 +15,7 @@ export default function CertificateApp({ sessionUser = null }) {
   const [adminSignature, setAdminSignature] = useState('')
   const [logoData, setLogoData] = useState('')
   const [sealData, setSealData] = useState('')
+  const [vignetteData, setVignetteData] = useState('')
   const [qrData, setQrData] = useState('')
   const [loading, setLoading] = useState(true)
   const [workingSignature, setWorkingSignature] = useState(null)
@@ -48,9 +49,10 @@ export default function CertificateApp({ sessionUser = null }) {
         const signatures = normalizeRpcRow(signatureData)
         const verificationUrl = new URL(appUrl('/certificate/' + encodeURIComponent(certificateRow.certificate_code || code)), window.location.origin).href
 
-        const [logo, seal, qr] = await Promise.all([
+        const [logo, seal, vignette, qr] = await Promise.all([
           assetToDataUrl(assetUrl('brand/logo-aula-ei.png')),
           assetToDataUrl(assetUrl('brand/certificate-sello-ei.png')),
+          assetToDataUrl(assetUrl('brand/certificate-vineta-color.png')),
           QRCode.toDataURL(verificationUrl, {
             width: 480,
             margin: 1,
@@ -65,6 +67,7 @@ export default function CertificateApp({ sessionUser = null }) {
         setAdminSignature(signatures?.admin_signature_data || '')
         setLogoData(logo)
         setSealData(seal)
+        setVignetteData(vignette)
         setQrData(qr)
         if (signatureError) setMessage('El certificado abrió, pero no fue posible cargar las firmas guardadas.')
       } catch (err) {
@@ -77,7 +80,7 @@ export default function CertificateApp({ sessionUser = null }) {
   }, [code, sessionUser?.id])
 
   const certificate = useMemo(() => {
-    if (!row || !logoData || !sealData || !qrData) return null
+    if (!row || !logoData || !sealData || !vignetteData || !qrData) return null
     return {
       participant: row.user_full_name || row.user_email || 'Participante',
       course: row.course_title || 'Capacitación Aula EI',
@@ -87,13 +90,14 @@ export default function CertificateApp({ sessionUser = null }) {
       score: Number(row.score ?? 0),
       logoData,
       sealData,
+      vignetteData,
       qrData,
       participantSignature,
       adminSignature,
       responsibleName: row.responsible_name || row.admin_full_name || row.signer_name || 'Electroingeniería S.A.S.',
       responsibleRole: row.responsible_role || row.admin_role || row.signer_role || 'Responsable de formación',
     }
-  }, [row, logoData, sealData, qrData, participantSignature, adminSignature, code])
+  }, [row, logoData, sealData, vignetteData, qrData, participantSignature, adminSignature, code])
 
   const complete = Boolean(participantSignature && adminSignature)
 

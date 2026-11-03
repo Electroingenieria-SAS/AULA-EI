@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { BookOpen, Check, CheckCircle2, ChevronDown, ExternalLink, FileText } from 'lucide-react'
 import { appUrl } from '../paths.js'
+import LegalDocument from './LegalDocument.jsx'
 import { parseLegalMarkdown, stripLegalMarkdown } from './legal-markdown.js'
 
 function excerptOf(content) {
@@ -10,10 +11,13 @@ function excerptOf(content) {
   return source.length > 240 ? source.slice(0, 239).trimEnd() + '…' : source
 }
 
-/** Native disclosure, one signed version, one independent acknowledgement. */
-export default function LegalRequirementCard({ requirement, index, checked, reviewed, busy, markReviewed, toggle, preview = false }) {
+/** Every legal version is available for reading in place and requires its own explicit, unchecked acknowledgement. */
+export default function LegalRequirementCard({ requirement, index, checked, busy, toggle, preview = false }) {
+  const [showFullText, setShowFullText] = useState(false)
   const url = appUrl('/legal/read/' + encodeURIComponent(requirement.versionId))
+  const hasContent = Boolean(requirement.content?.trim())
   const excerpt = excerptOf(requirement.content)
+
   return <article className={checked ? 'legal-policy-card is-checked' : 'legal-policy-card'}>
     <details className="legal-policy-disclosure">
       <summary>
@@ -23,24 +27,43 @@ export default function LegalRequirementCard({ requirement, index, checked, revi
           <small><FileText size={13} /> {requirement.code} · Versión {requirement.version}</small>
         </span>
         <span className={checked ? 'legal-policy-state complete' : 'legal-policy-state'}>
-          {checked ? <><CheckCircle2 size={14} /> Confirmado</> : reviewed ? 'Listo para aceptar' : 'Por revisar'}
+          {checked ? <><CheckCircle2 size={14} /> Confirmado</> : 'Pendiente de confirmar'}
         </span>
         <ChevronDown className="legal-policy-chevron" size={19} />
       </summary>
       <div className="legal-policy-detail">
-        <p className="legal-policy-excerpt">{excerpt || 'El texto completo está disponible en la versión oficial del documento.'}</p>
-        <p className="legal-policy-note">Este es un extracto orientativo, no sustituye el documento íntegro ni modifica su contenido.</p>
-        <a className="legal-policy-read" href={url} target="_blank" rel="noopener noreferrer" onClick={() => markReviewed(requirement.versionId)}>
-          <BookOpen size={18} /> Leer documento completo (nueva pestaña) <ExternalLink size={15} />
-        </a>
-        <small className="legal-policy-instruction">Se abrirá en otra pestaña, con índice y opción de guardar en PDF.</small>
+        <p className="legal-policy-excerpt">{excerpt || 'El texto completo de esta versión no está disponible.'}</p>
+        <p className="legal-policy-note">Puedes consultar el texto íntegro desde esta pantalla, sin salir de Aula EI ni abrir otra pestaña.</p>
+        {hasContent && <div className="legal-policy-reads">
+          <button
+            type="button"
+            className="legal-policy-read legal-policy-inline-toggle"
+            aria-expanded={showFullText}
+            onClick={() => setShowFullText((current) => !current)}
+          >
+            <BookOpen size={18} /> {showFullText ? 'Ocultar documento completo' : 'Leer documento completo aquí'}
+          </button>
+          <a className="legal-policy-external" href={url} target="_blank" rel="noopener noreferrer">
+            Abrir en otra pestaña (opcional) <ExternalLink size={15} />
+          </a>
+        </div>}
+        {showFullText && hasContent && <div className="legal-policy-inline-document" role="region" aria-label={'Texto completo: ' + requirement.title}>
+          <LegalDocument requirement={requirement} idBase={'legal-gate-' + index} />
+        </div>}
       </div>
     </details>
-    <label className={reviewed ? 'legal-policy-acknowledge' : 'legal-policy-acknowledge is-locked'}>
-      <input type="checkbox" checked={checked} disabled={busy || !reviewed} onChange={(event) => toggle(requirement.versionId, event.target.checked)} />
-      <span>{reviewed
-        ? (preview ? 'Simulo haber revisado y aceptado esta versión (no se guarda).' : 'He revisado el documento completo y acepto esta versión.')
-        : 'Abre «Leer documento completo» para habilitar tu confirmación.'}</span>
+    <label className="legal-policy-acknowledge">
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={busy || !hasContent}
+        onChange={(event) => toggle(requirement.versionId, event.target.checked)}
+      />
+      <span>{!hasContent
+        ? 'No se puede aceptar esta versión porque su contenido no está disponible. Contacta al administrador.'
+        : preview
+          ? 'Simulo haber leído y aceptado esta versión (no se guarda).'
+          : 'He leído y acepto este documento (versión ' + requirement.version + ').'}</span>
     </label>
   </article>
 }

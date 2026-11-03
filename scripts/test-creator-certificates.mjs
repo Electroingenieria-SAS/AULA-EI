@@ -27,4 +27,11 @@ assert.ok(sql.includes("<> 'creador_contenido'"), "Only creators pass the fail-c
 assert.ok(sql.includes('REVOKE ALL ON FUNCTION public.creator_certificate_ranking() FROM PUBLIC,anon'))
 assert.ok(!sql.includes('admin_generate_certificate'))
 assert.ok(!sql.includes('DISABLE ROW LEVEL SECURITY'))
+// Los certificados históricos y nuevos se renderizan desde la misma plantilla SVG.
+const template = await load('certificate/src/CertificateTemplate.jsx')
+assert.ok(certificate.includes("assetToDataUrl(assetUrl('brand/certificate-vineta-color.png'))"))
+assert.ok(certificate.includes('vignetteData,'))
+assert.ok(template.includes('<image href={certificate.vignetteData}'))
+assert.ok(!template.includes('<g opacity="0.11" fill="#A0A8B0">'), 'La viñeta gris debe desaparecer del certificado.')
+
 console.log('Creator certificate read-only ranking, signed certificate viewer and admin restrictions: OK')

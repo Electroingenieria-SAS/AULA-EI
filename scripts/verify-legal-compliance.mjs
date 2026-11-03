@@ -29,7 +29,7 @@ for(const token of ['legal-consent-overlay','aria-modal="true"','acceptLegalDocu
   if(!legalGate.includes(token)) throw new Error('Gate legal obligatorio incompleto: falta '+token)
 }
 
-// Document experience: reading opens a separate authenticated tab; consent stays version-scoped.
+// Document experience: complete text is readable inline, with an optional external reader; explicit consent stays version-scoped.
 const reader=await mustRead('src/legal/LegalDocumentReader.jsx')
 const requirementCard=await mustRead('src/legal/LegalRequirementCard.jsx')
 const legalDocument=await mustRead('src/legal/LegalDocument.jsx')
@@ -45,8 +45,19 @@ for(const token of [
   if(!legalGate.includes(token)) throw new Error('Gate documental perdió aceptación por versión o lector autenticado: '+token)
 }
 if(!app.includes('route.hash')) throw new Error('El cambio de ruta a lector legal debe actualizar App.')
-for(const token of ["target=\"_blank\"",'rel="noopener noreferrer"','reviewed','disabled={busy || !reviewed}']) {
-  if(!requirementCard.includes(token)) throw new Error('El documento debe abrirse en nueva pestaña con aceptación explícita posterior: '+token)
+for(const token of [
+  'LegalDocument requirement={requirement}',
+  'aria-expanded={showFullText}',
+  'checked={checked}',
+  'disabled={busy || !hasContent}',
+  'onChange={(event) => toggle(requirement.versionId, event.target.checked)}',
+  'target="_blank"',
+  'rel="noopener noreferrer"',
+]) {
+  if(!requirementCard.includes(token)) throw new Error('La lectura integrada y la aceptación explícita por documento están incompletas: '+token)
+}
+if(requirementCard.includes('markReviewed') || requirementCard.includes('!reviewed') || legalGate.includes('setReviewed')) {
+  throw new Error('La aceptación no puede depender de abrir otra pestaña ni de una lectura rastreada por clic.')
 }
 for(const token of ['getLegalBlocks(requirement)','LegalDocument requirement={requirement}','window.print()','reader-section-']) {
   if(!reader.includes(token)) throw new Error('Plantilla documental incompleta: '+token)
@@ -83,7 +94,7 @@ if(!learnerApp.includes('<PrivacyCenter profile={profile} />')) {
 for(const token of ['canPreview',"'admin','super_admin'","appUrl('/legal/preview')"]){
   if(!privacy.includes(token)) throw new Error('Acceso administrativo a la demostración incompleto: '+token)
 }
-for(const token of ['preview = false','preview ?','disabled={busy || !reviewed}']){
+for(const token of ['preview = false','preview','disabled={busy || !hasContent}']){
   if(!requirementCard.includes(token)) throw new Error('El formulario de simulación no distingue aceptación real: '+token)
 }
 // The global shell link rule inherits dark text. The preview CTA needs a stronger

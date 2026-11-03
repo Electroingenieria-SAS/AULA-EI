@@ -64,7 +64,24 @@ html.legal-consent-open,body.legal-consent-open{overflow:hidden!important}
   background:#0c5dad;color:#fff;text-decoration:none;font-size:.76rem;font-weight:800
 }
 .legal-policy-read:hover,.legal-reader-back:hover{background:#083f7c}
-.legal-policy-instruction{display:block;margin-top:7px;color:#607a93;font-size:.69rem}
+.legal-policy-reads{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.legal-policy-inline-toggle{font-family:inherit;cursor:pointer}
+.legal-policy-external{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:43px;
+  padding:9px 12px;border:1px solid #bfd7ec;border-radius:12px;
+  color:#155b9c;background:#f3f8ff;text-decoration:none;font-size:.74rem;font-weight:800
+}
+.legal-policy-external:hover{background:#e5f1ff;color:#0b437c}
+.legal-policy-inline-document{
+  margin-top:14px;max-height:min(60dvh,520px);overflow-y:auto;overscroll-behavior:contain;
+  border:1px solid #dce9f4;border-radius:13px;background:#fff
+}
+.legal-policy-inline-document .legal-document-header{padding:18px 20px}
+.legal-policy-inline-document .legal-document-header h3{font-size:1.25rem}
+.legal-policy-inline-document .legal-document-intro{margin:14px 20px 0}
+.legal-policy-inline-document .legal-document-body{padding:18px 20px}
+.legal-policy-inline-document .legal-document-integrity{padding:12px 20px}
+
 .legal-policy-acknowledge{
   display:flex;align-items:flex-start;gap:11px;padding:12px 17px;
   border-top:1px solid #e7edf5;background:#f4f9ff;cursor:pointer
@@ -155,7 +172,7 @@ html.legal-consent-open,body.legal-consent-open{overflow:hidden!important}
 .legal-reader-colophon strong{white-space:nowrap;color:#1d558e}
 .legal-reader-page button:focus-visible,.legal-reader-page a:focus-visible,
 .legal-policy-card summary:focus-visible,.legal-policy-card a:focus-visible,
-.legal-policy-card input:focus-visible,.legal-accept-button:focus-visible,.legal-signout:focus-visible{
+.legal-policy-card input:focus-visible,.legal-policy-card button:focus-visible,.legal-accept-button:focus-visible,.legal-signout:focus-visible{
   outline:3px solid #458fcf;outline-offset:3px
 }
 
@@ -189,6 +206,13 @@ html.legal-consent-open,body.legal-consent-open{overflow:hidden!important}
   .legal-policy-state{font-size:.58rem;padding:5px 6px}
   .legal-policy-chevron{width:15px}
   .legal-policy-detail{padding:10px 12px 15px}
+  .legal-policy-reads{flex-direction:column;align-items:stretch}
+  .legal-policy-reads .legal-policy-read,.legal-policy-external{width:100%;box-sizing:border-box;text-align:center}
+  .legal-policy-inline-document{max-height:55dvh}
+  .legal-policy-inline-document .legal-document-header{padding:17px}
+  .legal-policy-inline-document .legal-document-intro{margin:14px 16px 0}
+  .legal-policy-inline-document .legal-document-body{padding:17px 16px}
+  .legal-policy-inline-document .legal-document-integrity{padding:13px 16px}
   .legal-policy-acknowledge{padding:12px}
   .legal-consent-footer{grid-template-columns:1fr;gap:8px;padding:11px 12px}
   .legal-consent-footer>div:first-child span{display:none}

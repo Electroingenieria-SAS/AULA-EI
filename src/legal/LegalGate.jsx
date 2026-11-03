@@ -14,7 +14,6 @@ import { appUrl, assetUrl } from '../paths.js'
 export default function LegalGate({ profile, sessionUser, children }) {
   const [requirements, setRequirements] = useState([])
   const [checked, setChecked] = useState({})
-  const [reviewed, setReviewed] = useState({})
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -36,7 +35,6 @@ export default function LegalGate({ profile, sessionUser, children }) {
 
   useEffect(() => {
     setChecked({})
-    setReviewed({})
     void load()
   }, [load, sessionUser?.id, profile?.id])
 
@@ -82,7 +80,6 @@ export default function LegalGate({ profile, sessionUser, children }) {
         throw new Error('La aceptación se registró parcialmente. Revisa los documentos que siguen pendientes.')
       }
       setChecked({})
-      setReviewed({})
     } catch (acceptError) {
       await load().catch(() => {})
       setError(acceptError instanceof Error ? acceptError.message : 'No fue posible registrar tu aceptación.')
@@ -148,7 +145,7 @@ export default function LegalGate({ profile, sessionUser, children }) {
           <div>
             <span><ShieldCheck size={15} /> {isPreview ? 'Vista de prueba administrativa' : 'Bienvenido a Aula EI'}</span>
             <h1 id="legal-consent-title">Tus documentos vigentes</h1>
-            <p>Antes de ingresar, consulta las versiones que corresponden a tu cuenta. Puedes desplegar cada ficha y abrir el documento completo en otra pestaña.</p>
+            <p>Antes de ingresar, revisa las versiones que corresponden a tu cuenta y confirma cada una. Puedes leer el texto completo aquí mismo, sin abrir otra pestaña.</p>
           </div>
         </div>
         {isPreview
@@ -160,14 +157,14 @@ export default function LegalGate({ profile, sessionUser, children }) {
         {isPreview && <div className="legal-preview-notice" role="status">
           <ShieldCheck size={19} />
           <div><strong>Simulación de primer ingreso</strong>
-            <span>Esta es la pantalla que verá un usuario nuevo. Puedes abrir documentos y marcar casillas de prueba. No se guardará ninguna aceptación ni se modificarán tus registros.</span>
+            <span>Esta es la pantalla que verá un usuario nuevo. Puedes consultar documentos aquí y marcar casillas de prueba. No se guardará ninguna aceptación ni se modificarán tus registros.</span>
           </div>
         </div>}
         <div className="legal-consent-overview">
           <div>
             <span className="legal-consent-eyebrow">Lectura y aceptación</span>
-            <h2>Una revisión sencilla, documento por documento</h2>
-            <p>Abre «Leer documento completo» para revisar la versión oficial. Después confirma cada documento y continúa a tu capacitación.</p>
+            <h2>Lee y acepta sin salir de esta pantalla</h2>
+            <p>Despliega cada política si deseas consultar su contenido y marca la casilla «He leído y acepto». No necesitas abrir una pestaña adicional.</p>
           </div>
           <div className="legal-gate-progress" aria-label={confirmedCount + ' de ' + shownDocuments.length + ' documentos confirmados'}>
             <FileText size={20} />
@@ -181,10 +178,8 @@ export default function LegalGate({ profile, sessionUser, children }) {
             requirement={item}
             index={index}
             checked={checked[item.versionId] === true}
-            reviewed={reviewed[item.versionId] === true}
             busy={busy}
             preview={isPreview}
-            markReviewed={(versionId) => setReviewed((current) => ({ ...current, [versionId]: true }))}
             toggle={toggle}
           />)}
         </div>
@@ -192,7 +187,7 @@ export default function LegalGate({ profile, sessionUser, children }) {
           <ShieldCheck size={17} />
           {isPreview
             ? 'Modo de prueba: las selecciones solo se muestran en esta pantalla y no se envían a Supabase.'
-            : 'Tu aceptación se registra de forma individual en Supabase con la versión, fecha y huella SHA-256. La lectura en una nueva pestaña no se registra como una aceptación.'}
+            : 'Tu confirmación explícita se registra por documento en Supabase con su versión, fecha y huella SHA-256. Consultarlo no equivale a aceptarlo.'}
         </p>
       </section>
 
@@ -204,7 +199,7 @@ export default function LegalGate({ profile, sessionUser, children }) {
         {error && <div className="legal-error" role="alert">{error}</div>}
         {isPreview
           ? <button type="button" className="legal-accept-button" disabled={!allChecked}
-              onClick={() => { setChecked({}); setReviewed({}); window.location.assign(appUrl('/privacy')) }}>
+              onClick={() => { setChecked({}); window.location.assign(appUrl('/privacy')) }}>
               <CheckCircle2 size={18} /> Simular ingreso (sin guardar)
             </button>
           : <button className="legal-accept-button" disabled={!allChecked || busy} onClick={submitAcceptance}>

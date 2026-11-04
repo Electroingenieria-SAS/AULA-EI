@@ -1,5 +1,6 @@
 import { access, readFile } from 'node:fs/promises'
 import path from 'node:path'
+import { releaseChanged } from '../src/release-monitor.js'
 
 const root = process.cwd()
 const read = (file) => readFile(path.join(root, file), 'utf8')
@@ -17,6 +18,8 @@ const index = await read('index.html')
 const main = await read('src/main.jsx')
 const manifest = JSON.parse(await read('public/manifest.webmanifest'))
 const worker = await read('public/sw.js')
+const monitor = await read('src/release-monitor.js')
+const viteConfig = await read('vite.config.js')
 
 for (const required of [
   'rel="manifest"',
@@ -33,7 +36,9 @@ for (const required of [
   'import.meta.env.BASE_URL',
   "updateViaCache: 'none'",
   "controllerchange",
-  "sw.js?v=10",
+  "sw.js?v=",
+  "installReleaseMonitor",
+  "aula-ei-worker-updated",
 ]) {
   if (!main.includes(required)) throw new Error('Registro PWA incompleto: falta ' + required)
 }
@@ -61,7 +66,8 @@ for (const forbidden of [
 for (const required of [
   "url.origin !== self.location.origin) return false",
   "request.mode === 'navigate'",
-  "CACHE_VERSION = 'aula-ei-pwa-v10'",
+  "CACHE_VERSION = 'aula-ei-pwa-v11-'",
+  "url.pathname.endsWith('/version.json')",
   'isFreshCode',
   'networkFirst(request)',
   "fetch(request, { cache: 'no-store' })",
@@ -72,4 +78,20 @@ for (const required of [
   if (!worker.includes(required)) throw new Error('Estrategia PWA incompleta: falta ' + required)
 }
 
-console.log('PWA v10 validada: actualización inmediata de JS/CSS, installable iOS/Android y caché segura.')
+for (const required of [
+  'version.json',
+  'releaseChanged',
+  "cache: 'no-store'",
+  'visibilitychange',
+  "window.addEventListener('focus'",
+]) {
+  if (!monitor.includes(required) && !viteConfig.includes(required))
+    throw new Error('Monitor de versión incompleto: ' + required)
+}
+if (!viteConfig.includes("__AULA_EI_RELEASE__") || !viteConfig.includes("dist/version.json"))
+  throw new Error('El build debe publicar el release ID y su versión JSON.')
+if (!releaseChanged('old-release', 'new-release'))
+  throw new Error('Una actualización real debe activar el aviso.')
+if (releaseChanged('same-release', 'same-release') || releaseChanged('same-release', ''))
+  throw new Error('No se debe avisar sin una nueva versión comprobada.')
+console.log('PWA v11 validada: version.json, aviso de actualización, caché por release y JS/CSS network-first.')

@@ -150,3 +150,23 @@
     white-space:nowrap;
   }
 }
+
+/* Destructive account removal is separate from reversible deactivation. */
+.user-delete-icon{color:#ab3333!important}
+.user-delete-icon:hover:not(:disabled){background:#fff1f1!important}
+.user-delete-action{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.user-delete-backdrop{z-index:180}
+.user-delete-modal{width:min(620px,100%)}
+.user-delete-content{display:flex;flex-direction:column;gap:14px;padding:20px 22px 22px}
+.user-delete-warning{display:flex;gap:12px;align-items:flex-start;padding:15px;border-radius:13px;background:#fff6e9;border:1px solid #eddfc4;color:#6f481e}
+.user-delete-warning svg{flex:none}
+.user-delete-warning strong{font-size:.85rem}
+.user-delete-warning p{font-size:.78rem;line-height:1.55;margin:5px 0 0}
+.user-delete-blockers{margin:0;padding:4px 0 4px 25px;color:#594d47;font-size:.75rem;line-height:1.7}
+#user-delete-confirm-form{display:flex;flex-direction:column;gap:13px}
+#user-delete-confirm-form label{display:flex;flex-direction:column;gap:6px;font-size:.78rem;color:#314961}
+#user-delete-confirm-form input{width:100%;min-height:43px;box-sizing:border-box;padding:9px 11px;border:1px solid #cad8e5;border-radius:10px;background:#fff;color:#18354f}
+.user-delete-checking{display:flex;align-items:center;gap:9px;color:#526c83;font-size:.81rem}
+.user-delete-error{margin:0;background:#fff0f0;border:1px solid #edc5c5;border-radius:11px;padding:11px;color:#9b2424;font-size:.77rem}
+.user-delete-content .modal-actions{flex-wrap:wrap;margin-top:4px}
+@media(max-width:600px){.user-delete-content{padding:15px}.user-delete-modal>header{padding:16px}.user-delete-content .modal-actions button{flex:1 1 auto}}

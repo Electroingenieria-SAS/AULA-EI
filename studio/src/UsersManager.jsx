@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -9,11 +9,12 @@ import {
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, CheckCircle2, ChevronRight,
   Copy, Download, Filter, KeyRound, Loader2, MoreHorizontal, Search, ShieldCheck,
-  SlidersHorizontal, UserCheck, UserMinus, UserPlus, Users, X,
+  SlidersHorizontal, Trash2, UserCheck, UserMinus, UserPlus, Users, X,
 } from 'lucide-react'
 import { ROLE_LABELS, ROLE_RANK, getError, supabase } from './shared.js'
 import {
   CreateUserModal,
+  DeleteUserModal,
   MetricButton,
   ResetPasswordModal,
   RoleBadge,
@@ -32,6 +33,12 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const [form, setForm] = useState(EMPTY_FORM)
   const [generatedPassword, setGeneratedPassword] = useState('')
   const [resetResult, setResetResult] = useState(null)
+  const deleteRequestRef = useRef(0)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deletePreview, setDeletePreview] = useState(null)
+  const [deleteChecking, setDeleteChecking] = useState(false)
+  const [deleteBusy, setDeleteBusy] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [busy, setBusy] = useState(false)
   const [workingId, setWorkingId] = useState(null)
   const [search, setSearch] = useState('')
@@ -173,6 +180,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
             {workingId === person.id && <Loader2 className="spin" size={14} />}
             {person.is_active === false ? 'Reactivar' : 'Desactivar'}
           </button>}
+          {canManage(person) && <button type="button" className="icon-button user-delete-icon" title="Eliminar usuario" aria-label={'Eliminar usuario ' + person.name} disabled={workingId === person.id} onClick={() => openDelete(person)}><Trash2 size={16} /></button>}
         </div>
       },
     },
@@ -262,6 +270,55 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     } catch (error) {
       setMessage(getError(error, 'No fue posible actualizar el usuario.'))
     } finally {
+      setWorkingId(null)
+    }
+  }
+
+
+  async function openDelete(person) {
+    if (!canManage(person)) return setMessage('Solo Admin y Super Admin pueden eliminar usuarios de un nivel inferior.')
+    if (workingId || deleteBusy) return
+    const requestId = ++deleteRequestRef.current
+    setDeleteTarget(person)
+    setDeletePreview(null)
+    setDeleteError('')
+    setDeleteChecking(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-managed-user', {
+        body: { action: 'preview_delete', user_id: person.id },
+      })
+      if (error) throw new Error(await getManagedFunctionError(error, data, 'No se pudo validar la eliminación.'))
+      if (data?.ok !== true) throw new Error(String(data?.error || 'No se pudo validar la eliminación.'))
+      if (requestId === deleteRequestRef.current) setDeletePreview(data)
+    } catch (error) {
+      if (requestId === deleteRequestRef.current) setDeleteError(getError(error, 'No se pudo comprobar el historial del usuario.'))
+    } finally {
+      if (requestId === deleteRequestRef.current) setDeleteChecking(false)
+    }
+  }
+
+  async function confirmDelete() {
+    const person = deleteTarget
+    if (!person || !canManage(person) || !deletePreview?.can_delete || deleteBusy || workingId) return
+    setDeleteBusy(true)
+    setWorkingId(person.id)
+    setDeleteError('')
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-managed-user', {
+        body: { action: 'delete', user_id: person.id,
+          confirmation_email: person.email, confirmation_text: 'ELIMINAR' },
+      })
+      if (error) throw new Error(await getManagedFunctionError(error, data, 'No se pudo eliminar el usuario.'))
+      if (data?.ok !== true || data.deleted !== true) throw new Error(String(data?.error || 'No se confirmó la eliminación.'))
+      setDeleteTarget(null)
+      setDetailId(null)
+      setRowSelection((selected) => { const next = { ...selected }; delete next[person.id]; return next })
+      setMessage(String(data.message || 'Cuenta eliminada definitivamente.'))
+      await refresh()
+    } catch (error) {
+      setDeleteError(getError(error, 'No se pudo eliminar el usuario.'))
+    } finally {
+      setDeleteBusy(false)
       setWorkingId(null)
     }
   }
@@ -374,7 +431,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
         <div>
           <span className="eyebrow">Usuarios y roles</span>
           <h2>Administra cuentas sin perder el contexto.</h2>
-          <p>Busca, filtra, cambia permisos y gestiona accesos. Desactivar nunca elimina matrículas, progreso ni certificados.</p>
+          <p>Busca, filtra, cambia permisos y gestiona accesos. Eliminar definitivamente solo está disponible para cuentas sin historial protegido; desactivar conserva los registros.</p>
         </div>
         <button className="primary-button create-user-button" onClick={() => { setGeneratedPassword(''); setCreateOpen(true) }}><UserPlus size={18} /> Crear usuario</button>
       </div>
@@ -472,6 +529,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
                 {workingId === person.id && <Loader2 className="spin" size={14} />}
                 {person.is_active === false ? 'Reactivar' : 'Desactivar'}
               </button>}
+              {canManage(person) && <button className="danger-button compact user-delete-action" type="button" disabled={workingId === person.id} onClick={() => openDelete(person)}><Trash2 size={15} /> Eliminar</button>}
             </div>
           </article>
         })}
@@ -505,7 +563,20 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       onClose={() => setDetailId(null)}
       onToggle={() => toggleActive(detailPerson)}
       onReset={() => resetManagedPassword(detailPerson)}
+      onDelete={() => openDelete(detailPerson)}
       onRole={(role) => changeRole(detailPerson, role)}
+    />}
+
+    {deleteTarget && <DeleteUserModal
+      key={deleteTarget.id}
+      person={deleteTarget}
+      preview={deletePreview}
+      checking={deleteChecking}
+      busy={deleteBusy}
+      error={deleteError}
+      onClose={() => { if (!deleteBusy) { deleteRequestRef.current++; setDeleteTarget(null); setDeletePreview(null); setDeleteError('') } }}
+      onRetry={() => openDelete(deleteTarget)}
+      onConfirm={confirmDelete}
     />}
 
     {resetResult && <ResetPasswordModal

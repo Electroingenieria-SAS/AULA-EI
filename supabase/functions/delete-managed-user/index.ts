@@ -76,9 +76,10 @@ const rank: Record<AppRole, number> = { colaborador:10, creador_contenido:20, re
 
 
 /**
- * Historical training and legal records are institutional evidence.
- * Only accounts with no dependent records may be permanently deleted.
- * The service-role client is server-side only; a caller cannot alter this list.
+ * Display an impact summary before removing an erroneous account.
+ * The client cannot modify this list; every count is checked server-side.
+ * Accounts may have history, but a reason and a privileged audit record
+ * are mandatory before calling Supabase Auth's official delete API.
  */
 const protectedReferences = [
   ["enrollments", "user_id", "matrículas"],
@@ -106,8 +107,8 @@ const protectedReferences = [
   ["profiles", "supervisor_id", "personal a cargo"],
 ] as const;
 
-async function protectedHistory(admin: ReturnType<typeof createClient>, userId: string) {
-  // Deny deletion when any check fails. A partial check is not authorization.
+async function relatedHistory(admin: ReturnType<typeof createClient>, userId: string) {
+  // Deny deletion when impact verification fails; partial checks are unsafe.
   const results = await Promise.all(protectedReferences.map(async ([table, column, label]) => {
     const { count, error } = await admin.from(table).select(column, { count: "exact", head: true }).eq(column, userId);
     if (error || count === null) throw new Error("No se pudo verificar el historial de " + table + ". No se eliminó ninguna cuenta.");
@@ -160,28 +161,34 @@ serve(async (req) => {
     const targetRole = normalizeRole(targetProfile.role);
     if (!targetRole) return reply({ ok:false, error:"El usuario objetivo tiene un rol inválido." }, 409);
     if (rank[callerRole] <= rank[targetRole]) return reply({ ok:false, error:"Solo puedes administrar usuarios con un nivel inferior al tuyo." }, 403);
+    // Neither role may ever permanently delete an Admin or a Super Admin.
+    if ((action === "preview_delete" || action === "delete") && ["admin","super_admin"].includes(targetRole)) {
+      return reply({ ok:false, code:"ADMIN_ACCOUNT_PROTECTED", error:"No está permitido eliminar cuentas Admin ni Super Admin." }, 403);
+    }
 
     const { data: targetAuthData, error: targetAuthError } = await admin.auth.admin.getUserById(targetId);
     const targetAuth = targetAuthData?.user;
     if (targetAuthError || !targetAuth) return reply({ ok:false, error:"Cuenta Auth no encontrada." }, 404);
 
     if (action === "preview_delete" || action === "delete") {
-      const blockers = await protectedHistory(admin, targetId);
+      const authTargetRole = normalizeRole(targetAuth.app_metadata?.aula_ei_role);
+      if (!authTargetRole || authTargetRole !== targetRole || ["admin","super_admin"].includes(authTargetRole)) {
+        return reply({ ok:false, code:"TARGET_ROLE_MISMATCH", error:"El rol de la cuenta no permite eliminación; verifica la membresía antes de continuar." }, 403);
+      }
+      const history = await relatedHistory(admin, targetId);
       if (action === "preview_delete") {
         return reply({
-          ok: true,
-          can_delete: blockers.length === 0,
-          blockers,
-          message: blockers.length
-            ? "Este usuario tiene registros institucionales. Desactiva la cuenta para conservarlos."
-            : "Esta cuenta puede eliminarse definitivamente. La operación no se puede deshacer.",
+          ok:true, can_delete:true, blockers:history, requires_justification:true,
+          message:history.length
+            ? "Puedes eliminar esta cuenta con una justificación. Su historial personal asociado se eliminará y la auditoría de la solicitud permanecerá."
+            : "Puedes eliminar esta cuenta con una justificación obligatoria. La operación es irreversible.",
         });
       }
-      if (blockers.length > 0) {
-        return reply({
-          ok:false, code:"PROTECTED_HISTORY", blockers,
-          error:"No se puede eliminar esta cuenta porque tiene registros institucionales. Desactívala para conservar el historial.",
-        }, 409);
+
+      const justification = String(body.justification || "").trim();
+      if (justification.length < 15 || justification.length > 1000 || !/\p{L}/u.test(justification)) {
+        return reply({ ok:false, code:"JUSTIFICATION_REQUIRED",
+          error:"Debes justificar la eliminación con un motivo válido de 15 a 1000 caracteres." }, 400);
       }
       const confirmationEmail = String(body.confirmation_email || "").trim().toLowerCase();
       const targetEmail = String(targetProfile.email || "").trim().toLowerCase();
@@ -189,29 +196,50 @@ serve(async (req) => {
         return reply({ ok:false, error:"Confirma el correo exacto y la palabra ELIMINAR." }, 400);
       }
 
-      // Audit before an irreversible action. A failed audit blocks deletion.
+      // Record the operator, verified target role, reason and affected-record
+      // counts BEFORE the irreversible operation. Fail closed if auditing fails.
+      const auditMetadata = {
+        target_role:targetRole, target_email:targetEmail,
+        target_name:targetProfile.full_name || null, justification,
+        related_records:history, mfa_level:"aal2",
+        reviewed_history:true, irreversible:true,
+      };
       const { error: auditRequestError } = await admin.from("audit_logs").insert({
         actor_id:caller.id, action:"delete_managed_user_requested",
-        entity_type:"profile", entity_id:targetId,
-        metadata:{ target_role:targetRole, target_email:targetEmail, mfa_level:"aal2", checked_history:true },
+        entity_type:"profile", entity_id:targetId, metadata:auditMetadata,
       });
-      if (auditRequestError) return reply({ ok:false, error:"No se pudo registrar la operación en auditoría." }, 500);
+      if (auditRequestError) return reply({ ok:false, error:"No se pudo registrar la justificación en auditoría." }, 500);
 
+      // Must remain an Auth Admin API operation (not direct SQL against auth).
       const { error: deleteError } = await admin.auth.admin.deleteUser(targetId);
-      if (deleteError) return reply({
-        ok:false, error:"Supabase impidió la eliminación para proteger referencias existentes: " + deleteError.message,
-      }, 409);
+      if (deleteError) {
+        await admin.from("audit_logs").insert({
+          actor_id:caller.id, action:"delete_managed_user_failed",
+          entity_type:"profile", entity_id:targetId,
+          metadata:{...auditMetadata, error_code:deleteError.code || null},
+        });
+        return reply({
+          ok:false, error:"Supabase no pudo eliminar la cuenta. Verifica dependencias adicionales (incluidos objetos de Storage): " + deleteError.message,
+        }, 409);
+      }
 
+      // A database constraint might leave a profile if a deletion is partial.
+      // Do not report completion without checking its absence.
+      const { data: remainingProfile, error: verifyError } = await admin.from("profiles")
+        .select("id").eq("id", targetId).maybeSingle();
+      const verified = !verifyError && !remainingProfile;
       const { error: auditCompleteError } = await admin.from("audit_logs").insert({
-        actor_id:caller.id, action:"delete_managed_user",
-        entity_type:"profile", entity_id:targetId,
-        metadata:{ target_role:targetRole, target_email:targetEmail, mfa_level:"aal2", deleted_from_auth:true },
+        actor_id:caller.id, action:verified ? "delete_managed_user" : "delete_managed_user_verify_failed",
+        entity_type:"profile", entity_id:targetId, metadata:{...auditMetadata, deleted_from_auth:true, verified_profile_absent:verified},
       });
+      if (!verified) return reply({
+        ok:false, error:"Supabase procesó la eliminación, pero no pudo confirmarse la limpieza del perfil. Revisa auditoría antes de intentar otra vez.",
+      }, 500);
       if (auditCompleteError) {
         return reply({ ok:true, deleted:true, audit_warning:true,
-          message:"Cuenta eliminada, pero no se confirmó el registro final de auditoría. Notifica al equipo de sistemas." });
+          message:"Cuenta eliminada, pero falló el cierre de auditoría. Notifica al equipo de sistemas." });
       }
-      return reply({ ok:true, deleted:true, message:"Cuenta eliminada definitivamente de Aula EI." });
+      return reply({ ok:true, deleted:true, message:"Cuenta eliminada definitivamente. La justificación quedó registrada en auditoría." });
     }
 
     const { error: authUpdateError } = await admin.auth.admin.updateUserById(targetId, {

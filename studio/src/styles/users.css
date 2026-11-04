@@ -1,3 +1,4 @@
+@import './user-delete.css';
 /* Centro de usuarios y roles */
 .users-center{display:flex;flex-direction:column;gap:18px}
 .users-overview{padding:24px}
@@ -170,3 +171,4 @@
 .user-delete-error{margin:0;background:#fff0f0;border:1px solid #edc5c5;border-radius:11px;padding:11px;color:#9b2424;font-size:.77rem}
 .user-delete-content .modal-actions{flex-wrap:wrap;margin-top:4px}
 @media(max-width:600px){.user-delete-content{padding:15px}.user-delete-modal>header{padding:16px}.user-delete-content .modal-actions button{flex:1 1 auto}}
+

@@ -79,8 +79,11 @@ export function ResetPasswordModal({ person, password, onClose }) {
 export function DeleteUserModal({ person, preview, checking, busy, error, onClose, onRetry, onConfirm }) {
   const [confirmationEmail, setConfirmationEmail] = useState('')
   const [confirmationText, setConfirmationText] = useState('')
+  const [justification, setJustification] = useState('')
   const canDelete = preview?.can_delete === true
-  const confirmed = canDelete && confirmationEmail.trim().toLowerCase() === String(person.email || '').trim().toLowerCase()
+  const validReason = justification.trim().length >= 15 && justification.trim().length <= 1000
+  const confirmed = canDelete && validReason
+    && confirmationEmail.trim().toLowerCase() === String(person.email || '').trim().toLowerCase()
     && confirmationText === 'ELIMINAR'
 
   return <div className="modal-backdrop user-delete-backdrop">
@@ -91,21 +94,39 @@ export function DeleteUserModal({ person, preview, checking, busy, error, onClos
         <button type="button" className="icon-button" onClick={onClose} disabled={busy} aria-label="Cerrar"><X size={18} /></button>
       </header>
       <div className="user-delete-content">
-        {checking ? <p className="user-delete-checking"><Loader2 className="spin" size={18} /> Verificando registros institucionales…</p>
-          : preview && !canDelete ? <>
-            <div className="user-delete-warning" role="alert"><ShieldCheck size={21} /><div><strong>Cuenta con historial protegido</strong>
-              <p>No puede eliminarse definitivamente porque contiene registros que deben conservarse. Puedes desactivarla desde el módulo de usuarios.</p></div></div>
-            <ul className="user-delete-blockers">{(preview.blockers || []).map((item, index) =>
-              <li key={index}>{item.label}: <strong>{item.count}</strong></li>)}</ul>
-          </> : canDelete ? <>
-            <div className="user-delete-warning" role="alert"><TriangleAlert size={22} /><div><strong>Eliminación definitiva</strong>
-              <p>Se eliminará la cuenta de autenticación y su perfil. Esta operación es irreversible. No se permite eliminar usuarios que tengan historial formativo, legal o de auditoría.</p></div></div>
-            <form id="user-delete-confirm-form" onSubmit={(event) => { event.preventDefault(); if (confirmed && !busy) onConfirm() }}>
+        {checking ? <p className="user-delete-checking"><Loader2 className="spin" size={18} /> Revisando los registros relacionados…</p>
+          : preview && !canDelete ? <div className="user-delete-warning" role="alert">
+            <ShieldCheck size={22} /><div><strong>Eliminación no autorizada</strong>
+              <p>No está permitido eliminar cuentas de administradores ni superadministradores.</p></div>
+          </div> : canDelete ? <>
+            <div className="user-delete-warning" role="alert"><TriangleAlert size={22} /><div>
+              <strong>Eliminación definitiva, incluso con historial</strong>
+              <p>La cuenta dejará de existir en Aula EI. Se eliminarán sus matrículas, avances, evaluaciones, certificados y aceptaciones legales asociadas. Los cursos compartidos y el registro de auditoría permanecerán. Esta acción no se puede deshacer.</p>
+            </div></div>
+            {(preview.blockers || []).length > 0 && <>
+              <p className="user-delete-impact-title">Registros relacionados identificados</p>
+              <ul className="user-delete-blockers">{preview.blockers.map((item, index) =>
+                <li key={index}>{item.label}: <strong>{item.count}</strong></li>)}</ul>
+            </>}
+            <form id="user-delete-confirm-form" onSubmit={(event) => { event.preventDefault(); if (confirmed && !busy) onConfirm(justification.trim()) }}>
+              <label>Justificación obligatoria de la eliminación
+                <textarea
+                  value={justification}
+                  onChange={(event) => setJustification(event.target.value)}
+                  minLength={15}
+                  maxLength={1000}
+                  rows={3}
+                  required
+                  disabled={busy}
+                  placeholder="Describe por qué se elimina esta cuenta (por ejemplo, registro creado por error o duplicado)."
+                />
+                <small className="helper-text">Mínimo 15 caracteres. Se registrarán el motivo, el administrador responsable y el impacto en auditoría.</small>
+              </label>
               <label>Escribe el correo del usuario para confirmar
-                <input autoComplete="off" spellCheck={false} value={confirmationEmail} onChange={(event) => setConfirmationEmail(event.target.value)} placeholder={person.email || 'Correo electrónico'} disabled={busy} />
+                <input autoComplete="off" spellCheck={false} value={confirmationEmail} onChange={(event) => setConfirmationEmail(event.target.value)} placeholder={person.email || 'Correo electrónico'} disabled={busy} required />
               </label>
               <label>Escribe <strong>ELIMINAR</strong>
-                <input autoComplete="off" spellCheck={false} value={confirmationText} onChange={(event) => setConfirmationText(event.target.value)} placeholder="ELIMINAR" disabled={busy} />
+                <input autoComplete="off" spellCheck={false} value={confirmationText} onChange={(event) => setConfirmationText(event.target.value)} placeholder="ELIMINAR" disabled={busy} required />
               </label>
             </form>
           </> : null}
@@ -123,7 +144,7 @@ export function DeleteUserModal({ person, preview, checking, busy, error, onClos
   </div>
 }
 
-export function UserDetailDrawer({ person, profile, canManage, canChangeRole, working, onClose, onToggle, onReset, onDelete, onRole }) {
+export function UserDetailDrawer({ person, profile, canManage, canDelete, canChangeRole, working, onClose, onToggle, onReset, onDelete, onRole }) {
   return <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="user-detail-drawer">
       <header><div><span className="eyebrow">Detalle del usuario</span><h2>{person.name}</h2></div><button className="icon-button" onClick={onClose}><X size={18} /></button></header>
@@ -154,7 +175,7 @@ export function UserDetailDrawer({ person, profile, canManage, canChangeRole, wo
         {canChangeRole && person.id !== profile.id && <label>Rol<select value={person.role} onChange={(event) => onRole(event.target.value)}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>}
         {canManage && person.is_active !== false && <button className="secondary-button" disabled={working} onClick={onReset}><KeyRound size={16} /> Restablecer contraseña</button>}
         {canManage && <button className={person.is_active === false ? 'primary-button' : 'danger-button'} disabled={working} onClick={onToggle}>{working && <Loader2 className="spin" size={16} />}{person.is_active === false ? 'Reactivar usuario' : 'Desactivar usuario'}</button>}
-        {canManage && <button type="button" className="danger-button user-delete-action" disabled={working} onClick={onDelete}><Trash2 size={16} /> Eliminar usuario</button>}
+        {canDelete && <button type="button" className="danger-button user-delete-action" disabled={working} onClick={onDelete}><Trash2 size={16} /> Eliminar usuario</button>}
       </section>}
     </aside>
   </div>

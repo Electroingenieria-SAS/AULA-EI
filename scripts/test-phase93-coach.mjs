@@ -88,7 +88,7 @@ assert.match(adaptive,/setCompletedThisRound\(true\)/)
 assert.match(adaptive,/onResult\?\.\(current.id,result\)/)
 assert.match(style,/@media\(max-width:590px\)/)
 assert.match(style,/:focus-visible/)
-assert.match(sw,/aula-ei-pwa-v10/)
+assert.match(sw,/aula-ei-pwa-v11-/)
 assert.match(main,/sw\.js\?v=10/)
 assert.match(JSON.parse(pkg).scripts.build,/npm run test:phase93-coach/)
 for(const source of [page,panel,adaptive,model]) {

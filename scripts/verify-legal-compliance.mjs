@@ -115,7 +115,7 @@ for(const token of ['aula-ei-legal-receipt:v1:','localStorage.setItem','acceptLe
 }
 
 const serviceWorker=await mustRead('public/sw.js')
-if(!serviceWorker.includes("aula-ei-pwa-v10")) throw new Error('La caché PWA no fue invalidada para el consentimiento legal.')
+if(!serviceWorker.includes("aula-ei-pwa-v11-") || !serviceWorker.includes("RELEASE")) throw new Error('La caché PWA no se invalida por versión para cambios legales y formularios.')
 
 const learner=await mustRead('player/src/LearnerApp.jsx')
 if(!learner.includes("type: 'privacy'")||!learner.includes('PrivacyCenter')) throw new Error('Centro de Privacidad no está enrutado.')

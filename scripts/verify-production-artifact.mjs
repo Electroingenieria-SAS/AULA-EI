@@ -9,7 +9,7 @@ async function exists(p) {
 }
 
 if (!await exists(dist)) throw new Error('dist/ no existe; ejecuta vite build antes del gate de artefacto.')
-for (const required of ['index.html','manifest.webmanifest','sw.js']) {
+for (const required of ['index.html','manifest.webmanifest','sw.js','version.json']) {
   if (!await exists(path.join(dist, required))) throw new Error('Artefacto de producción incompleto: falta ' + required)
 }
 
@@ -39,9 +39,22 @@ for (const file of textFiles) {
   }
 }
 
+const release = JSON.parse(await readFile(path.join(dist,'version.json'),'utf8'))
+if (release.schema !== 1 || typeof release.release !== 'string' || !release.release)
+  throw new Error('version.json debe identificar el build publicado.')
+const builtScripts = await Promise.all(
+  files.filter((file) => file.endsWith('.js')).map((file) => readFile(file,'utf8')),
+)
+if (!builtScripts.some((code) => code.includes('Justificación obligatoria de la eliminación')))
+  throw new Error('El formulario de producción perdió el campo de justificación de eliminación.')
+if (builtScripts.some((code) => code.includes('No se permite eliminar usuarios que tengan historial formativo, legal o de auditoría.')))
+  throw new Error('El build conserva un formulario obsoleto de eliminación.')
+if (!builtScripts.some((code) => code.includes(release.release)))
+  throw new Error('El cliente y version.json no identifican el mismo release.')
+
 const html = await readFile(path.join(dist,'index.html'),'utf8')
 if (!html.includes('Content-Security-Policy')) throw new Error('index.html de producción perdió la CSP.')
 if (!html.includes("object-src 'none'")) throw new Error('CSP de producción debe bloquear object-src.')
 if (!html.includes("base-uri 'self'")) throw new Error('CSP de producción debe limitar base-uri.')
 
-console.log('Production artifact gate passed: dist completo, CSP presente y sin secretos privilegiados.')
+console.log('Production artifact gate passed: build versionado, justificación visible, CSP presente y sin secretos privilegiados.')

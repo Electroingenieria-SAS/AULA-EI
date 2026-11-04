@@ -1,4 +1,6 @@
-const CACHE_VERSION = 'aula-ei-pwa-v10'
+// Each build has its own SW script URL so long-lived tabs see updates.
+const RELEASE = new URL(self.location.href).searchParams.get('v') || 'unknown'
+const CACHE_VERSION = 'aula-ei-pwa-v11-' + RELEASE.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 32)
 const STATIC_CACHE = CACHE_VERSION + '-static'
 const RUNTIME_CACHE = CACHE_VERSION + '-runtime'
 
@@ -37,6 +39,7 @@ function isSameOriginGet(request, url) {
   if (request.method !== 'GET') return false
   if (url.origin !== self.location.origin) return false
   if (url.pathname.includes('/auth/') || url.pathname.includes('/rest/') || url.pathname.includes('/functions/')) return false
+  if (url.pathname.endsWith('/version.json')) return false
   return true
 }
 

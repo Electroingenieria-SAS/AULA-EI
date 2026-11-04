@@ -186,7 +186,7 @@ serve(async (req) => {
       }
 
       const justification = String(body.justification || "").trim();
-      if (justification.length < 15 || justification.length > 1000 || !/[\\p{L}]/u.test(justification)) {
+      if (justification.length < 15 || justification.length > 1000 || !/\p{L}/u.test(justification)) {
         return reply({ ok:false, code:"JUSTIFICATION_REQUIRED",
           error:"Debes justificar la eliminación con un motivo válido de 15 a 1000 caracteres." }, 400);
       }

@@ -331,6 +331,9 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
 
   const finishPracticeTransition = async () => {
     const target = practiceNextBlockId
+    // A learner may skip while the question RPC is still pending.
+    // Release navigation immediately after the progress write succeeds.
+    transitionBusyRef.current = false
     ++practiceRequestVersionRef.current
     ++practiceCheckVersionRef.current
     setPracticeGateOpen(false)

@@ -1,3 +1,4 @@
+@import './user-delete.css';
 /* Centro de usuarios y roles */
 .users-center{display:flex;flex-direction:column;gap:18px}
 .users-overview{padding:24px}
@@ -171,10 +172,3 @@
 .user-delete-content .modal-actions{flex-wrap:wrap;margin-top:4px}
 @media(max-width:600px){.user-delete-content{padding:15px}.user-delete-modal>header{padding:16px}.user-delete-content .modal-actions button{flex:1 1 auto}}
 
-/* User deletion impact and justification remain usable on 390px displays. */
-.user-delete-modal{max-height:min(90dvh,850px);overflow-y:auto;overscroll-behavior:contain}
-.user-delete-impact-title{font-size:.77rem;font-weight:700;color:#344c63;margin:0}
-#user-delete-confirm-form textarea{width:100%;box-sizing:border-box;min-height:92px;resize:vertical;padding:10px 11px;border:1px solid #cad8e5;border-radius:10px;background:#fff;color:#18354f;font:inherit;line-height:1.5}
-#user-delete-confirm-form textarea:focus-visible{outline:2px solid #1e6aac;outline-offset:2px}
-#user-delete-confirm-form .helper-text{font-size:.71rem;line-height:1.4;color:#657789}
-@media(max-width:600px){.user-delete-modal{max-height:95dvh}.user-delete-blockers{max-height:140px;overflow-y:auto}}

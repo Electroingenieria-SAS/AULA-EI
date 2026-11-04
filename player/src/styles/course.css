@@ -89,7 +89,7 @@
 .practice-gate-backdrop{
   position:fixed;
   inset:0;
-  z-index:220;
+  z-index:7000;
   background:rgba(5,18,36,.62);
   backdrop-filter:blur(12px);
   display:grid;
@@ -254,7 +254,7 @@
   justify-content:space-between;
   gap:14px;
 }
-.practice-gate-footer>div{
+.practice-gate-footer>div:first-child{
   display:grid;
   grid-template-columns:auto minmax(0,1fr);
   gap:7px;
@@ -262,11 +262,11 @@
   color:#647c94;
   max-width:410px;
 }
-.practice-gate-footer>div svg{
+.practice-gate-footer>div:first-child svg{
   color:#397bb6;
   margin-top:1px;
 }
-.practice-gate-footer>div span{
+.practice-gate-footer>div:first-child span{
   font-size:.62rem;
   line-height:1.45;
 }
@@ -344,6 +344,29 @@
   font-weight:900;
 }
 
+
+/* The recovery action is available even while a network request is pending. */
+.practice-gate-footer-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px;min-width:0}
+.practice-gate-skip{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:42px;padding:9px 12px;border:1px solid #cbdae8;border-radius:12px;
+  background:#f4f8fc;color:#235881;font-size:.69rem;font-weight:800;cursor:pointer;
+}
+.practice-gate-skip:hover:not(:disabled){background:#e8f2fc}
+.practice-gate-skip:disabled,.practice-gate-continue:disabled{opacity:.58;cursor:wait}
+.practice-gate-loading .practice-gate-skip{margin-top:12px}
+.practice-gate-save-error{
+  margin:12px 24px 0;padding:12px;border:1px solid #f0c3bb;border-radius:12px;
+  display:flex;align-items:flex-start;gap:8px;background:#fff3f0;color:#9a3727;
+  font-size:.73rem;line-height:1.4;font-weight:700;
+}
+.practice-gate-save-error svg{flex:none}
+@media(max-width:700px){
+  .practice-gate-save-error{margin:10px 16px 0}
+  .practice-gate-footer-actions{width:100%;flex-direction:column-reverse;align-items:stretch}
+  .practice-gate-footer-actions button{width:100%}
+}
+
 .activity-progress-note{
   margin-top:8px;
   border:1px solid #d8e4ef;
@@ -394,7 +417,7 @@
     align-items:stretch;
     flex-direction:column;
   }
-  .practice-gate-footer>div{
+  .practice-gate-footer>div:first-child{
     max-width:none;
   }
   .practice-gate-continue{

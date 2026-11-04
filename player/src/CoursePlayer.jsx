@@ -255,12 +255,16 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         p_data: data,
       }), PRACTICE_WRITE_TIMEOUT_MS, 'No se confirmó el guardado del avance. Verifica tu conexión e intenta de nuevo.')
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No se pudo guardar el avance.')
+      const reason = error instanceof Error ? error.message : 'No se pudo guardar el avance.'
+      setMessage(reason)
+      if (practiceGateOpen) setPracticeSaveError(reason)
       return false
     }
 
     if (result.error) {
-      setMessage(result.error.message || 'No se pudo guardar el avance.')
+      const reason = result.error.message || 'No se pudo guardar el avance.'
+      setMessage(reason)
+      if (practiceGateOpen) setPracticeSaveError(reason)
       return false
     }
 
@@ -367,10 +371,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         practice_option_id: practiceAnswer,
         practice_correct: typeof practiceVerdict === 'boolean' ? practiceVerdict : null,
       })
-      if (!saved) {
-        setPracticeSaveError('No se pudo confirmar el progreso. Puedes reintentar sin perder tu respuesta.')
-        return
-      }
+      if (!saved) return
       recordAnsweredPractice(practiceQuestion?.id || null)
       await finishPracticeTransition()
     } catch {
@@ -392,10 +393,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
         transition_practice: true,
         practice_unavailable: true,
       })
-      if (!saved) {
-        setPracticeSaveError('No se pudo confirmar el progreso. Comprueba tu conexión y vuelve a intentar.')
-        return
-      }
+      if (!saved) return
       recordAnsweredPractice(practiceQuestion?.id || null)
       await finishPracticeTransition()
     } catch {

@@ -27,9 +27,11 @@ const randomIndex = (length,random) => Math.min(length-1,Math.floor(Math.max(0,M
 export function createPracticePlan(blocks,completed = new Set(),history = [],random = Math.random) {
   const finished = completed instanceof Set ? completed : new Set(completed || [])
   const courseIds = new Set((blocks || []).map(block => block.id))
-  const past = (history || []).filter(item => courseIds.has(item?.block_id) && item?.data?.practice_question_id)
+  // Skipped/unavailable questions still count toward the two-question limit.
+  const past = (history || []).filter(item => courseIds.has(item?.block_id)
+    && (item?.data?.transition_practice === true || item?.data?.practice_question_id))
   const asked = [...new Set(past.map(item => item.block_id))].slice(0,MAX_PRACTICE_QUESTIONS)
-  const questionIds = [...new Set(past.map(item => item.data.practice_question_id))]
+  const questionIds = [...new Set(past.map(item => item.data.practice_question_id).filter(Boolean))]
   const remaining = (blocks || []).filter(block => block?.id && block.status !== 'draft' && !finished.has(block.id)).map(block => block.id)
   const available = Math.min(MAX_PRACTICE_QUESTIONS-asked.length,remaining.length)
   const halfway = Math.ceil(remaining.length/2)

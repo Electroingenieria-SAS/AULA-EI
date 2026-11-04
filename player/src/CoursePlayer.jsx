@@ -14,7 +14,9 @@ import { ContentExperience, CourseOutline, useCourseAsset } from './course-playe
 import ImageGallery from './course-player/ImageGallery.jsx'
 import StudyReview from './course-player/StudyReview.jsx'
 import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
+import { normalizeCourse, flattenBlocks, seededIndex, practiceStorageKey, dateLabel } from './course-player/course-data.js'
 import { restorePracticePlan, shouldAskTransitionQuestion, recordPracticeCheckpoint } from '../../src/guided-slides.js'
+import { practiceRequestSeed, withPracticeTimeout, isUsablePracticeQuestion, PRACTICE_READ_TIMEOUT_MS, PRACTICE_WRITE_TIMEOUT_MS } from '../../src/practice-gate-resilience.js'
 import { appUrl, navigateLearner } from './navigation.js'
 import { invalidateCache } from '../../src/data-cache.js'
 import { supabase } from './supabase.js'
@@ -30,6 +32,9 @@ const ACHIEVEMENTS = [
 export default function CoursePlayer({ suppliedSessionUser = null }) {
   const stageRef = useRef(null)
   const transitionBusyRef = useRef(false)
+  const practiceRequestVersionRef = useRef(0)
+  const practiceCheckVersionRef = useRef(0)
+  const practiceAdvanceBusyRef = useRef(false)
   const [sessionUser, setSessionUser] = useState(suppliedSessionUser)
   const [course, setCourse] = useState(null)
   const [enrollment, setEnrollment] = useState(null)
@@ -53,6 +58,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const [practiceNextBlockId, setPracticeNextBlockId] = useState(null)
   const [practiceAdvanceBusy, setPracticeAdvanceBusy] = useState(false)
   const [practicePlan, setPracticePlan] = useState(null)
+  const [practiceSaveError, setPracticeSaveError] = useState('')
 
   const courseId = useMemo(() => {
     const match = window.location.hash.match(/^#\/course\/([^/?#]+)/)
@@ -157,67 +163,74 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     return { blocks, required, done, percent, complete: required.length ? requiredDone.length === required.length : blocks.length > 0 && done.length === blocks.length }
   }
 
-  const loadPracticeQuestion = async (seed = crypto.randomUUID()) => {
+  const loadPracticeQuestion = async (seed = practiceRequestSeed()) => {
     if (!courseId || !sessionUser?.id) return
+    const version = ++practiceRequestVersionRef.current
+    ++practiceCheckVersionRef.current
     setPracticeLoading(true)
+    setPracticeChecking(false)
+    setPracticeSaveError('')
     setPracticeQuestion(null)
     setPracticeAnswer(null)
     setPracticeVerdict(null)
+
     try {
       const seen = new Set(practicePlan?.questionIds || [])
-      let candidate = null
-      let rpcError = null
-      // A different seed is tried when a question was already used.
-      for (let attempt = 0; attempt < 8; attempt += 1) {
-        const { data, error } = await supabase.rpc('get_course_practice_question', {
-          p_course_id: courseId,
-          p_seed: String(seed) + ':' + attempt,
-        })
-        if (error) { rpcError = error; break }
-        candidate = data || null
-        if (!candidate || !seen.has(candidate.id)) break
-      }
-
-      if (rpcError) {
-        // Compatibility fallback; exam access remains separately protected.
-        const fallback = await supabase.rpc('get_exam_questions', { p_course_id: courseId })
-        if (!fallback.error && Array.isArray(fallback.data) && fallback.data.length) {
-          const unused = fallback.data.filter(item => !seen.has(item.id))
-          const pool = unused.length ? unused : fallback.data
-          setPracticeQuestion(pool[seededIndex(String(seed),pool.length)])
+      // One deadline covers every retry and the compatibility fallback.
+      const candidate = await withPracticeTimeout((async () => {
+        let rpcFailed = false
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          const { data, error } = await supabase.rpc('get_course_practice_question', {
+            p_course_id: courseId,
+            p_seed: String(seed) + ':' + attempt,
+          })
+          if (error) { rpcFailed = true; break }
+          if (!isUsablePracticeQuestion(data)) return null
+          if (!seen.has(data.id)) return data
         }
-        return
+
+        if (rpcFailed) {
+          // Backwards compatibility; missing/invalid questions remain skippable.
+          const fallback = await supabase.rpc('get_exam_questions', { p_course_id: courseId })
+          if (!fallback.error && Array.isArray(fallback.data)) {
+            const valid = fallback.data.filter(isUsablePracticeQuestion)
+            const unused = valid.filter(item => !seen.has(item.id))
+            const pool = unused.length ? unused : valid
+            return pool.length ? pool[seededIndex(String(seed), pool.length)] : null
+          }
+        }
+        return null
+      })(), PRACTICE_READ_TIMEOUT_MS)
+      if (version === practiceRequestVersionRef.current) {
+        setPracticeQuestion(isUsablePracticeQuestion(candidate) ? candidate : null)
       }
-      setPracticeQuestion(candidate)
+    } catch {
+      // A failed or timed-out lookup must show retry and continue actions.
+      if (version === practiceRequestVersionRef.current) setPracticeQuestion(null)
     } finally {
-      setPracticeLoading(false)
+      if (version === practiceRequestVersionRef.current) setPracticeLoading(false)
     }
   }
 
   const checkPracticeAnswer = async (optionId) => {
-    if (!practiceQuestion?.id || practiceChecking || practiceAdvanceBusy) return
-
+    if (!practiceQuestion?.id || practiceChecking || practiceAdvanceBusyRef.current) return
+    const version = ++practiceCheckVersionRef.current
     setPracticeAnswer(optionId)
     setPracticeVerdict(null)
     setPracticeChecking(true)
 
     try {
-      const { data, error } = await supabase.rpc('check_course_practice_answer', {
+      const { data, error } = await withPracticeTimeout(supabase.rpc('check_course_practice_answer', {
         p_course_id: courseId,
         p_question_id: practiceQuestion.id,
         p_option_id: optionId,
-      })
-
-      if (!error && typeof data?.correct === 'boolean') {
-        setPracticeVerdict(data.correct)
-        return
-      }
-
-      setPracticeVerdict('unavailable')
+      }), PRACTICE_READ_TIMEOUT_MS)
+      if (version !== practiceCheckVersionRef.current) return
+      setPracticeVerdict(!error && typeof data?.correct === 'boolean' ? data.correct : 'unavailable')
     } catch {
-      setPracticeVerdict('unavailable')
+      if (version === practiceCheckVersionRef.current) setPracticeVerdict('unavailable')
     } finally {
-      setPracticeChecking(false)
+      if (version === practiceCheckVersionRef.current) setPracticeChecking(false)
     }
   }
 
@@ -235,13 +248,19 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     if (!sessionUser?.id || completed.has(blockId)) return true
     const beforeProgress = progress
     const beforeCount = allBlocks.filter((block) => completed.has(block.id)).length
-    const { error } = await supabase.rpc('complete_block', {
-      p_block_id: blockId,
-      p_data: data,
-    })
+    let result
+    try {
+      result = await withPracticeTimeout(supabase.rpc('complete_block', {
+        p_block_id: blockId,
+        p_data: data,
+      }), PRACTICE_WRITE_TIMEOUT_MS, 'No se confirmó el guardado del avance. Verifica tu conexión e intenta de nuevo.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'No se pudo guardar el avance.')
+      return false
+    }
 
-    if (error) {
-      setMessage(error.message)
+    if (result.error) {
+      setMessage(result.error.message || 'No se pudo guardar el avance.')
       return false
     }
 
@@ -284,12 +303,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
       if (shouldAskTransitionQuestion(currentBlock,completed.has(currentBlockId),practicePlan,forward)) {
         setPracticeNextBlockId(targetId || null)
         setPracticeGateOpen(true)
-        try {
-          await loadPracticeQuestion(crypto.randomUUID())
-        } catch {
-          setPracticeLoading(false)
-          setPracticeQuestion(null)
-        }
+        await loadPracticeQuestion()
         return
       }
 
@@ -316,70 +330,79 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     try { window.localStorage.setItem(practiceStorageKey(sessionUser.id,courseId),JSON.stringify(next)) } catch {}
   }
 
-  const continueAfterPractice = async () => {
-    if (!practiceAnswer || !currentBlockId || practiceAdvanceBusy || practiceChecking) return
-
-    setPracticeAdvanceBusy(true)
-    setPracticeVerdict(null)
-
-    // The quick question is a transition checkpoint, not an exam attempt.
-    // Any selected option allows progression; the answer is stored only as
-    // context for the completed content and never graded here.
-    const saved = await completeBlock(currentBlockId, {
-      transition_practice: true,
-      practice_question_id: practiceQuestion?.id || null,
-      practice_option_id: practiceAnswer,
-      practice_correct: typeof practiceVerdict === 'boolean' ? practiceVerdict : null,
-    })
-    if (!saved) { setPracticeAdvanceBusy(false); return }
-    recordAnsweredPractice(practiceQuestion?.id || null)
-
+  const finishPracticeTransition = async () => {
     const target = practiceNextBlockId
+    // A learner may skip while the question RPC is still pending.
+    // Release navigation immediately after the progress write succeeds.
+    transitionBusyRef.current = false
+    ++practiceRequestVersionRef.current
+    ++practiceCheckVersionRef.current
     setPracticeGateOpen(false)
     setPracticeQuestion(null)
     setPracticeAnswer(null)
     setPracticeVerdict(null)
+    setPracticeLoading(false)
     setPracticeChecking(false)
+    setPracticeSaveError('')
     setPracticeNextBlockId(null)
-    setPracticeAdvanceBusy(false)
 
     if (target) selectBlock(target)
     else {
-      // The final checkpoint also unlocks the exam after its current
-      // resource is completed; existing completion history is preserved.
       const ready = requiredBlocks.every(block => completed.has(block.id) || block.id === currentBlockId)
       if (ready) await startExam('completed-final-resource')
       else setMessage('Completa primero los contenidos obligatorios restantes.')
     }
   }
 
-  const continueWithoutPractice = async () => {
-    if (!currentBlockId || practiceAdvanceBusy) return
-
+  const continueAfterPractice = async () => {
+    if (!practiceAnswer || !currentBlockId || practiceAdvanceBusyRef.current || practiceChecking) return
+    practiceAdvanceBusyRef.current = true
     setPracticeAdvanceBusy(true)
-    const saved = await completeBlock(currentBlockId, {
-      transition_practice: true,
-      practice_unavailable: true,
-    })
-    if (!saved) { setPracticeAdvanceBusy(false); return }
-    recordAnsweredPractice()
+    setPracticeSaveError('')
 
-    const target = practiceNextBlockId
-    setPracticeGateOpen(false)
-    setPracticeQuestion(null)
-    setPracticeAnswer(null)
-    setPracticeVerdict(null)
-    setPracticeChecking(false)
-    setPracticeNextBlockId(null)
-    setPracticeAdvanceBusy(false)
+    try {
+      const saved = await completeBlock(currentBlockId, {
+        transition_practice: true,
+        practice_question_id: practiceQuestion?.id || null,
+        practice_option_id: practiceAnswer,
+        practice_correct: typeof practiceVerdict === 'boolean' ? practiceVerdict : null,
+      })
+      if (!saved) {
+        setPracticeSaveError('No se pudo confirmar el progreso. Puedes reintentar sin perder tu respuesta.')
+        return
+      }
+      recordAnsweredPractice(practiceQuestion?.id || null)
+      await finishPracticeTransition()
+    } catch {
+      setPracticeSaveError('Ocurrió un problema al continuar. Intenta otra vez.')
+    } finally {
+      practiceAdvanceBusyRef.current = false
+      setPracticeAdvanceBusy(false)
+    }
+  }
 
-    if (target) selectBlock(target)
-    else {
-      // The final checkpoint also unlocks the exam after its current
-      // resource is completed; existing completion history is preserved.
-      const ready = requiredBlocks.every(block => completed.has(block.id) || block.id === currentBlockId)
-      if (ready) await startExam('completed-final-resource')
-      else setMessage('Completa primero los contenidos obligatorios restantes.')
+  const continueWithoutPractice = async () => {
+    if (!currentBlockId || practiceAdvanceBusyRef.current) return
+    practiceAdvanceBusyRef.current = true
+    setPracticeAdvanceBusy(true)
+    setPracticeSaveError('')
+
+    try {
+      const saved = await completeBlock(currentBlockId, {
+        transition_practice: true,
+        practice_unavailable: true,
+      })
+      if (!saved) {
+        setPracticeSaveError('No se pudo confirmar el progreso. Comprueba tu conexión y vuelve a intentar.')
+        return
+      }
+      recordAnsweredPractice(practiceQuestion?.id || null)
+      await finishPracticeTransition()
+    } catch {
+      setPracticeSaveError('Ocurrió un problema al continuar. Intenta otra vez.')
+    } finally {
+      practiceAdvanceBusyRef.current = false
+      setPracticeAdvanceBusy(false)
     }
   }
 
@@ -403,7 +426,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     setExamResult(null)
     setExamAnswers({})
     try {
-      const { data, error } = await supabase.rpc('get_exam_questions', { p_course_id: courseId })
+      const { data, error } = await withPracticeTimeout(supabase.rpc('get_exam_questions', { p_course_id: courseId }), PRACTICE_READ_TIMEOUT_MS)
       if (error) throw error
       setExamQuestions(data || [])
       window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
@@ -463,7 +486,8 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     loading: practiceLoading,
     advancing: practiceAdvanceBusy,
     targetTitle: allBlocks.find((block) => block.id === practiceNextBlockId)?.title || 'Examen final',
-    retry: () => loadPracticeQuestion(crypto.randomUUID()),
+    retry: () => void loadPracticeQuestion(),
+    saveError: practiceSaveError,
     continueForward: continueAfterPractice,
     continueWithoutQuestion: continueWithoutPractice,
   }
@@ -603,38 +627,3 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     {achievementToast && <AchievementToast achievement={achievementToast} onClose={() => setAchievementToast(null)} />}
   </main>
 }
-
-function normalizeCourse(course) {
-  return {
-    ...course,
-    phases: [...(course.phases || [])]
-      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      .map((phase) => ({
-        ...phase,
-        blocks: [...(phase.blocks || [])]
-          .filter((block) => block.status !== 'draft')
-          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)),
-      })),
-  }
-}
-
-function flattenBlocks(course) {
-  return (course?.phases || []).flatMap((phase) => phase.blocks || [])
-}
-
-function seededIndex(seed, length) {
-  if (!length) return 0
-  let hash = 0
-  for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0
-  return Math.abs(hash) % length
-}
-
-function practiceStorageKey(userId,courseId) {
-  return 'aula-ei:practice:v2:' + userId + ':' + courseId
-}
-
-function dateLabel(value) {
-  if (!value) return 'Sin vencimiento'
-  try { return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)) } catch { return String(value) }
-}
-

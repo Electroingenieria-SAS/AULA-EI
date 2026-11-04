@@ -18,7 +18,7 @@ export function ReadingContent({ value }) {
 }
 
 
-export function PracticeGateContent({ question, selected, verdict, checking, selectAnswer, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion, embedded = false }) {
+export function PracticeGateContent({ question, selected, verdict, checking, selectAnswer, loading, advancing, targetTitle, retry, continueForward, continueWithoutQuestion, saveError = '', embedded = false }) {
   const resolved = verdict === true || verdict === false
   const unavailable = verdict === 'unavailable'
 
@@ -33,12 +33,17 @@ export function PracticeGateContent({ question, selected, verdict, checking, sel
           <p>Elige una opción. Te diremos si acertaste, pero nunca mostraremos cuál era la respuesta correcta.</p>
         </div>
       </header>
+      {saveError && <div className="practice-gate-save-error" role="alert"><CircleAlert size={17} /><span>{saveError}</span></div>}
 
       {loading ? (
         <div className="practice-gate-loading">
           <Loader2 className="spin" size={28} />
           <strong>Preparando una pregunta aleatoria…</strong>
-          <span>Estamos tomando una pregunta del banco de esta capacitación.</span>
+          <span>Estamos tomando una pregunta del banco de esta capacitación. Si tarda demasiado, puedes continuar.</span>
+          <button type="button" className="practice-gate-skip" onClick={continueWithoutQuestion} disabled={advancing}>
+            {advancing ? <Loader2 className="spin" size={16} /> : <ArrowRight size={16} />}
+            {advancing ? 'Guardando avance…' : 'Continuar sin esperar'}
+          </button>
         </div>
       ) : question ? (
         <>
@@ -84,10 +89,15 @@ export function PracticeGateContent({ question, selected, verdict, checking, sel
               <ShieldCheck size={16} />
               <span>Este reto es de práctica. No suma ni resta puntos del examen final.</span>
             </div>
-            <button className="practice-gate-continue" disabled={!selected || checking || advancing || (!resolved && !unavailable)} onClick={continueForward}>
-              {advancing ? <Loader2 className="spin" size={17} /> : <ArrowRight size={17} />}
-              {advancing ? 'Guardando avance…' : resolved || unavailable ? 'Continuar' : 'Responder y continuar'}
-            </button>
+            <div className="practice-gate-footer-actions">
+              <button type="button" className="practice-gate-skip" onClick={continueWithoutQuestion} disabled={advancing}>
+                Continuar sin esta pregunta
+              </button>
+              <button type="button" className="practice-gate-continue" disabled={!selected || checking || advancing || (!resolved && !unavailable)} onClick={continueForward}>
+                {advancing ? <Loader2 className="spin" size={17} /> : <ArrowRight size={17} />}
+                {advancing ? 'Guardando avance…' : resolved || unavailable ? 'Continuar' : 'Responder y continuar'}
+              </button>
+            </div>
           </footer>
 
           <div className="practice-gate-target">Destino: <strong>{targetTitle}</strong></div>
@@ -96,7 +106,7 @@ export function PracticeGateContent({ question, selected, verdict, checking, sel
         <div className="practice-gate-error">
           <CircleAlert size={28} />
           <strong>No pudimos cargar la pregunta rápida.</strong>
-          <span>Inténtalo otra vez para continuar con la capacitación.</span>
+          <span>Puedes intentar cargar otra o continuar sin esta pregunta.</span>
           <div className="practice-gate-error-actions">
             <button onClick={retry} disabled={advancing}><RotateCcw size={16} /> Cargar otra pregunta</button>
             <button className="practice-gate-skip" onClick={continueWithoutQuestion} disabled={advancing}>

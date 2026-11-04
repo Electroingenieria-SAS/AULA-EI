@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+const migration = readFileSync(new URL('../supabase/migrations/20261104154021_fix_creator_self_training_progress_20261104.sql', import.meta.url), 'utf8')
+const original = readFileSync(new URL('../supabase/migrations/20261027183000_creator_course_assignment_permissions.sql', import.meta.url), 'utf8')
+const player = readFileSync(new URL('../player/src/CoursePlayer.jsx', import.meta.url), 'utf8')
+
+assert.ok(original.includes("OLD.status IN ('assigned','in_progress') AND NEW.status='cancelled'"), 'Existing creator protection is present.')
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\.guard_creator_training_enrollment_update\(\)/)
+assert.match(migration, /public\.is_aula_active\(\)/)
+assert.match(migration, /normalize_aula_ei_role\(auth\.jwt\(\)->'app_metadata'->>'aula_ei_role'\)/)
+assert.match(migration, /NEW\.user_id=auth\.uid\(\)/, 'Only a learner can start their own enrollment.')
+assert.match(migration, /OLD\.status IN \('assigned','expired'\)/)
+assert.match(migration, /AND NEW\.status='in_progress'/)
+assert.match(migration, /EXISTS \(\s*SELECT 1\s*FROM public\.block_progress bp/, 'Real saved progress is required.')
+assert.match(migration, /bp\.user_id=NEW\.user_id/)
+assert.match(migration, /bp\.status='completed'/)
+assert.match(migration, /ph\.course_id=NEW\.course_id/, 'A different course cannot authorize the transition.')
+assert.match(migration, /NEW\.assigned_by IS DISTINCT FROM OLD\.assigned_by/, 'Assignment owner cannot be changed.')
+assert.match(migration, /OLD\.status='completed'/, 'Finished certifications cannot be altered.')
+assert.match(migration, /RAISE EXCEPTION 'El creador de contenido no puede modificar estados de progreso o certificación\.'/)
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.guard_creator_training_enrollment_update\(\) FROM anon, authenticated;/)
+assert.match(player, /if \(practiceGateOpen\) setPracticeSaveError\(reason\)/, 'Display the real server error inside the popup.')
+assert.ok(!player.includes('No se pudo confirmar el progreso. Puedes reintentar sin perder tu respuesta.'), 'Do not obscure backend causes with generic warnings.')
+assert.match(player, /if \(!saved\) return/, 'Do not advance without confirmed server progress.')
+assert.match(player, /recordAnsweredPractice\(practiceQuestion\?\.id \|\| null\)/, 'Answered questions are recorded only after a successful save.')
+console.log('Creator self-training 403 regression, integrity and player diagnostics: OK')

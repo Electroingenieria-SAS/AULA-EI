@@ -90,7 +90,7 @@ const protectedReferences = [
   ["certificate_signatures", "participant_signed_by", "firmas de certificados"],
   ["certificate_signatures", "admin_signed_by", "firmas administrativas"],
   ["compliance_evidence", "user_id", "evidencias de cumplimiento"],
-  ["legal_acceptances", "user_id", "aceptaciones legales"],
+  ["legal_acceptances", "user_id", "aceptaciones legales (conservadas)"],
   ["legal_user_contexts", "user_id", "contextos legales"],
   ["legal_user_contexts", "updated_by", "contextos legales administrados"],
   ["privacy_requests", "requester_user_id", "solicitudes de privacidad"],
@@ -180,7 +180,7 @@ serve(async (req) => {
         return reply({
           ok:true, can_delete:true, blockers:history, requires_justification:true,
           message:history.length
-            ? "Puedes eliminar esta cuenta con una justificación. Su historial personal asociado se eliminará y la auditoría de la solicitud permanecerá."
+            ? "Puedes eliminar esta cuenta con una justificación. Sus registros operativos se borrarán; las aceptaciones legales y la auditoría permanecerán como evidencia histórica."
             : "Puedes eliminar esta cuenta con una justificación obligatoria. La operación es irreversible.",
         });
       }
@@ -202,7 +202,7 @@ serve(async (req) => {
         target_role:targetRole, target_email:targetEmail,
         target_name:targetProfile.full_name || null, justification,
         related_records:history, mfa_level:"aal2",
-        reviewed_history:true, irreversible:true,
+        reviewed_history:true, legal_acceptances_retained:true, irreversible:true,
       };
       const { error: auditRequestError } = await admin.from("audit_logs").insert({
         actor_id:caller.id, action:"delete_managed_user_requested",
@@ -239,7 +239,7 @@ serve(async (req) => {
         return reply({ ok:true, deleted:true, audit_warning:true,
           message:"Cuenta eliminada, pero falló el cierre de auditoría. Notifica al equipo de sistemas." });
       }
-      return reply({ ok:true, deleted:true, message:"Cuenta eliminada definitivamente. La justificación quedó registrada en auditoría." });
+      return reply({ ok:true, deleted:true, message:"Cuenta eliminada. Las aceptaciones legales y la justificación de auditoría se conservaron." });
     }
 
     const { error: authUpdateError } = await admin.auth.admin.updateUserById(targetId, {

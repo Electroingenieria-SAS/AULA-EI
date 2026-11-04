@@ -7,6 +7,7 @@ const panels = readFileSync(new URL('../studio/src/users/UserPanels.jsx', import
 const styles = readFileSync(new URL('../studio/src/styles/users.css', import.meta.url), 'utf8')
 const deleteStyles = readFileSync(new URL('../studio/src/styles/user-delete.css', import.meta.url), 'utf8')
 const db = readFileSync(new URL('../supabase/migrations/20261104172500_justified_nonadmin_deletion_relations.sql', import.meta.url), 'utf8')
+const retainedLegalMigration = readFileSync(new URL('../supabase/migrations/20261104204500_preserve_legal_acceptances_after_user_deletion.sql', import.meta.url), 'utf8')
 
 // Authorization continues to be enforced server-side, never through UI alone.
 assert.match(edge, /\["admin","super_admin"\]\.includes\(callerRole\)/)
@@ -38,13 +39,12 @@ assert.match(edge, /delete_managed_user"/)
 assert.match(edge, /action = body\.action === undefined \? "toggle_access"/, 'Existing activation route remains unchanged')
 
 // Database explicitly handles deletion without erasing shared resources or audit.
-for (const [table, foreignKey] of [
-  ['legal_acceptances', 'user_id'],
-  ['privacy_requests', 'requester_user_id'],
-]) {
-  assert.ok(db.includes('ALTER TABLE public.' + table), table + ' must permit deleting dependent data')
-  assert.match(db, new RegExp('FOREIGN KEY \\(' + foreignKey + '\\) REFERENCES auth\\.users\\(id\\) ON DELETE CASCADE'))
-}
+assert.ok(db.includes('FOREIGN KEY (requester_user_id) REFERENCES auth.users(id) ON DELETE CASCADE'), 'Operational privacy records cascade on Auth deletion')
+assert.match(retainedLegalMigration, /DROP CONSTRAINT IF EXISTS legal_acceptances_user_id_fkey;/)
+assert.match(retainedLegalMigration, /trg_legal_acceptances_immutable/)
+assert.ok(retainedLegalMigration.includes('Intentionally not a foreign key to auth.users'), 'Historic user IDs remain intact')
+for (const forbidden of ['DROP TRIGGER', 'DELETE FROM public.legal_acceptances', 'UPDATE public.legal_acceptances']) assert.ok(!retainedLegalMigration.includes(forbidden), 'Legal evidence must not be changed or deleted: ' + forbidden)
+assert.match(edge, /legal_acceptances_retained:true/)
 for (const item of ['audit_logs_actor_id_fkey', 'courses_created_by_fkey', 'enrollments_assigned_by_fkey',
   'privacy_incidents_created_by_fkey', 'legal_documents_created_by_fkey', 'privacy_requests_resolved_by_fkey']) {
   assert.ok(db.includes('DROP CONSTRAINT ' + item), 'Retention-safe attribution: ' + item)
@@ -69,7 +69,8 @@ assert.match(panels, /maxLength=\{1000\}/)
 assert.match(panels, /onConfirm\(justification\.trim\(\)\)/)
 assert.match(panels, /canDelete && <button[^\n]*user-delete-action/)
 assert.match(panels, /disabled=\{!confirmed \|\| busy\}/)
-assert.match(panels, /Se eliminarán sus matrículas/, 'Warn about lost training and legal data')
+assert.match(panels, /Se eliminarán la cuenta, sus matrículas/, 'Warn about irreversible removal of training data')
+assert.match(panels, /Las aceptaciones legales se conservarán íntegramente/, 'Tell administrator that legal evidence remains')
 assert.match(deleteStyles, /\.user-delete-modal\{max-height:/, 'Small screens can scroll the modal')
 assert.doesNotMatch(users, /auth\.admin\.deleteUser/, 'Never expose service role in the browser')
 console.log('Justified non-admin deletion: role restrictions, audit, cascade and UI checks OK')

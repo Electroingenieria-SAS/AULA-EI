@@ -101,7 +101,7 @@ export function DeleteUserModal({ person, preview, checking, busy, error, onClos
           </div> : canDelete ? <>
             <div className="user-delete-warning" role="alert"><TriangleAlert size={22} /><div>
               <strong>Eliminación definitiva, incluso con historial</strong>
-              <p>La cuenta dejará de existir en Aula EI. Se eliminarán sus matrículas, avances, evaluaciones, certificados y aceptaciones legales asociadas. Los cursos compartidos y el registro de auditoría permanecerán. Esta acción no se puede deshacer.</p>
+              <p>La cuenta dejará de existir en Aula EI. Se eliminarán la cuenta, sus matrículas, avances, evaluaciones y certificados. Las aceptaciones legales se conservarán íntegramente como evidencia histórica, junto con la auditoría y los cursos compartidos. Esta acción no se puede deshacer.</p>
             </div></div>
             {(preview.blockers || []).length > 0 && <>
               <p className="user-delete-impact-title">Registros relacionados identificados</p>

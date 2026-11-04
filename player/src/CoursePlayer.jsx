@@ -14,6 +14,7 @@ import { ContentExperience, CourseOutline, useCourseAsset } from './course-playe
 import ImageGallery from './course-player/ImageGallery.jsx'
 import StudyReview from './course-player/StudyReview.jsx'
 import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
+import { normalizeCourse, flattenBlocks, seededIndex, practiceStorageKey, dateLabel } from './course-player/course-data.js'
 import { restorePracticePlan, shouldAskTransitionQuestion, recordPracticeCheckpoint } from '../../src/guided-slides.js'
 import { practiceRequestSeed, withPracticeTimeout, isUsablePracticeQuestion, PRACTICE_READ_TIMEOUT_MS, PRACTICE_WRITE_TIMEOUT_MS } from '../../src/practice-gate-resilience.js'
 import { appUrl, navigateLearner } from './navigation.js'
@@ -626,38 +627,3 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     {achievementToast && <AchievementToast achievement={achievementToast} onClose={() => setAchievementToast(null)} />}
   </main>
 }
-
-function normalizeCourse(course) {
-  return {
-    ...course,
-    phases: [...(course.phases || [])]
-      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      .map((phase) => ({
-        ...phase,
-        blocks: [...(phase.blocks || [])]
-          .filter((block) => block.status !== 'draft')
-          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)),
-      })),
-  }
-}
-
-function flattenBlocks(course) {
-  return (course?.phases || []).flatMap((phase) => phase.blocks || [])
-}
-
-function seededIndex(seed, length) {
-  if (!length) return 0
-  let hash = 0
-  for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0
-  return Math.abs(hash) % length
-}
-
-function practiceStorageKey(userId,courseId) {
-  return 'aula-ei:practice:v2:' + userId + ':' + courseId
-}
-
-function dateLabel(value) {
-  if (!value) return 'Sin vencimiento'
-  try { return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)) } catch { return String(value) }
-}
-

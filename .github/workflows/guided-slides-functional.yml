@@ -5,6 +5,12 @@ on:
       - 'studio/src/course-editor/**'
       - 'studio/src/CoursesManager.jsx'
       - 'player/src/CoursePlayer.jsx'
+      - 'player/src/course-player/CoursePlayerViews.jsx'
+      - 'player/src/course-player/ImageGallery.jsx'
+      - 'player/src/styles/course.css'
+      - 'src/practice-gate-resilience.js'
+      - 'scripts/test-practice-gate-resilience.mjs'
+      - 'package.json'
       - 'src/guided-slides.js'
       - 'scripts/test-guided-slides.mjs'
       - 'scripts/test-canva-import.mjs'
@@ -36,6 +42,7 @@ jobs:
       - name: Verify guided slides, question popups and existing Canva tests
         run: |
           npm run test:guided-slides
+          npm run test:practice-gate-resilience
           npm run test:canva-import
           npm run test:course-navigation
       - name: Bundle production UI without deploying

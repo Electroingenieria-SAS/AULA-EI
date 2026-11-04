@@ -39,11 +39,11 @@ assert.match(edge, /delete_managed_user"/)
 assert.match(edge, /action = body\.action === undefined \? "toggle_access"/, 'Existing activation route remains unchanged')
 
 // Database explicitly handles deletion without erasing shared resources or audit.
-assert.match(db, /FOREIGN KEY \\(requester_user_id\\) REFERENCES auth\\.users\\(id\\) ON DELETE CASCADE/)
+assert.ok(db.includes('FOREIGN KEY (requester_user_id) REFERENCES auth.users(id) ON DELETE CASCADE'), 'Operational privacy records cascade on Auth deletion')
 assert.match(retainedLegalMigration, /DROP CONSTRAINT IF EXISTS legal_acceptances_user_id_fkey;/)
 assert.match(retainedLegalMigration, /trg_legal_acceptances_immutable/)
-assert.match(retainedLegalMigration, /Intentionally not a foreign key to auth\\.users/)
-assert.doesNotMatch(retainedLegalMigration, /DROP TRIGGER|DELETE FROM public\\.legal_acceptances|UPDATE public\\.legal_acceptances/)
+assert.ok(retainedLegalMigration.includes('Intentionally not a foreign key to auth.users'), 'Historic user IDs remain intact')
+for (const forbidden of ['DROP TRIGGER', 'DELETE FROM public.legal_acceptances', 'UPDATE public.legal_acceptances']) assert.ok(!retainedLegalMigration.includes(forbidden), 'Legal evidence must not be changed or deleted: ' + forbidden)
 assert.match(edge, /legal_acceptances_retained:true/)
 for (const item of ['audit_logs_actor_id_fkey', 'courses_created_by_fkey', 'enrollments_assigned_by_fkey',
   'privacy_incidents_created_by_fkey', 'legal_documents_created_by_fkey', 'privacy_requests_resolved_by_fkey']) {

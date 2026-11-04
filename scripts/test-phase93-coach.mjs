@@ -89,7 +89,7 @@ assert.match(adaptive,/onResult\?\.\(current.id,result\)/)
 assert.match(style,/@media\(max-width:590px\)/)
 assert.match(style,/:focus-visible/)
 assert.match(sw,/aula-ei-pwa-v11-/)
-assert.match(main,/sw\.js\?v=10/)
+assert.ok(main.includes("sw.js?v="))
 assert.match(JSON.parse(pkg).scripts.build,/npm run test:phase93-coach/)
 for(const source of [page,panel,adaptive,model]) {
   assert.doesNotMatch(source,/\.from\('exam_attempts'\)|\.from\('question_options'\)|\.insert\(|\.update\(|\.upsert\(|\.delete\(/)

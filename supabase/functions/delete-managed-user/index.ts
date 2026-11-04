@@ -74,6 +74,48 @@ function normalizeRole(raw: unknown): AppRole | null {
 }
 const rank: Record<AppRole, number> = { colaborador:10, creador_contenido:20, revisor:30, admin:40, super_admin:50 };
 
+
+/**
+ * Historical training and legal records are institutional evidence.
+ * Only accounts with no dependent records may be permanently deleted.
+ * The service-role client is server-side only; a caller cannot alter this list.
+ */
+const protectedReferences = [
+  ["enrollments", "user_id", "matrículas"],
+  ["enrollments", "assigned_by", "matrículas asignadas"],
+  ["block_progress", "user_id", "avances de capacitación"],
+  ["exam_attempts", "user_id", "evaluaciones"],
+  ["certificates", "user_id", "certificados"],
+  ["certificate_signatures", "participant_signed_by", "firmas de certificados"],
+  ["certificate_signatures", "admin_signed_by", "firmas administrativas"],
+  ["compliance_evidence", "user_id", "evidencias de cumplimiento"],
+  ["legal_acceptances", "user_id", "aceptaciones legales"],
+  ["legal_user_contexts", "user_id", "contextos legales"],
+  ["legal_user_contexts", "updated_by", "contextos legales administrados"],
+  ["privacy_requests", "requester_user_id", "solicitudes de privacidad"],
+  ["privacy_requests", "resolved_by", "solicitudes de privacidad resueltas"],
+  ["privacy_incidents", "created_by", "incidentes de privacidad"],
+  ["audit_logs", "actor_id", "acciones de auditoría"],
+  ["courses", "created_by", "capacitaciones creadas"],
+  ["legal_documents", "created_by", "documentos legales creados"],
+  ["legal_document_versions", "created_by", "versiones legales creadas"],
+  ["legal_document_versions", "approved_by", "versiones legales aprobadas"],
+  ["profile_position_history", "user_id", "historial de cargos"],
+  ["profile_position_history", "assigned_by", "cargos asignados"],
+  ["training_notifications", "user_id", "notificaciones formativas"],
+  ["profiles", "supervisor_id", "personal a cargo"],
+] as const;
+
+async function protectedHistory(admin: ReturnType<typeof createClient>, userId: string) {
+  // Deny deletion when any check fails. A partial check is not authorization.
+  const results = await Promise.all(protectedReferences.map(async ([table, column, label]) => {
+    const { count, error } = await admin.from(table).select(column, { count: "exact", head: true }).eq(column, userId);
+    if (error || count === null) throw new Error("No se pudo verificar el historial de " + table + ". No se eliminó ninguna cuenta.");
+    return { label, count: count || 0 };
+  }));
+  return results.filter(item => item.count > 0);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return reply({ ok:false, error:"Método no permitido." }, 405);
@@ -105,9 +147,13 @@ serve(async (req) => {
 
     const body = await req.json();
     const targetId = String(body.user_id || "").trim();
+    const action = body.action === undefined ? "toggle_access" : body.action;
+    if (!["toggle_access", "preview_delete", "delete"].includes(action)) {
+      return reply({ ok:false, error:"Operación administrativa no reconocida." }, 400);
+    }
     const desiredActive = body.active === true;
     if (!targetId) return reply({ ok:false, error:"Falta user_id." }, 400);
-    if (targetId === caller.id) return reply({ ok:false, error:"No puedes desactivar tu propia cuenta." }, 400);
+    if (targetId === caller.id) return reply({ ok:false, error:"No puedes eliminar ni desactivar tu propia cuenta." }, 400);
 
     const { data: targetProfile, error: targetProfileError } = await admin.from("profiles").select("id,email,full_name,role,is_active").eq("id",targetId).single();
     if (targetProfileError || !targetProfile) return reply({ ok:false, error:"Usuario no encontrado." }, 404);
@@ -118,6 +164,55 @@ serve(async (req) => {
     const { data: targetAuthData, error: targetAuthError } = await admin.auth.admin.getUserById(targetId);
     const targetAuth = targetAuthData?.user;
     if (targetAuthError || !targetAuth) return reply({ ok:false, error:"Cuenta Auth no encontrada." }, 404);
+
+    if (action === "preview_delete" || action === "delete") {
+      const blockers = await protectedHistory(admin, targetId);
+      if (action === "preview_delete") {
+        return reply({
+          ok: true,
+          can_delete: blockers.length === 0,
+          blockers,
+          message: blockers.length
+            ? "Este usuario tiene registros institucionales. Desactiva la cuenta para conservarlos."
+            : "Esta cuenta puede eliminarse definitivamente. La operación no se puede deshacer.",
+        });
+      }
+      if (blockers.length > 0) {
+        return reply({
+          ok:false, code:"PROTECTED_HISTORY", blockers,
+          error:"No se puede eliminar esta cuenta porque tiene registros institucionales. Desactívala para conservar el historial.",
+        }, 409);
+      }
+      const confirmationEmail = String(body.confirmation_email || "").trim().toLowerCase();
+      const targetEmail = String(targetProfile.email || "").trim().toLowerCase();
+      if (!targetEmail || confirmationEmail !== targetEmail || body.confirmation_text !== "ELIMINAR") {
+        return reply({ ok:false, error:"Confirma el correo exacto y la palabra ELIMINAR." }, 400);
+      }
+
+      // Audit before an irreversible action. A failed audit blocks deletion.
+      const { error: auditRequestError } = await admin.from("audit_logs").insert({
+        actor_id:caller.id, action:"delete_managed_user_requested",
+        entity_type:"profile", entity_id:targetId,
+        metadata:{ target_role:targetRole, target_email:targetEmail, mfa_level:"aal2", checked_history:true },
+      });
+      if (auditRequestError) return reply({ ok:false, error:"No se pudo registrar la operación en auditoría." }, 500);
+
+      const { error: deleteError } = await admin.auth.admin.deleteUser(targetId);
+      if (deleteError) return reply({
+        ok:false, error:"Supabase impidió la eliminación para proteger referencias existentes: " + deleteError.message,
+      }, 409);
+
+      const { error: auditCompleteError } = await admin.from("audit_logs").insert({
+        actor_id:caller.id, action:"delete_managed_user",
+        entity_type:"profile", entity_id:targetId,
+        metadata:{ target_role:targetRole, target_email:targetEmail, mfa_level:"aal2", deleted_from_auth:true },
+      });
+      if (auditCompleteError) {
+        return reply({ ok:true, deleted:true, audit_warning:true,
+          message:"Cuenta eliminada, pero no se confirmó el registro final de auditoría. Notifica al equipo de sistemas." });
+      }
+      return reply({ ok:true, deleted:true, message:"Cuenta eliminada definitivamente de Aula EI." });
+    }
 
     const { error: authUpdateError } = await admin.auth.admin.updateUserById(targetId, {
       ban_duration: desiredActive ? "none" : "876000h",

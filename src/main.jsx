@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import AppErrorBoundary from './AppErrorBoundary.jsx'
 import { installRuntimeDiagnostics } from './runtime-diagnostics.js'
+import { installReleaseMonitor } from './release-monitor.js'
+import './release-monitor.css'
 import '../studio/src/styles/core.css'
 import '../studio/src/styles/users.css'
 import '../studio/src/styles/certificates.css'
@@ -28,6 +30,8 @@ import './responsive-foundation.css'
 import './responsive-controls.css'
 
 installRuntimeDiagnostics()
+const RELEASE_ID = __AULA_EI_RELEASE__
+installReleaseMonitor({ release: RELEASE_ID, base: import.meta.env.BASE_URL })
 
 const mobileStyleQuery = window.matchMedia('(max-width: 900px)')
 let mobileStylesPromise = null
@@ -62,16 +66,17 @@ async function bootstrap() {
 void bootstrap()
 
 
+// A release monitor detects newer server builds without interrupting an exam
+// or an administrator who is editing a form. The SW remains network-first.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const workerUrl = new URL('sw.js?v=10', window.location.origin + import.meta.env.BASE_URL).href
-    let refreshing = false
+    const workerUrl = new URL('sw.js?v=' + encodeURIComponent(RELEASE_ID),
+      window.location.origin + import.meta.env.BASE_URL).href
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing || sessionStorage.getItem('aula-ei-pwa-refresh-v10') === '1') return
-      refreshing = true
-      sessionStorage.setItem('aula-ei-pwa-refresh-v10', '1')
-      window.location.reload()
+      // Do not lose form input on an automatic reload: ask only when a newer
+      // version.json has actually reached the currently served origin.
+      window.dispatchEvent(new Event('aula-ei-worker-updated'))
     })
 
     navigator.serviceWorker.register(workerUrl, {

@@ -15,6 +15,7 @@ import ImageGallery from './course-player/ImageGallery.jsx'
 import StudyReview from './course-player/StudyReview.jsx'
 import { exitBrowserFullscreen } from './course-player/immersive-navigation.js'
 import { normalizeCourse, flattenBlocks, seededIndex, practiceStorageKey, dateLabel } from './course-player/course-data.js'
+import { resumeExam, submitExamWithRecovery, saveExamDraft, clearExamDraft } from './course-player/exam-recovery.js'
 import { restorePracticePlan, shouldAskTransitionQuestion, recordPracticeCheckpoint } from '../../src/guided-slides.js'
 import { practiceRequestSeed, withPracticeTimeout, isUsablePracticeQuestion, PRACTICE_READ_TIMEOUT_MS, PRACTICE_WRITE_TIMEOUT_MS } from '../../src/practice-gate-resilience.js'
 import { appUrl, navigateLearner } from './navigation.js'
@@ -35,6 +36,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   const practiceRequestVersionRef = useRef(0)
   const practiceCheckVersionRef = useRef(0)
   const practiceAdvanceBusyRef = useRef(false)
+  const examSubmittingRef = useRef(false)
   const [sessionUser, setSessionUser] = useState(suppliedSessionUser)
   const [course, setCourse] = useState(null)
   const [enrollment, setEnrollment] = useState(null)
@@ -410,23 +412,21 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
   }
 
   const startExam = async (completionToken = null) => {
-    // React click handlers pass a truthy event object. Never interpret that
-    // event as authorization to bypass the official completion gate.
     if (!examUnlocked && completionToken !== 'completed-final-resource') {
       setMessage('Completa primero todos los contenidos obligatorios.')
       return
     }
+    if (!sessionUser?.id || examSubmittingRef.current) return
     await exitBrowserFullscreen()
     setImmersiveOpen(false)
     setOutlineOpen(false)
     setExamLoading(true)
     setMessage('')
-    setExamResult(null)
-    setExamAnswers({})
     try {
-      const { data, error } = await withPracticeTimeout(supabase.rpc('get_exam_questions', { p_course_id: courseId }), PRACTICE_READ_TIMEOUT_MS)
-      if (error) throw error
-      setExamQuestions(data || [])
+      const { result, questions, answers } = await resumeExam(supabase, sessionUser.id, courseId)
+      setExamResult(result)
+      setExamQuestions(questions)
+      setExamAnswers(answers)
       window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No fue posible abrir el examen.')
@@ -435,24 +435,32 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
     }
   }
 
+  const persistExamAnswers = (answers) => {
+    setExamAnswers(answers)
+    saveExamDraft(sessionUser?.id, courseId, answers)
+  }
+
   const submitExam = async () => {
-    if (!examQuestions?.length) return
+    if (!examQuestions?.length || !sessionUser?.id || examSubmittingRef.current || examLoading) return
+    if (Object.keys(examAnswers).length !== examQuestions.length) return
+    examSubmittingRef.current = true
     setExamLoading(true)
     setMessage('')
     try {
-      const { data, error } = await supabase.rpc('submit_exam', { p_course_id: courseId, p_answers: examAnswers })
-      if (error) throw error
+      const data = await submitExamWithRecovery(supabase, sessionUser.id, courseId, examAnswers)
       setExamResult(data)
       setExamQuestions(null)
+      clearExamDraft(sessionUser.id, courseId)
       invalidateCache('home:')
       invalidateCache('catalog:')
-      if (data?.passed) {
+      if (data.passed) {
         setAchievementToast({ key: 'certified', title: '¡Capacitación aprobada!', description: 'Tu certificado ya está disponible.', icon: Trophy })
         window.setTimeout(() => setAchievementToast(null), 5200)
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No fue posible enviar el examen.')
+      setMessage(error instanceof Error ? error.message : 'No fue posible enviar el examen. Tus respuestas siguen guardadas.')
     } finally {
+      examSubmittingRef.current = false
       setExamLoading(false)
     }
   }
@@ -537,7 +545,7 @@ export default function CoursePlayer({ suppliedSessionUser = null }) {
             <ExamExperience
               questions={examQuestions}
               answers={examAnswers}
-              setAnswers={setExamAnswers}
+              setAnswers={persistExamAnswers}
               passingScore={course.passing_score || 80}
               submit={submitExam}
               loading={examLoading}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -33,6 +33,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const [form, setForm] = useState(EMPTY_FORM)
   const [generatedPassword, setGeneratedPassword] = useState('')
   const [resetResult, setResetResult] = useState(null)
+  const deleteRequestRef = useRef(0)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deletePreview, setDeletePreview] = useState(null)
   const [deleteChecking, setDeleteChecking] = useState(false)
@@ -277,6 +278,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   async function openDelete(person) {
     if (!canManage(person)) return setMessage('Solo Admin y Super Admin pueden eliminar usuarios de un nivel inferior.')
     if (workingId || deleteBusy) return
+    const requestId = ++deleteRequestRef.current
     setDeleteTarget(person)
     setDeletePreview(null)
     setDeleteError('')
@@ -287,11 +289,11 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       })
       if (error) throw new Error(await getManagedFunctionError(error, data, 'No se pudo validar la eliminación.'))
       if (data?.ok !== true) throw new Error(String(data?.error || 'No se pudo validar la eliminación.'))
-      setDeletePreview(data)
+      if (requestId === deleteRequestRef.current) setDeletePreview(data)
     } catch (error) {
-      setDeleteError(getError(error, 'No se pudo comprobar el historial del usuario.'))
+      if (requestId === deleteRequestRef.current) setDeleteError(getError(error, 'No se pudo comprobar el historial del usuario.'))
     } finally {
-      setDeleteChecking(false)
+      if (requestId === deleteRequestRef.current) setDeleteChecking(false)
     }
   }
 
@@ -572,7 +574,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       checking={deleteChecking}
       busy={deleteBusy}
       error={deleteError}
-      onClose={() => { if (!deleteBusy) { setDeleteTarget(null); setDeletePreview(null); setDeleteError('') } }}
+      onClose={() => { if (!deleteBusy) { deleteRequestRef.current++; setDeleteTarget(null); setDeletePreview(null); setDeleteError('') } }}
       onRetry={() => openDelete(deleteTarget)}
       onConfirm={confirmDelete}
     />}

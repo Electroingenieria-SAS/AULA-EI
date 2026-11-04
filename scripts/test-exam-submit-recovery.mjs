@@ -32,6 +32,7 @@ const storage = {
   setItem: (key, value) => data.set(key, value),
   removeItem: key => data.delete(key),
 }
+globalThis.localStorage=storage
 const questions = [
   { id: 'q1', options: [{ id: 'a' }, { id: 'b' }] },
   { id: 'q2', options: [{ id: 'c' }, { id: 'd' }] },
@@ -77,7 +78,6 @@ assert.equal(session.result?.certificate_code,'CERT-OK')
 assert.equal(existing.calls.includes('rpc:get_exam_questions'),false,'Existing certificates suppress duplicate exams')
 assert.deepEqual(readExamDraft(user,course,questions,storage),{},'Already-certified course clears old drafts')
 
-globalThis.localStorage=storage
 saveExamDraft(user,course,answers,storage)
 const open=fakeClient()
 const resumed=await resumeExam(open,user,course)

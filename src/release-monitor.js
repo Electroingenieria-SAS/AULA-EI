@@ -64,6 +64,7 @@ export function installReleaseMonitor({ release, base }) {
 
   void check(true)
   window.addEventListener('focus', () => { void check() })
+  window.addEventListener('aula-ei-worker-updated', () => { void check(true) })
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) void check()
   })

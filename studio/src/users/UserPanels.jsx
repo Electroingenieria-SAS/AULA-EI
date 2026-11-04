@@ -109,8 +109,11 @@ export function DeleteUserModal({ person, preview, checking, busy, error, onClos
                 <li key={index}>{item.label}: <strong>{item.count}</strong></li>)}</ul>
             </>}
             <form id="user-delete-confirm-form" onSubmit={(event) => { event.preventDefault(); if (confirmed && !busy) onConfirm(justification.trim()) }}>
-              <label>Justificación obligatoria de la eliminación
+              <label htmlFor="delete-user-justification">Justificación obligatoria de la eliminación
                 <textarea
+                  id="delete-user-justification"
+                  aria-describedby="delete-justification-help"
+                  autoFocus
                   value={justification}
                   onChange={(event) => setJustification(event.target.value)}
                   minLength={15}
@@ -120,7 +123,7 @@ export function DeleteUserModal({ person, preview, checking, busy, error, onClos
                   disabled={busy}
                   placeholder="Describe por qué se elimina esta cuenta (por ejemplo, registro creado por error o duplicado)."
                 />
-                <small className="helper-text">Mínimo 15 caracteres. Se registrarán el motivo, el administrador responsable y el impacto en auditoría.</small>
+                <small id="delete-justification-help" className="helper-text">Mínimo 15 caracteres. {justification.trim().length}/1000. Se registrarán el motivo, el administrador responsable y el impacto en auditoría.</small>
               </label>
               <label>Escribe el correo del usuario para confirmar
                 <input autoComplete="off" spellCheck={false} value={confirmationEmail} onChange={(event) => setConfirmationEmail(event.target.value)} placeholder={person.email || 'Correo electrónico'} disabled={busy} required />

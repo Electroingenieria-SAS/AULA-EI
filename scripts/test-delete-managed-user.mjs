@@ -5,6 +5,7 @@ const edge = readFileSync(new URL('../supabase/functions/delete-managed-user/ind
 const users = readFileSync(new URL('../studio/src/UsersManager.jsx', import.meta.url), 'utf8')
 const panels = readFileSync(new URL('../studio/src/users/UserPanels.jsx', import.meta.url), 'utf8')
 const styles = readFileSync(new URL('../studio/src/styles/users.css', import.meta.url), 'utf8')
+const deleteStyles = readFileSync(new URL('../studio/src/styles/user-delete.css', import.meta.url), 'utf8')
 const db = readFileSync(new URL('../supabase/migrations/20261104172500_justified_nonadmin_deletion_relations.sql', import.meta.url), 'utf8')
 
 // Authorization continues to be enforced server-side, never through UI alone.

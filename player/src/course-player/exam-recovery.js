@@ -55,6 +55,20 @@ export async function getStoredExamResult(supabase, userId, courseId) {
   } : null
 }
 
+export async function resumeExam(supabase, userId, courseId) {
+  const result = await getStoredExamResult(supabase, userId, courseId)
+  if (result) {
+    clearExamDraft(userId, courseId)
+    return { result, questions: null, answers: {} }
+  }
+  const { data, error } = await withPracticeTimeout(
+    supabase.rpc('get_exam_questions', { p_course_id: courseId }), PRACTICE_READ_TIMEOUT_MS,
+  )
+  if (error) throw error
+  if (!Array.isArray(data) || !data.length) throw new Error('No se recibieron preguntas válidas del examen.')
+  return { result: null, questions: data, answers: readExamDraft(userId, courseId, data) }
+}
+
 function sameAnswers(saved, submitted) {
   if (!saved || !submitted || typeof saved !== 'object' || typeof submitted !== 'object') return false
   const keys = Object.keys(submitted)

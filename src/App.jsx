@@ -3,7 +3,8 @@ import AdminMfaGate from './AdminMfaGate.jsx'
 import ExperienceLayer from './ExperienceLayer.jsx'
 import MobileViewportSync from './MobileViewportSync.jsx'
 import LegalGate from './legal/LegalGate.jsx'
-import { appUrl } from './paths.js'
+import { clearLegalRequirementsPrefetch, prefetchLegalRequirements } from './legal/legal-api.js'
+import { appUrl, assetUrl } from './paths.js'
 import { clearDataCache } from './data-cache.js'
 import { withTimeout } from './async-utils.js'
 import { AccessError, LoginPage, PasswordGate, Startup } from './auth/AuthScreens.jsx'
@@ -23,6 +24,22 @@ function routeInfo() {
     isLogin: /^#\/login(?:\/|$)/.test(hash),
     isCertificate: /^#\/certificate\/[^/?#]+/.test(hash),
   }
+}
+
+// This CSS background is loaded only after the authenticated learner shell mounts.
+// Discover it earlier, at low priority so profile and policy RPCs keep bandwidth.
+function preloadLearnerBackground() {
+  if (document.querySelector('link[data-aula-ei-background-preload]')) return
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+  if (connection?.saveData || /(?:^|-)2g/.test(String(connection?.effectiveType || ''))) return
+
+  const preload = document.createElement('link')
+  preload.rel = 'preload'
+  preload.as = 'image'
+  preload.href = assetUrl('brand/fondo.jpg')
+  preload.fetchPriority = 'low'
+  preload.setAttribute('data-aula-ei-background-preload', '')
+  document.head.appendChild(preload)
 }
 
 function normalizeRpcRow(value) {
@@ -62,7 +79,10 @@ export default function App() {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
       if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true)
-      if (event === 'SIGNED_OUT' || !nextSession) clearDataCache()
+      if (event === 'SIGNED_OUT' || !nextSession) {
+        clearDataCache()
+        clearLegalRequirementsPrefetch()
+      }
       if (event === 'SIGNED_OUT') setIntroComplete(false)
       if (!nextSession) { setProfile(null); setProfileUserId(null) }
       setAuthError('')
@@ -90,6 +110,13 @@ export default function App() {
 
     setProfileBusy(true)
     setAuthError('')
+
+    // Fetch independent legal requirements while profile verification is pending.
+    // The profile remains mandatory and LegalGate still validates any acceptance.
+    const mustResetPassword = user.app_metadata?.aula_ei_must_change_password === true ||
+      user.user_metadata?.must_change_password === true
+    if (!mustResetPassword) void prefetchLegalRequirements(user.id).catch(() => {})
+    if (!route.isCertificate && !mustResetPassword) preloadLearnerBackground()
 
     ;(async () => {
       try {

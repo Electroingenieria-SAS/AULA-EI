@@ -4,6 +4,7 @@ import AuthVisualShell, { AuthPanelBrand } from '../AuthVisualShell.jsx'
 import { appUrl, assetUrl } from '../paths.js'
 import { supabase } from '../supabase.js'
 import { withTimeout } from '../async-utils.js'
+import { getPasswordChangeError } from './password-change-errors.js'
 
 export function LoginPage({ error = '', preserveRoute = false, recoveryMode = false, onRecoveryModeChange = () => {} }) {
   const [mode, setMode] = useState(recoveryMode ? 'recovery-email' : 'login')
@@ -118,7 +119,7 @@ export function LoginPage({ error = '', preserveRoute = false, recoveryMode = fa
       showMessage('Las contraseñas no coinciden.')
       return
     }
-    const passwordError = validatePasswordPolicy(newPassword)
+    const passwordError = validatePasswordPolicy(newPassword, email)
     if (passwordError) {
       showMessage(passwordError)
       return
@@ -156,7 +157,7 @@ export function LoginPage({ error = '', preserveRoute = false, recoveryMode = fa
         body: { password: newPassword, reason: 'recovery' },
         headers: { Authorization: 'Bearer ' + accessToken },
       })
-      if (changeError) throw new Error(String(changed?.error || changeError.message || 'No fue posible cambiar la contraseña.'))
+      if (changeError) throw new Error(await getPasswordChangeError(changeError, changed))
       if (changed?.ok === false) throw new Error(String(changed.error || 'No fue posible cambiar la contraseña.'))
 
       await supabase.auth.signOut().catch(() => {})
@@ -274,7 +275,7 @@ export function LoginPage({ error = '', preserveRoute = false, recoveryMode = fa
   </AuthVisualShell>
 }
 
-function validatePasswordPolicy(password) {
+function validatePasswordPolicy(password, email = '') {
   if (
     password.length < 12 ||
     password.length > 128 ||
@@ -286,6 +287,10 @@ function validatePasswordPolicy(password) {
   ) {
     return 'Usa entre 12 y 128 caracteres, con mayúscula, minúscula, número y símbolo, sin espacios.'
   }
+  const username = String(email || '').trim().toLowerCase().split('@')[0] || ''
+  if (username.length >= 4 && password.toLowerCase().includes(username)) {
+    return 'La contraseña no puede contener el usuario de tu correo electrónico.'
+  }
   return ''
 }
 
@@ -294,17 +299,19 @@ export function PasswordGate({ profile }) {
   const [confirmation, setConfirmation] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   const submit = async (event) => {
     event.preventDefault()
     setMessage('')
+    setSessionExpired(false)
 
     if (password !== confirmation) {
       setMessage('Las contraseñas no coinciden.')
       return
     }
 
-    const passwordError = validatePasswordPolicy(password)
+    const passwordError = validatePasswordPolicy(password, profile?.email)
     if (passwordError) {
       setMessage(passwordError)
       return
@@ -313,7 +320,10 @@ export function PasswordGate({ profile }) {
     setBusy(true)
     try {
       const { data, error } = await supabase.functions.invoke('complete-password-change', { body: { password } })
-      if (error) throw new Error(data?.error || error.message)
+      if (error) {
+        setSessionExpired(error.context?.status === 401)
+        throw new Error(await getPasswordChangeError(error, data))
+      }
       if (data?.ok === false) throw new Error(data?.error || 'No fue posible actualizar la contraseña.')
       await supabase.auth.signOut()
       window.location.replace(appUrl('/login'))
@@ -343,8 +353,13 @@ export function PasswordGate({ profile }) {
           Confirmar contraseña
           <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required />
         </label>
+        <small className="auth-password-help">Usa de 12 a 128 caracteres con mayúscula, minúscula, número y símbolo, sin espacios ni tu usuario de correo. No reutilices contraseñas filtradas.</small>
         <button className="auth-primary" disabled={busy}>{busy ? 'Actualizando…' : 'Guardar contraseña'}</button>
-        {message && <div className="auth-message error">{message}</div>}
+        {message && <div className="auth-message error" role="alert">{message}</div>}
+        {sessionExpired && <button type="button" className="auth-secondary" onClick={async () => {
+          await supabase.auth.signOut().catch(() => {})
+          window.location.replace(appUrl('/login'))
+        }}>Cerrar sesión e ingresar nuevamente</button>}
       </form>
     </section>
   </main>

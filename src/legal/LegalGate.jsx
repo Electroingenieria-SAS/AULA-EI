@@ -4,7 +4,7 @@ import LegalDocumentReader from './LegalDocumentReader.jsx'
 import LegalRequirementCard from './LegalRequirementCard.jsx'
 import {
   acceptLegalDocuments,
-  loadLegalRequirements,
+  loadPrefetchedLegalRequirements,
   pendingLegalRequirements,
   saveLocalLegalReceipt,
 } from './legal-api.js'
@@ -22,7 +22,7 @@ export default function LegalGate({ profile, sessionUser, children }) {
     setLoading(true)
     setError('')
     try {
-      const rows = await loadLegalRequirements()
+      const rows = await loadPrefetchedLegalRequirements(sessionUser?.id)
       setRequirements(rows)
       return rows
     } catch (loadError) {
@@ -31,7 +31,7 @@ export default function LegalGate({ profile, sessionUser, children }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [sessionUser?.id])
 
   useEffect(() => {
     setChecked({})

@@ -50,7 +50,8 @@ export function loadPrefetchedLegalRequirements(userId) {
   if (key && stagedLegalRequirements?.userId === key) {
     const { promise } = stagedLegalRequirements
     stagedLegalRequirements = null
-    return promise
+    // A failed speculative read must not be worse than the previous on-demand path.
+    return promise.catch(() => loadLegalRequirements())
   }
   return loadLegalRequirements()
 }

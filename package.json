@@ -59,7 +59,7 @@
     "test:delete-managed-user": "node scripts/test-delete-managed-user.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.107.0",
+    "@supabase/supabase-js": "^2.119.0",
     "@tanstack/react-table": "^8.21.3",
     "@vitejs/plugin-react": "^4.3.4",
     "jspdf": "4.2.1",

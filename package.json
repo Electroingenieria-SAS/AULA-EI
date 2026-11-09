@@ -68,7 +68,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vite": "^6.4.4",
-    "pdfjs-dist": "6.4.299"
+    "pdfjs-dist": "6.5.438"
   },
   "overrides": {
     "dompurify": "3.4.17"

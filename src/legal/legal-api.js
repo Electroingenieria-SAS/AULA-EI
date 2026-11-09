@@ -31,6 +31,34 @@ export async function loadLegalRequirements() {
   return (data || []).map(normalizeLegalRequirement)
 }
 
+// Prefetch only in memory and only for the current user. Never treat this as
+// proof of legal acceptance: LegalGate must still check the server response.
+let stagedLegalRequirements = null
+
+export function prefetchLegalRequirements(userId) {
+  const key = String(userId || '').trim()
+  if (!key) return Promise.resolve([])
+  if (stagedLegalRequirements?.userId === key) return stagedLegalRequirements.promise
+
+  const promise = loadLegalRequirements()
+  stagedLegalRequirements = { userId: key, promise }
+  return promise
+}
+
+export function loadPrefetchedLegalRequirements(userId) {
+  const key = String(userId || '').trim()
+  if (key && stagedLegalRequirements?.userId === key) {
+    const { promise } = stagedLegalRequirements
+    stagedLegalRequirements = null
+    return promise
+  }
+  return loadLegalRequirements()
+}
+
+export function clearLegalRequirementsPrefetch() {
+  stagedLegalRequirements = null
+}
+
 export async function loadLegalAcceptances() {
   const { data, error } = await supabase.rpc('get_my_legal_acceptances')
   if (error) throw error

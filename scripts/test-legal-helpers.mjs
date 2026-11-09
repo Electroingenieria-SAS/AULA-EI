@@ -81,6 +81,22 @@ try {
   const afterSignOut = await loadPrefetchedLegalRequirements('employee-a')
   assert.equal(afterSignOut[0].versionId, 'version-5',
     'El cierre de sesión debe descartar cualquier precarga anterior')
+
+  clearLegalRequirementsPrefetch()
+  let retryAttempts = 0
+  supabase.rpc = async (name) => {
+    assert.equal(name, 'get_my_legal_requirements')
+    retryAttempts += 1
+    return retryAttempts === 1
+      ? { data: null, error: new Error('Fallo transitorio de red') }
+      : { data: raw, error: null }
+  }
+  const failedPrefetch = prefetchLegalRequirements('employee-retry')
+  await assert.rejects(failedPrefetch, /Fallo transitorio/)
+  const recovered = await loadPrefetchedLegalRequirements('employee-retry')
+  assert.equal(recovered[0].needsAcceptance, true)
+  assert.equal(retryAttempts, 2,
+    'Un error de precarga debe recuperar la validación legal mediante una nueva consulta')
 } finally {
   clearLegalRequirementsPrefetch()
   supabase.rpc = originalRpc

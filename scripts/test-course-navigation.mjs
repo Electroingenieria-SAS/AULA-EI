@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { runViewerNavigation } from '../player/src/course-player/immersive-navigation.js'
+import { resolveCatalogProgress } from '../player/src/catalog-progress.js'
 
 const gallery = await readFile(new URL('../player/src/course-player/ImageGallery.jsx', import.meta.url), 'utf8')
 const content = await readFile(new URL('../player/src/course-player/CourseContentViews.jsx', import.meta.url), 'utf8')
@@ -41,5 +42,48 @@ await Promise.all([
 assert.equal(count, 1, 'Los clics simultáneos no deben saltarse diapositivas.')
 assert.equal(closed, false, 'La navegación conserva el visor activo.')
 assert.equal(navigationBusyRef.current, false, 'La navegación debe liberar el bloqueo al finalizar.')
+
+
+// A certificate proves overall course completion even after an editor replaces
+// the current slides. Keep the original slide audit count separate.
+const requiredBlocks = Array.from({ length: 11 }, (_, i) => ({ id: 'slide-' + i }))
+const noneSaved = resolveCatalogProgress({
+  requiredBlocks, completedBlockIds: new Set(), enrollmentStatus: 'completed', hasCertificate: true,
+})
+assert.equal(noneSaved.progress, 100, 'Yuli-like case: certified course must not return 0%')
+assert.equal(noneSaved.completedCount, 0, 'Never forge progress rows for revised slides')
+assert.equal(noneSaved.requiredCount, 11)
+assert.equal(noneSaved.progressLabel, 'Certificación aprobada')
+
+const partiallySaved = resolveCatalogProgress({
+  requiredBlocks, completedBlockIds: new Set(['slide-0', 'slide-1']),
+  enrollmentStatus: 'in_progress', hasCertificate: true,
+})
+assert.equal(partiallySaved.progress, 100)
+assert.equal(partiallySaved.completedCount, 2)
+
+const learnerStillStudying = resolveCatalogProgress({
+  requiredBlocks, completedBlockIds: new Set(['slide-0', 'slide-1']),
+  enrollmentStatus: 'in_progress',
+})
+assert.equal(learnerStillStudying.progress, 18, '2/11 must stay a true partial progress')
+assert.equal(learnerStillStudying.completedCount, 2)
+assert.equal(learnerStillStudying.isCompleted, false)
+
+const savedWithoutCertificate = resolveCatalogProgress({
+  requiredBlocks, completedBlockIds: new Set(), enrollmentStatus: 'completed',
+})
+assert.equal(savedWithoutCertificate.progress, 100, 'Completed enrollment is final')
+assert.equal(savedWithoutCertificate.progressLabel, 'Capacitación completada')
+
+const unsignedEnrollment = resolveCatalogProgress({
+  requiredBlocks, completedBlockIds: new Set(), enrollmentStatus: 'assigned',
+})
+assert.equal(unsignedEnrollment.progress, 0)
+assert.equal(unsignedEnrollment.progressLabel, '0 de 11 contenidos obligatorios')
+
+const catalog = await readFile(new URL('../player/src/CatalogPage.jsx', import.meta.url), 'utf8')
+assert.match(catalog, /resolveCatalogProgress\(/, 'Catalog uses unified completion logic')
+assert.match(catalog, /\{item\.progressLabel\}/, 'Catalog must not show 0 of 11 beside a certificate')
 
 console.log('Course immersive carousel and checkpoint contract passed.')

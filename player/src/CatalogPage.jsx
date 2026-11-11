@@ -7,6 +7,7 @@ import {
 import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 import { cachedQuery } from '../../src/data-cache.js'
+import { resolveCatalogProgress } from './catalog-progress.js'
 
 const FILTERS = [
   { key: 'all', label: 'Todas' },
@@ -67,12 +68,17 @@ export default function CatalogPage({ profile = null, sessionUser = null }) {
         const course = enrollment.course
         const blocks = phaseMap.get(course.id) || []
         const required = blocks.filter((block) => block.required)
-        const requiredDone = required.filter((block) => completed.has(block.id)).length
-        const progress = required.length ? Math.round((requiredDone / required.length) * 100) : 100
         const certificate = certificates.find((item) =>
           item.course_id === course.id ||
           (item.course_title && String(item.course_title).trim().toLowerCase() === String(course.title).trim().toLowerCase())
         ) || null
+        const progressState = resolveCatalogProgress({
+          requiredBlocks: required,
+          completedBlockIds: completed,
+          enrollmentStatus: enrollment.status,
+          hasCertificate: Boolean(certificate),
+        })
+        const { progress } = progressState
         const dueAt = enrollment.due_at ? new Date(enrollment.due_at) : null
         const overdue = Boolean(dueAt && dueAt.getTime() < Date.now() && !certificate)
 
@@ -85,9 +91,10 @@ export default function CatalogPage({ profile = null, sessionUser = null }) {
           ...enrollment,
           course,
           blocks,
-          requiredCount: required.length,
-          completedCount: requiredDone,
+          requiredCount: progressState.requiredCount,
+          completedCount: progressState.completedCount,
           progress,
+          progressLabel: progressState.progressLabel,
           certificate,
           overdue,
           journey,
@@ -308,7 +315,7 @@ function CourseCard({ item, index }) {
 
       <div className="catalog-card-progress">
         <div><span style={{ width: item.progress + '%' }} /></div>
-        <small>{item.completedCount} de {item.requiredCount || 0} contenidos obligatorios</small>
+        <small>{item.progressLabel}</small>
       </div>
 
       <div className="catalog-card-facts">

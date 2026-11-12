@@ -230,6 +230,7 @@ export function LoginPage({ error = '', preserveRoute = false, recoveryMode = fa
       <p>{recoveryVerified ? 'Tu código ya fue validado. Define ahora una contraseña nueva.' : <>Enviamos un código de 6 dígitos a <strong>{email}</strong>. Escríbelo junto con tu nueva contraseña.</>}</p>
     </div>
     <form className="auth-form-clean" onSubmit={completeRecovery}>
+      <input className="auth-username-autofill" type="text" name="username" autoComplete="username" aria-label="Correo de usuario" aria-hidden="true" tabIndex={-1} readOnly value={email.trim()} />
       {!recoveryVerified && <label>
         <span>Código de 6 dígitos</span>
         <input
@@ -341,6 +342,7 @@ export function PasswordGate({ profile }) {
       <h1>Crea tu contraseña personal</h1>
       <p>{greeting} Debes cambiarla antes de continuar.</p>
       <form className="password-grid" onSubmit={submit}>
+        <input className="auth-username-autofill" type="text" name="username" autoComplete="username" aria-label="Correo de usuario" aria-hidden="true" tabIndex={-1} readOnly value={profile?.email || ''} />
         <label>
           Nueva contraseña
           <input type="password" autoComplete="new-password" value={password} onChange={(event) => { setPassword(event.target.value); setMessage(''); setSessionExpired(false) }} required />

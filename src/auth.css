@@ -259,6 +259,24 @@ button,input{font:inherit}
   color:#174b89;font-weight:900;cursor:pointer
 }
 .password-grid{display:grid;gap:14px;margin-top:22px;text-align:left}
+/* Keep the username discoverable to browser password managers without
+   changing the visual layout or creating an extra focusable control. */
+.auth-form-clean input.auth-username-autofill,
+.password-grid input.auth-username-autofill{
+  position:absolute;
+  width:1px;
+  height:1px;
+  min-height:0;
+  padding:0;
+  margin:0;
+  border:0;
+  opacity:0;
+  overflow:hidden;
+  clip-path:inset(50%);
+  pointer-events:none;
+  box-shadow:none;
+}
+
 
 /* ========================================================================== */
 /* Shared loading + MFA inside the auth shell                                 */

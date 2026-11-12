@@ -82,4 +82,22 @@ assert.match(authUi, /<PasswordRequirements password=\{newPassword\} email=\{ema
 assert.match(authUi, /<PasswordRequirements password=\{password\} email=\{profile\?\.email\}/)
 assert.match(authUi, /setSessionExpired\(false\)/)
 
+// The mandatory-password and OTP recovery forms must expose a read-only,
+// non-focusable username hint to password managers (not a hidden-type input).
+assert.equal((authUi.match(/className="auth-username-autofill"/g) || []).length, 2,
+  'Both password forms must provide the username for browser password managers.')
+assert.equal((authUi.match(/name="username" autoComplete="username"/g) || []).length, 2)
+assert.match(authUi, /readOnly value=\{email\.trim\(\)\}/,
+  'The recovery form username must be the email being recovered.')
+assert.match(authUi, /readOnly value=\{profile\?\.email \|\| ''\}/,
+  'The first-password-change username must come from the validated profile.')
+const authStyle = readFileSync(new URL('../src/auth.css', import.meta.url), 'utf8')
+assert.match(authStyle, /\.password-grid input\.auth-username-autofill\{/,
+  'Do not change the appearance of the first-password form.')
+assert.match(authStyle, /clip-path:inset\(50%\)/,
+  'Browser username hints must remain visually hidden.')
+const appUi = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
+assert.doesNotMatch(appUi, /preloadLearnerBackground|data-aula-ei-background-preload/,
+  'Do not preload the learner background before the browser needs it.')
+
 console.log('Security helpers, managed-user rate limit and error responses passed.')

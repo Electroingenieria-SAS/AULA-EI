@@ -5,6 +5,7 @@ import { appUrl, assetUrl } from '../paths.js'
 import { supabase } from '../supabase.js'
 import { withTimeout } from '../async-utils.js'
 import { getPasswordChangeError } from './password-change-errors.js'
+import { getPasswordPolicyChecks, validatePasswordPolicy } from './password-policy.js'
 
 export function LoginPage({ error = '', preserveRoute = false, recoveryMode = false, onRecoveryModeChange = () => {} }) {
   const [mode, setMode] = useState(recoveryMode ? 'recovery-email' : 'login')
@@ -245,13 +246,13 @@ export function LoginPage({ error = '', preserveRoute = false, recoveryMode = fa
       </label>}
       <label>
         <span>Nueva contraseña</span>
-        <input type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required />
+        <input type="password" autoComplete="new-password" value={newPassword} onChange={(event) => { setNewPassword(event.target.value); if (messageTone === 'error') showMessage('') }} required />
       </label>
       <label>
         <span>Confirmar contraseña</span>
-        <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required />
+        <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => { setConfirmation(event.target.value); if (messageTone === 'error') showMessage('') }} required />
       </label>
-      <small className="auth-password-help">Mínimo 12 caracteres, con mayúscula, minúscula, número y símbolo, sin espacios.</small>
+      <PasswordRequirements password={newPassword} email={email} />
       <button className="auth-primary" disabled={busy}>
         <span>{busy ? 'Verificando y actualizando…' : 'Cambiar contraseña'}</span>
         <span className="auth-button-arrow" aria-hidden="true">→</span>
@@ -275,23 +276,18 @@ export function LoginPage({ error = '', preserveRoute = false, recoveryMode = fa
   </AuthVisualShell>
 }
 
-function validatePasswordPolicy(password, email = '') {
-  if (
-    password.length < 12 ||
-    password.length > 128 ||
-    /\s/.test(password) ||
-    !/[a-z]/.test(password) ||
-    !/[A-Z]/.test(password) ||
-    !/[0-9]/.test(password) ||
-    !/[^A-Za-z0-9]/.test(password)
-  ) {
-    return 'Usa entre 12 y 128 caracteres, con mayúscula, minúscula, número y símbolo, sin espacios.'
-  }
-  const username = String(email || '').trim().toLowerCase().split('@')[0] || ''
-  if (username.length >= 4 && password.toLowerCase().includes(username)) {
-    return 'La contraseña no puede contener el usuario de tu correo electrónico.'
-  }
-  return ''
+function PasswordRequirements({ password, email }) {
+  const rules = getPasswordPolicyChecks(password, email)
+  return <div className="auth-password-requirements" aria-label="Requisitos de la contraseña">
+    <span className="auth-password-rules-title">Comprueba los requisitos:</span>
+    <ul className="auth-password-rules">
+      {rules.map((rule) => <li key={rule.id} className={rule.valid ? 'valid' : 'pending'}>
+        <span aria-hidden="true">{rule.valid ? '✓' : '○'}</span>
+        {rule.label}
+      </li>)}
+    </ul>
+    <small className="auth-password-help">Evita contraseñas conocidas o filtradas; la revisión se hace al guardar.</small>
+  </div>
 }
 
 export function PasswordGate({ profile }) {
@@ -347,13 +343,13 @@ export function PasswordGate({ profile }) {
       <form className="password-grid" onSubmit={submit}>
         <label>
           Nueva contraseña
-          <input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <input type="password" autoComplete="new-password" value={password} onChange={(event) => { setPassword(event.target.value); setMessage(''); setSessionExpired(false) }} required />
         </label>
         <label>
           Confirmar contraseña
-          <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required />
+          <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => { setConfirmation(event.target.value); setMessage(''); setSessionExpired(false) }} required />
         </label>
-        <small className="auth-password-help">Usa de 12 a 128 caracteres con mayúscula, minúscula, número y símbolo, sin espacios ni tu usuario de correo. No reutilices contraseñas filtradas.</small>
+        <PasswordRequirements password={password} email={profile?.email} />
         <button className="auth-primary" disabled={busy}>{busy ? 'Actualizando…' : 'Guardar contraseña'}</button>
         {message && <div className="auth-message error" role="alert">{message}</div>}
         {sessionExpired && <button type="button" className="auth-secondary" onClick={async () => {

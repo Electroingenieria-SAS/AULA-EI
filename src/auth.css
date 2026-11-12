@@ -480,6 +480,43 @@ button,input{font:inherit}
   font-size:.74rem;
   line-height:1.5;
 }
+.auth-password-requirements{
+  padding:10px 12px;
+  border:1px solid #dce7f3;
+  border-radius:12px;
+  background:#f6f9fc;
+}
+.auth-password-rules-title{
+  display:block;
+  margin-bottom:8px;
+  color:#344c66;
+  font-size:.73rem;
+  font-weight:800;
+}
+.auth-password-rules{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px 10px;
+  list-style:none;
+  margin:0 0 9px;
+  padding:0;
+}
+.auth-password-rules li{
+  display:flex;
+  align-items:flex-start;
+  gap:6px;
+  min-width:0;
+  color:#68778c;
+  font-size:.72rem;
+  line-height:1.35;
+}
+.auth-password-rules li span{flex:none;font-weight:900}
+.auth-password-rules li.valid{color:#236c44}
+.auth-password-rules li.pending{color:#6c7d91}
+.auth-password-requirements .auth-password-help{margin-top:0}
+@media(max-width:480px){
+  .auth-password-rules{grid-template-columns:1fr}
+}
 .auth-recovery-actions{
   display:flex;
   align-items:center;

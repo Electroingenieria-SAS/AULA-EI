@@ -47,7 +47,12 @@ if (!legalGate.includes('accepted') || !legalGate.includes('disabled')) {
   throw new Error('LegalGate debe exigir aceptación explícita y prevenir envíos duplicados.')
 }
 if (!app.includes('AdminMfaGate')) throw new Error('AdminMfaGate debe proteger la aplicación administrativa.')
-if (!authScreens.includes('password.length < 12')) throw new Error('La contraseña inicial debe exigir mínimo 12 caracteres.')
+const passwordPolicy = source.get('src/auth/password-policy.js') || ''
+if (!authScreens.includes("from './password-policy.js'") ||
+    !passwordPolicy.includes('value.length >= 12') ||
+    !passwordPolicy.includes('value.length <= 128')) {
+  throw new Error('Ambas pantallas deben utilizar una política compartida de 12 a 128 caracteres.')
+}
 
 const mfa = source.get('src/AdminMfaGate.jsx') || ''
 for (const required of [

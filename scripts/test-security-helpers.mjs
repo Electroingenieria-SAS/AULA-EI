@@ -63,4 +63,23 @@ assert.match(authUi, /validatePasswordPolicy\(password, profile\?\.email\)/,
 assert.match(authUi, /Cerrar sesión e ingresar nuevamente/,
   'La sesión vencida debe ofrecer una salida clara')
 
+// Regression: show the exact unmet requirement before sending an Edge Function
+// request. These are synthetic strings, never real user passwords.
+const { getPasswordPolicyChecks, validatePasswordPolicy } = await import('../src/auth/password-policy.js')
+assert.match(validatePasswordPolicy('Aa123!'), /12 caracteres/)
+assert.match(validatePasswordPolicy('abcdefghi12!'), /mayúscula/)
+assert.match(validatePasswordPolicy('ABCDEFGHI12!'), /minúscula/)
+assert.match(validatePasswordPolicy('Abcdefghijk!'), /número/)
+assert.match(validatePasswordPolicy('Abcdefghij12'), /símbolo/)
+assert.match(validatePasswordPolicy('Abcdefghij1 !'), /espacios/)
+assert.match(validatePasswordPolicy('Abcdefghij1!correo', 'correo@ei.com.co'), /usuario/)
+assert.match(validatePasswordPolicy('Ábcdefghijk1!'), /mayúscula/,
+  'An accented uppercase letter does not satisfy the current server A-Z rule.')
+assert.equal(validatePasswordPolicy('ClaveSegura2026!'), '')
+assert.equal(getPasswordPolicyChecks('ClaveSegura2026!').every(rule => rule.valid), true)
+assert.equal(getPasswordPolicyChecks('Abcdefghij12').find(rule => rule.id === 'symbol')?.valid, false)
+assert.match(authUi, /<PasswordRequirements password=\{newPassword\} email=\{email\}/)
+assert.match(authUi, /<PasswordRequirements password=\{password\} email=\{profile\?\.email\}/)
+assert.match(authUi, /setSessionExpired\(false\)/)
+
 console.log('Security helpers, managed-user rate limit and error responses passed.')

@@ -40,6 +40,9 @@ html,body,#root{min-width:320px;min-height:100%;margin:0}
 .signature-export-control>div:last-child{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .small-action-button{min-height:32px;padding:6px 8px;font-size:.68rem}
 .small-action-button.danger{color:#b53838;background:#fff5f5;border-color:#f1caca}
+.certificate-auto-seal{display:flex;align-items:center;gap:7px;font-size:.72rem;line-height:1.45;color:#28527e}
+.certificate-auto-seal svg{flex:none;color:#1c8c58}
+.certificate-auto-seal span{max-width:330px}
 .certificate-completeness{border:1px solid #d9e4ef;background:#fff;border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:9px;min-width:190px}
 .certificate-completeness.complete{background:#effaf3;border-color:#c9ead6;color:#24794a}
 .certificate-completeness.incomplete{background:#fff9e8;border-color:#eddca0;color:#805f09}

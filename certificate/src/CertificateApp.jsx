@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import QRCode from 'qrcode'
 import CertificateTemplate from './CertificateTemplate.jsx'
+import { certificateBinaryCode, certificateBinaryLines } from './certificate-binary-code.js'
 import { supabase } from './supabase.js'
 import { appUrl, assetUrl } from '../../src/paths.js'
 
@@ -12,7 +13,7 @@ export default function CertificateApp({ sessionUser = null }) {
   const svgRef = useRef(null)
   const [row, setRow] = useState(null)
   const [participantSignature, setParticipantSignature] = useState('')
-  const [adminSignature, setAdminSignature] = useState('')
+  const [approvalStampData, setApprovalStampData] = useState('')
   const [logoData, setLogoData] = useState('')
   const [sealData, setSealData] = useState('')
   const [vignetteData, setVignetteData] = useState('')
@@ -49,10 +50,11 @@ export default function CertificateApp({ sessionUser = null }) {
         const signatures = normalizeRpcRow(signatureData)
         const verificationUrl = new URL(appUrl('/certificate/' + encodeURIComponent(certificateRow.certificate_code || code)), window.location.origin).href
 
-        const [logo, seal, vignette, qr] = await Promise.all([
+        const [logo, seal, vignette, approvalStamp, qr] = await Promise.all([
           assetToDataUrl(assetUrl('brand/logo-aula-ei.png')),
           assetToDataUrl(assetUrl('brand/certificate-sello-ei.png')),
           assetToDataUrl(assetUrl('brand/certificate-vineta-color.png')),
+          assetToDataUrl(assetUrl('brand/approved-training-stamp.png')),
           QRCode.toDataURL(verificationUrl, {
             width: 480,
             margin: 1,
@@ -64,7 +66,7 @@ export default function CertificateApp({ sessionUser = null }) {
         if (!active) return
         setRow(certificateRow)
         setParticipantSignature(signatures?.participant_signature_data || '')
-        setAdminSignature(signatures?.admin_signature_data || '')
+        setApprovalStampData(approvalStamp)
         setLogoData(logo)
         setSealData(seal)
         setVignetteData(vignette)
@@ -80,7 +82,7 @@ export default function CertificateApp({ sessionUser = null }) {
   }, [code, sessionUser?.id])
 
   const certificate = useMemo(() => {
-    if (!row || !logoData || !sealData || !vignetteData || !qrData) return null
+    if (!row || !logoData || !sealData || !vignetteData || !approvalStampData || !qrData) return null
     return {
       participant: row.user_full_name || row.user_email || 'Participante',
       course: row.course_title || 'Capacitación Aula EI',
@@ -93,13 +95,15 @@ export default function CertificateApp({ sessionUser = null }) {
       vignetteData,
       qrData,
       participantSignature,
-      adminSignature,
+      approvalStampData,
+      binaryCode: certificateBinaryCode(row.certificate_code || code),
+      binaryCodeLines: certificateBinaryLines(row.certificate_code || code),
       responsibleName: row.responsible_name || row.admin_full_name || row.signer_name || 'Electroingeniería S.A.S.',
       responsibleRole: row.responsible_role || row.admin_role || row.signer_role || 'Responsable de formación',
     }
-  }, [row, logoData, sealData, vignetteData, qrData, participantSignature, adminSignature, code])
+  }, [row, logoData, sealData, vignetteData, approvalStampData, qrData, participantSignature, code])
 
-  const complete = Boolean(participantSignature && adminSignature)
+  const complete = Boolean(participantSignature && approvalStampData)
 
   const saveSignature = async (dataUrl, type) => {
     if (!code) return
@@ -114,7 +118,6 @@ export default function CertificateApp({ sessionUser = null }) {
       if (rpcError) throw rpcError
       const saved = normalizeRpcRow(data)
       setParticipantSignature(saved?.participant_signature_data || (type === 'participant' ? dataUrl : participantSignature))
-      setAdminSignature(saved?.admin_signature_data || (type === 'admin' ? dataUrl : adminSignature))
       setMessage('Firma guardada correctamente.')
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'No fue posible guardar la firma.')
@@ -165,7 +168,6 @@ export default function CertificateApp({ sessionUser = null }) {
       if (rpcError) throw rpcError
       const saved = normalizeRpcRow(data)
       setParticipantSignature(saved?.participant_signature_data || '')
-      setAdminSignature(saved?.admin_signature_data || '')
       setMessage('Firma retirada correctamente.')
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'No fue posible quitar la firma.')
@@ -176,7 +178,7 @@ export default function CertificateApp({ sessionUser = null }) {
 
   const ensureComplete = () => {
     if (complete) return true
-    setMessage('Para descargar el certificado completo deben estar guardadas la firma del participante y la firma del responsable.')
+    setMessage('Para descargar el certificado completo debes agregar la firma del participante. El sello institucional del responsable se aplica automáticamente.')
     return false
   }
 
@@ -267,19 +269,19 @@ export default function CertificateApp({ sessionUser = null }) {
         onPaste={pasteSignature}
         onClear={clearSignature}
       />}
-      {!readOnlyCertificate && <SignatureControl
-        label="Firma responsable"
-        type="admin"
-        value={adminSignature}
-        working={workingSignature}
-        onUpload={uploadSignature}
-        onPaste={pasteSignature}
-        onClear={clearSignature}
-      />}
+      <div className="signature-export-control" aria-label="Aprobación institucional automática">
+        <div className="signature-export-title">
+          <span>Responsable de formación</span><strong>Automático</strong>
+        </div>
+        <div className="certificate-auto-seal">
+          <ShieldCheck size={16} />
+          <span>Sello oficial incorporado · Código binario único asociado al certificado</span>
+        </div>
+      </div>
       {readOnlyCertificate && <p role="status">Certificado de otro participante: consulta autorizada, sin permisos para alterar las firmas.</p>}
       <div className={'certificate-completeness ' + (complete ? 'complete' : 'incomplete')}>
         {complete ? <CheckCircle2 size={18} /> : <ShieldCheck size={18} />}
-        <div><strong>{complete ? 'Certificado listo' : 'Firmas pendientes'}</strong><span>{complete ? 'PDF y PNG habilitados' : 'Completa ambas firmas para exportar'}</span></div>
+        <div><strong>{complete ? 'Certificado listo' : 'Firma del participante pendiente'}</strong><span>{complete ? 'PDF y PNG habilitados' : 'El sello responsable ya está aplicado'}</span></div>
       </div>
     </section>
 

@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { certificateBinaryCode, certificateBinaryLines } from '../certificate/src/certificate-binary-code.js'
+
+// Build must refuse to publish certificates if the exact approved seal
+// provided by the organization has not been installed in the repository.
+const stampPath = new URL('../brand/approved-training-stamp.png', import.meta.url)
+assert.ok(existsSync(stampPath), 'Falta el PNG institucional aprobado. No publicar certificados sin el sello autorizado.')
+const stampBytes = readFileSync(stampPath)
+const stampSha256 = createHash('sha256').update(stampBytes).digest('hex')
+assert.equal(stampSha256, '34c45e0496c8af763b274632c48f016090778d8a0b54d32012c5a4f1ca8301e9',
+  'El PNG del sello debe coincidir byte por byte con el sello institucional aprobado.')
 
 const a = 'AULAEI-2026-0001'
 const b = 'AULAEI-2026-0002'

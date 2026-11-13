@@ -51,6 +51,8 @@ const CertificateTemplate = forwardRef(function CertificateTemplate({ certificat
           .signature-role { font-size: 31px; fill: #4d5564; font-weight: 400; }
           .code-label { font-size: 32px; fill: #0030A0; font-weight: 400; }
           .code-value { font-size: 40px; fill: #0030A0; font-weight: 700; letter-spacing: .5px; }
+          .binary-verification-title { font-size: 20px; fill: #0030A0; font-weight: 700; }
+          .binary-verification-code { font-family: Consolas, "Courier New", monospace; font-size: 15px; fill: #253d61; letter-spacing: .8px; }
           .footer { font-size: 31px; fill: #0030A0; font-weight: 400; }
         `}</style>
       </defs>
@@ -143,14 +145,22 @@ const CertificateTemplate = forwardRef(function CertificateTemplate({ certificat
           </g>
 
           <g transform="translate(2060 1945)">
-            {certificate.adminSignature ? (
-              <image href={certificate.adminSignature} x="80" y="-135" width="600" height="130" preserveAspectRatio="xMidYMid meet" />
-            ) : (
-              <text x="380" y="-48" textAnchor="middle" className="signature-placeholder">Firma del responsable</text>
-            )}
+            {/* Sello institucional inmutable: visible en certificados históricos y futuros. */}
+            <image
+              href={certificate.approvalStampData}
+              x="72" y="-245" width="616" height="236"
+              preserveAspectRatio="xMidYMid meet"
+              aria-label="Sello de aprobado de Electroingeniería"
+            />
             <line x1="0" y1="0" x2="760" y2="0" stroke="#0030A0" strokeWidth="4" />
             <text x="380" y="58" textAnchor="middle" className="signature-name">{certificate.responsibleName}</text>
             <text x="380" y="105" textAnchor="middle" className="signature-role">{certificate.responsibleRole}</text>
+            <text x="380" y="144" textAnchor="middle" className="binary-verification-title">Identificador binario único · Validar con el QR</text>
+            {certificate.binaryCodeLines.map((bits, index) => (
+              <text key={index} x="380" y={168 + index * 24} textAnchor="middle" className="binary-verification-code">
+                {bits}
+              </text>
+            ))}
           </g>
         </g>
 

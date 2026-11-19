@@ -74,24 +74,3 @@
 @media(max-width:410px){.training-notification-filters{gap:5px;padding:9px}
   .training-notification-filters button{padding:7px 8px;font-size:.65rem}}
 @media(prefers-reduced-motion:reduce){.training-notification-item{transition:none!important;transform:none!important}}
-
-
-/* Colleague profile: internal community card, never a public directory. */
-.aula-colleague-backdrop{position:fixed;inset:0;z-index:11000;background:rgba(12,27,49,.74);display:flex;align-items:center;justify-content:center;padding:18px;overflow-y:auto;backdrop-filter:blur(5px)}
-.aula-colleague-card{position:relative;width:min(100%,540px);max-height:calc(100vh - 36px);overflow-y:auto;background:#fff;color:#183450;border-radius:20px;box-shadow:0 30px 90px rgba(0,0,0,.3);padding:0 24px 24px}
-.aula-colleague-close{position:absolute;right:15px;top:15px;z-index:2;display:grid;place-items:center;border:0;border-radius:50%;width:38px;height:38px;background:#fff;color:#173752;cursor:pointer}
-.aula-colleague-cover{margin:0 -24px;background:linear-gradient(120deg,#104983,#2a83b7);min-height:135px;color:#fff;display:flex;align-items:start;justify-content:space-between;padding:24px;font-size:.7rem;font-weight:700;letter-spacing:.1em}
-.aula-colleague-identity{text-align:center;display:grid;justify-items:center;margin-top:-42px;gap:4px}
-.aula-colleague-avatar{display:grid;place-items:center;width:84px;height:84px;background:#e5f4ff;color:#07508b;border:5px solid #fff;border-radius:50%;font-size:1.6rem;font-weight:800}
-.aula-colleague-identity h2{font-size:1.35rem;margin:6px 0 0}
-.aula-colleague-identity strong{font-size:.95rem;color:#12669a}
-.aula-colleague-identity small{color:#64748b}
-.aula-colleague-indicators{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:22px 0}
-.aula-colleague-indicators div{text-align:center;background:#f0f6fb;border-radius:12px;padding:12px 5px;display:grid;gap:4px}
-.aula-colleague-indicators strong{font-size:1.15rem}
-.aula-colleague-indicators span{font-size:.7rem;color:#50627a}
-.aula-colleague-card h3{display:flex;align-items:center;gap:7px;font-size:1rem;margin:12px 0}
-.aula-colleague-courses{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.aula-colleague-courses li{display:flex;align-items:center;gap:10px;border:1px solid #dce8f3;border-radius:12px;padding:12px;font-size:.85rem}
-.aula-colleague-privacy{display:block;margin-top:20px;color:#56687b}
-@media(max-width:390px){.aula-colleague-backdrop{padding:8px}.aula-colleague-card{padding:0 14px 20px}.aula-colleague-cover{margin:0 -14px}.aula-colleague-indicators span{font-size:.63rem}}

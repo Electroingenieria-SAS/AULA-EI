@@ -567,7 +567,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
             {canChangeRoleFor(person) && <label className="mobile-user-role">Rol
               <select value={person.role} onChange={(event) => changeRole(person, event.target.value)}>
-                {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}
+                {permittedRoleOptions.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}
               </select>
             </label>}
 

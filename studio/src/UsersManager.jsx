@@ -23,13 +23,24 @@ import {
 import { ROLE_OPTIONS, csvCell, formatDate, initials, getManagedFunctionError } from './users/user-utils.js'
 import { useManagedPasswordReset } from './users/useManagedPasswordReset.js'
 
-const EMPTY_FORM = { full_name: '', email: '', password: '', role: 'colaborador' }
+const EMPTY_FORM = { full_name: '', email: '', password: '', role: 'colaborador', job_position_id: '' }
 export default function UsersManager({ profile, profiles, enrollments = [], refresh, setMessage }) {
   const allowedRoles = profile.role === 'super_admin'
     ? ROLE_OPTIONS
     : ['colaborador', 'creador_contenido', 'revisor']
 
   const [createOpen, setCreateOpen] = useState(false)
+  const [jobPositions, setJobPositions] = useState([])
+  useEffect(() => {
+    let active = true
+    supabase.from('job_positions').select('id,name,code,is_active').eq('is_active', true).order('name')
+      .then(({ data, error }) => {
+        if (!active) return
+        if (error) setMessage(getError(error, 'No se pudo cargar el catálogo de cargos.'))
+        else setJobPositions(data || [])
+      })
+    return () => { active = false }
+  }, [])
   const [detailId, setDetailId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [generatedPassword, setGeneratedPassword] = useState('')
@@ -50,7 +61,11 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const [sorting, setSorting] = useState([{ id: 'name', desc: false }])
   const [bulkRole, setBulkRole] = useState('colaborador')
 
-  const canChangeRole = profile.role === 'super_admin'
+  const canChangeRole = ['admin', 'super_admin'].includes(profile.role)
+  const canChangeRoleFor = (person) => canChangeRole && person.id !== profile.id &&
+    (profile.role === 'super_admin' || !['admin','super_admin'].includes(person.role))
+  const permittedRoleOptions = profile.role === 'super_admin' ? ROLE_OPTIONS : allowedRoles
+  const canChangePosition = ['admin','super_admin'].includes(profile.role)
   const canManage = (person) =>
     person.id !== profile.id &&
     ['admin', 'super_admin'].includes(profile.role) &&
@@ -83,15 +98,16 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       ...person,
       name: person.full_name || person.email || 'Sin nombre',
       role_label: ROLE_LABELS[person.role] || person.role,
+      position_label: jobPositions.find((job) => job.id === person.job_position_id)?.name || 'Sin cargo asignado',
       active_label: person.is_active === false ? 'Inactivo' : 'Activo',
       stats,
     }
-  }), [profiles, enrollmentStats])
+  }), [profiles, enrollmentStats, jobPositions])
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase()
     return rows.filter((person) => {
-      const haystack = `${person.name} ${person.email || ''} ${person.role_label}`.toLowerCase()
+      const haystack = `${person.name} ${person.email || ''} ${person.role_label} ${person.position_label}`.toLowerCase()
       if (query && !haystack.includes(query)) return false
       if (roleFilter === 'admin_group' && !['admin', 'super_admin'].includes(person.role)) return false
       if (roleFilter !== 'all' && roleFilter !== 'admin_group' && person.role !== roleFilter) return false
@@ -138,13 +154,19 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       header: 'Rol',
       cell: ({ row }) => {
         const person = row.original
-        if (canChangeRole && person.id !== profile.id) {
+        if (canChangeRoleFor(person)) {
           return <select className={'inline-role-select role-' + person.role} value={person.role} onChange={(event) => changeRole(person, event.target.value)}>
-            {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}
+            {permittedRoleOptions.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}
           </select>
         }
         return <RoleBadge role={person.role} />
       },
+    },
+    {
+      id: 'position',
+      accessorFn: (row) => row.position_label,
+      header: 'Cargo',
+      cell: ({ row }) => <span className="muted-cell">{row.original.position_label}</span>,
     },
     {
       id: 'status',
@@ -190,7 +212,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
         </div>
       },
     },
-  ], [profile.id, canChangeRole, workingId])
+  ], [profile.id, profile.role, canChangeRole, workingId, jobPositions])
 
   const table = useReactTable({
     data: filtered,
@@ -224,6 +246,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
           full_name: form.full_name.trim(),
           password: form.password.trim() || undefined,
           role: form.role,
+          job_position_id: form.job_position_id,
         },
       })
       if (error) throw new Error(await getManagedFunctionError(error, data, 'No fue posible crear el usuario.'))
@@ -241,7 +264,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   }
 
   async function changeRole(person, role) {
-    if (!canChangeRole) return setMessage('Solo un Super Admin puede cambiar roles.')
+    if (!canChangeRoleFor(person)) return setMessage('No tienes permiso para cambiar este rol.')
     if (person.id === profile.id) return setMessage('No puedes modificar tu propio rol desde este módulo.')
     setWorkingId(person.id)
     try {
@@ -254,6 +277,50 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     } finally {
       setWorkingId(null)
     }
+  }
+
+  async function createJobPosition(name) {
+    const cleaned = String(name || '').trim().replace(/\s+/g, ' ')
+    if (cleaned.length < 3 || cleaned.length > 120) return setMessage('El nombre del cargo debe tener entre 3 y 120 caracteres.')
+    const exists = jobPositions.find((job) => job.name.toLocaleLowerCase('es') === cleaned.toLocaleLowerCase('es'))
+    if (exists) {
+      setForm((current) => ({ ...current, job_position_id: exists.id }))
+      setMessage('Seleccionamos el cargo existente.')
+      return true
+    }
+    setBusy(true)
+    try {
+      const code = cleaned.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0,70)
+        + '_' + crypto.randomUUID().slice(0, 6).toUpperCase()
+      const { data, error } = await supabase.from('job_positions')
+        .insert({ name: cleaned, code, is_active: true }).select('id,name,code,is_active').single()
+      if (error) throw error
+      setJobPositions((current) => [...current, data].sort((a, b) => a.name.localeCompare(b.name, 'es')))
+      setForm((current) => ({ ...current, job_position_id: data.id }))
+      setMessage('Cargo registrado. Ya puedes crear el usuario.')
+      return true
+    } catch (error) {
+      setMessage(getError(error, 'No se pudo registrar el cargo.'))
+      return false
+    } finally { setBusy(false) }
+  }
+
+  async function changePosition(person, positionId) {
+    if (!canChangePosition || person.is_active === false) return
+    setWorkingId(person.id)
+    try {
+      const { error } = await supabase.rpc('admin_set_user_job_position', {
+        p_user_id: person.id,
+        p_position_id: positionId || null,
+        p_notes: 'Actualización de cargo desde Usuarios y roles.',
+      })
+      if (error) throw error
+      setMessage('Cargo actualizado y formación vinculada para ' + person.name + '.')
+      await refresh()
+    } catch (error) {
+      setMessage(getError(error, 'No se pudo modificar el cargo.'))
+    } finally { setWorkingId(null) }
   }
 
   async function setActiveState(person, active) {
@@ -352,8 +419,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   }
 
   const bulkChangeRole = async () => {
-    if (!canChangeRole) return setMessage('Solo un Super Admin puede cambiar roles de forma masiva.')
-    const targets = selectedRows.filter((person) => person.id !== profile.id && person.role !== bulkRole)
+    if (!canChangeRole) return setMessage('Solo los administradores pueden cambiar roles.')
+    const targets = selectedRows.filter((person) => canChangeRoleFor(person) && person.role !== bulkRole)
     if (!targets.length) return setMessage('La selección no contiene usuarios que requieran ese cambio de rol.')
     if (!window.confirm('¿Cambiar el rol de ' + targets.length + ' usuario(s) a ' + ROLE_LABELS[bulkRole] + '?')) return
     setBusy(true)
@@ -379,11 +446,12 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const exportUsers = () => {
     const source = selectedRows.length ? selectedRows : filtered
     const csv = [
-      ['Nombre', 'Correo', 'Rol', 'Estado', 'Capacitaciones activas', 'Completadas', 'Fecha creación'],
+      ['Nombre', 'Correo', 'Rol', 'Cargo', 'Estado', 'Capacitaciones activas', 'Completadas', 'Fecha creación'],
       ...source.map((person) => [
         person.name,
         person.email || '',
         ROLE_LABELS[person.role] || person.role,
+        person.position_label,
         person.is_active === false ? 'Inactivo' : 'Activo',
         person.stats.active,
         person.stats.completed,
@@ -431,7 +499,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
     <section className="panel-card users-directory">
       <div className="users-toolbar">
-        <div className="search-field users-main-search"><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, correo o rol…" /></div>
+        <div className="search-field users-main-search"><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, correo, rol o cargo…" /></div>
         <label className="filter-select"><ShieldCheck size={15} /><select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
           <option value="all">Todos los roles</option>
           <option value="admin_group">Administradores</option>
@@ -457,7 +525,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
       {selectedRows.length > 0 && <div className="user-bulk-bar">
         <div className="bulk-selection"><span>{selectedRows.length}</span><div><strong>usuarios seleccionados</strong><small>{manageableSelected.length} gestionables por tu rol</small></div></div>
-        {canChangeRole && <div className="user-bulk-role"><select value={bulkRole} onChange={(event) => setBulkRole(event.target.value)}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select><button className="secondary-button compact" onClick={bulkChangeRole} disabled={busy}>Cambiar rol</button></div>}
+        {canChangeRole && <div className="user-bulk-role"><select value={bulkRole} onChange={(event) => setBulkRole(event.target.value)}>{permittedRoleOptions.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select><button className="secondary-button compact" onClick={bulkChangeRole} disabled={busy}>Cambiar rol</button></div>}
         <div className="bulk-buttons"><button className="secondary-button compact" onClick={() => bulkActiveState(true)} disabled={busy}><UserCheck size={15} /> Reactivar</button><button className="danger-button compact" onClick={() => bulkActiveState(false)} disabled={busy}><UserMinus size={15} /> Desactivar</button></div>
       </div>}
 
@@ -488,6 +556,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
             <div className="mobile-user-card-meta">
               <span className={'user-status-pill ' + (person.is_active === false ? 'inactive' : 'active')}>{person.is_active === false ? 'Inactivo' : 'Activo'}</span>
               <RoleBadge role={person.role} />
+              <span className="muted-cell">{person.position_label}</span>
             </div>
 
             <div className="mobile-user-training">
@@ -496,7 +565,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
               <span><strong>{person.stats.total}</strong><small>matrículas</small></span>
             </div>
 
-            {canChangeRole && person.id !== profile.id && <label className="mobile-user-role">Rol
+            {canChangeRoleFor(person) && <label className="mobile-user-role">Rol
               <select value={person.role} onChange={(event) => changeRole(person, event.target.value)}>
                 {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}
               </select>
@@ -532,6 +601,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       form={form}
       setForm={setForm}
       allowedRoles={allowedRoles}
+      jobPositions={jobPositions}
+      onCreatePosition={createJobPosition}
       busy={busy}
       generatedPassword={generatedPassword}
       onSubmit={createUser}
@@ -542,7 +613,11 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       person={detailPerson}
       profile={profile}
       canManage={canManage(detailPerson)}
-      canChangeRole={canChangeRole}
+      canChangeRole={canChangeRoleFor(detailPerson)}
+      allowedRoles={permittedRoleOptions}
+      positions={jobPositions}
+      canChangePosition={canChangePosition}
+      onPosition={(positionId) => changePosition(detailPerson, positionId)}
       working={workingId === detailPerson.id}
        resetDisabled={Boolean(workingId) || isResetBlocked(detailPerson)}
        resetTitle={resetLabelFor(detailPerson)}

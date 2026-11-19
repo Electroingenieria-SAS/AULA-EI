@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 const read = (path) => readFile(new URL('../' + path, import.meta.url), 'utf8')
 const [
   users, userPanels, staffRoles, courseBuilder, coursePanels,
-  notifications, createUser, migration, positionMetrics, compliance, pkg,
+  notifications, createUser, migration, positionMetrics, compliance, positionsHook, pkg,
 ] = await Promise.all([
   read('studio/src/UsersManager.jsx'),
   read('studio/src/users/UserPanels.jsx'),
@@ -15,6 +15,7 @@ const [
   read('supabase/migrations/20261119180000_position_training_owners_notifications.sql'),
   read('studio/src/compliance/PositionAssessmentAnalytics.jsx'),
   read('studio/src/ComplianceCenter.jsx'),
+  read('studio/src/users/useUserPositions.js'),
   read('package.json'),
 ])
 
@@ -24,7 +25,7 @@ assert.match(users, /job_position_id: form\.job_position_id/)
 assert.match(createUser, /POSITION_REQUIRED/)
 assert.match(createUser, /\.from\("job_positions"\)/)
 assert.match(createUser, /job_position_id: jobPositionId/)
-assert.match(users, /admin_set_user_job_position/)
+assert.match(positionsHook, /admin_set_user_job_position/)
 assert.match(userPanels, /onCreatePosition/)
 
 // Role changes never grant admin/super_admin to standard administrators.

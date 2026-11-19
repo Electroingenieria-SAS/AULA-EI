@@ -40,7 +40,7 @@ const BLOCK_TYPES = [
   { value: 'validation', label: 'Validación', detail: 'Pregunta rápida dentro del contenido.', icon: ShieldCheck },
 ]
 
-export function CourseOverviewStep({ config, updateConfig, coverUrl, coverFile, setCoverFile, saveConfig, busy }) {
+export function CourseOverviewStep({ config, updateConfig, responsibles = [], coverUrl, coverFile, setCoverFile, saveConfig, busy }) {
   return <section className="authoring-section">
     <SectionHeader
       eyebrow="Paso 1"
@@ -63,6 +63,13 @@ export function CourseOverviewStep({ config, updateConfig, coverUrl, coverFile, 
           <label className="wide">Descripción
             <textarea rows="6" value={config.description} onChange={(event) => updateConfig({ description: event.target.value })} placeholder="¿Qué aprenderá la persona? ¿Qué objetivo tiene esta capacitación?" />
             <small className="helper-text">{config.description.trim().length < 20 ? 'Recomendación: escribe al menos una frase completa.' : 'Descripción con buen nivel de detalle.'}</small>
+          </label>
+          <label className="wide">Responsable de la capacitación *
+            <select value={config.responsible_id || ''} onChange={(event) => updateConfig({ responsible_id: event.target.value || null })}>
+              <option value="">Selecciona al supervisor o encargado del curso</option>
+              {responsibles.map((person) => <option key={person.id} value={person.id}>{person.full_name} · {person.role === 'revisor' ? 'Supervisor / Revisor' : person.role === 'creador_contenido' ? 'Creador de contenido' : person.role === 'super_admin' ? 'Super Admin' : 'Administrador'}</option>)}
+            </select>
+            <small className="helper-text">Quien sube el material puede ser diferente de quien recibe las notificaciones de finalización.</small>
           </label>
           <label className="wide">Nota mínima de aprobación
             <div className="score-control-large">

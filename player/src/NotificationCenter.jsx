@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import './styles/colleague-profile.css'
 import { Bell, BellRing, BookOpen, CheckCheck, Clock3, UserRound, Award, WifiOff, X } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'

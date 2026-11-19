@@ -208,6 +208,7 @@ serve(async (req) => {
       return reply({
         ok: false,
         code: "RATE_LIMITED",
+        scope: scope.endsWith("_target") ? "target" : "administrator",
         error: reason + " Podrás intentarlo nuevamente en aproximadamente " +
           Math.ceil(retryAfterSeconds / 60) + " minuto(s).",
         retry_after_seconds: retryAfterSeconds,

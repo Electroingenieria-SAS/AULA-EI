@@ -147,7 +147,7 @@ export function DeleteUserModal({ person, preview, checking, busy, error, onClos
   </div>
 }
 
-export function UserDetailDrawer({ person, profile, canManage, canDelete, canChangeRole, working, onClose, onToggle, onReset, onDelete, onRole }) {
+export function UserDetailDrawer({ person, profile, canManage, canDelete, canChangeRole, working, resetDisabled = false, resetTitle = 'Restablecer contraseña', onClose, onToggle, onReset, onDelete, onRole }) {
   return <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="user-detail-drawer">
       <header><div><span className="eyebrow">Detalle del usuario</span><h2>{person.name}</h2></div><button className="icon-button" onClick={onClose}><X size={18} /></button></header>
@@ -176,7 +176,7 @@ export function UserDetailDrawer({ person, profile, canManage, canDelete, canCha
       {(canChangeRole || canManage) && <section className="detail-section detail-actions-section">
         <h3>Administración</h3>
         {canChangeRole && person.id !== profile.id && <label>Rol<select value={person.role} onChange={(event) => onRole(event.target.value)}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>}
-        {canManage && person.is_active !== false && <button className="secondary-button" disabled={working} onClick={onReset}><KeyRound size={16} /> Restablecer contraseña</button>}
+        {canManage && person.is_active !== false && <button className="secondary-button" disabled={working || resetDisabled} title={resetTitle} onClick={onReset}><KeyRound size={16} /> Restablecer contraseña</button>}
         {canManage && <button className={person.is_active === false ? 'primary-button' : 'danger-button'} disabled={working} onClick={onToggle}>{working && <Loader2 className="spin" size={16} />}{person.is_active === false ? 'Reactivar usuario' : 'Desactivar usuario'}</button>}
         {canDelete && <button type="button" className="danger-button user-delete-action" disabled={working} onClick={onDelete}><Trash2 size={16} /> Eliminar usuario</button>}
       </section>}

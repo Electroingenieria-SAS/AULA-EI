@@ -20,7 +20,7 @@ import {
   RoleBadge,
   UserDetailDrawer,
 } from './users/UserPanels.jsx'
-import { ROLE_OPTIONS, csvCell, formatDate, initials, getManagedFunctionError } from './users/user-utils.js'
+import { ROLE_OPTIONS, downloadUsersCsv, formatDate, initials, getManagedFunctionError } from './users/user-utils.js'
 import { useManagedPasswordReset } from './users/useManagedPasswordReset.js'
 import { useUserPositions } from './users/useUserPositions.js'
 
@@ -390,29 +390,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     setRowSelection(next)
   }
 
-  const exportUsers = () => {
-    const source = selectedRows.length ? selectedRows : filtered
-    const csv = [
-      ['Nombre', 'Correo', 'Rol', 'Cargo', 'Estado', 'Capacitaciones activas', 'Completadas', 'Fecha creación'],
-      ...source.map((person) => [
-        person.name,
-        person.email || '',
-        ROLE_LABELS[person.role] || person.role,
-        person.position_label,
-        person.is_active === false ? 'Inactivo' : 'Activo',
-        person.stats.active,
-        person.stats.completed,
-        formatDate(person.created_at),
-      ]),
-    ].map((row) => row.map(csvCell).join(';')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'usuarios-aula-ei.csv'
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }
+  const exportUsers = () => downloadUsersCsv(selectedRows.length ? selectedRows : filtered)
 
   const clearFilters = () => {
     setSearch('')

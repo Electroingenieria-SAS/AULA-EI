@@ -1,3 +1,4 @@
+import { ROLE_LABELS } from '../shared.js'
 export const ROLE_OPTIONS = ['colaborador', 'creador_contenido', 'revisor', 'admin', 'super_admin']
 
 export function initials(value) {

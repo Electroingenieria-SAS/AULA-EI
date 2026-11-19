@@ -57,7 +57,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     (ROLE_RANK[profile.role] || 0) > (ROLE_RANK[person.role] || 0)
   const canDelete = (person) => canManage(person) && !['admin', 'super_admin'].includes(person.role)
 
-  const { resetManagedPassword, resetBlocked, resetLabel } = useManagedPasswordReset({
+  const { resetManagedPassword, resetBlocked, resetLabel, isResetBlocked, resetLabelFor } = useManagedPasswordReset({
     profile, canManage, workingId, setWorkingId, setResetResult, setMessage,
   })
 
@@ -174,8 +174,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
           <button className="icon-button" title="Ver detalle" onClick={() => setDetailId(person.id)}><ChevronRight size={17} /></button>
           {canManage(person) && person.is_active !== false && <button
             className="icon-button"
-            title={resetLabel}
-             disabled={Boolean(workingId) || resetBlocked}
+            title={resetLabelFor(person)}
+             disabled={Boolean(workingId) || isResetBlocked(person)}
             onClick={() => resetManagedPassword(person)}
           ><KeyRound size={16} /></button>}
           {canManage(person) && <button
@@ -504,7 +504,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
             <div className="mobile-user-actions">
               <button className="secondary-button compact" onClick={() => setDetailId(person.id)}><ChevronRight size={16} /> Ver detalle</button>
-              {canManage(person) && person.is_active !== false && <button className="secondary-button compact" disabled={Boolean(workingId) || resetBlocked} title={resetLabel} onClick={() => resetManagedPassword(person)}><KeyRound size={15} /> Contraseña</button>}
+              {canManage(person) && person.is_active !== false && <button className="secondary-button compact" disabled={Boolean(workingId) || isResetBlocked(person)} title={resetLabelFor(person)} onClick={() => resetManagedPassword(person)}><KeyRound size={15} /> Contraseña</button>}
               {canManage(person) && <button
                 className={person.is_active === false ? 'primary-button compact' : 'danger-button compact'}
                 disabled={workingId === person.id}
@@ -544,8 +544,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       canManage={canManage(detailPerson)}
       canChangeRole={canChangeRole}
       working={workingId === detailPerson.id}
-       resetDisabled={Boolean(workingId) || resetBlocked}
-       resetTitle={resetLabel}
+       resetDisabled={Boolean(workingId) || isResetBlocked(detailPerson)}
+       resetTitle={resetLabelFor(detailPerson)}
       onClose={() => setDetailId(null)}
       onToggle={() => toggleActive(detailPerson)}
       onReset={() => resetManagedPassword(detailPerson)}

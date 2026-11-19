@@ -20,11 +20,11 @@ assert.equal(await getManagedFunctionError({message:'Edge Function returned a no
 const limitedReset = await getManagedFunctionDetails({
   message: 'Edge Function returned a non-2xx status code',
   context: new Response(JSON.stringify({
-    ok: false, code: 'RATE_LIMITED', error: 'Reintenta en 6 minutos.', retry_after_seconds: 311,
+    ok: false, code: 'RATE_LIMITED', scope: 'target', error: 'Reintenta en 6 minutos.', retry_after_seconds: 311,
   }), { status: 429, headers: { 'Retry-After': '311', 'Content-Type': 'application/json' } }),
 })
 assert.deepEqual(limitedReset, {
-  message: 'Reintenta en 6 minutos.', status: 429, code: 'RATE_LIMITED', retryAfterSeconds: 311,
+  message: 'Reintenta en 6 minutos.', status: 429, code: 'RATE_LIMITED', retryAfterSeconds: 311, scope: 'target',
 })
 assert.match(
   await getManagedFunctionError({message:'Edge Function returned a non-2xx status code',
@@ -77,6 +77,10 @@ const drawerUi = readFileSync(new URL('../studio/src/users/UserPanels.jsx', impo
 assert.ok(resetHook.includes('getManagedFunctionDetails(error, data,'))
 assert.ok(resetHook.includes('resetPendingRef.current = true'))
 assert.ok(resetHook.includes('sessionStorage.setItem(cooldownKey'))
+assert.ok(resetHook.includes('sessionStorage.setItem(targetCooldownKey'))
+assert.ok(resetHook.includes("detail.scope === 'target'"))
+assert.ok(resetUi.includes('isResetBlocked(person)'))
+assert.ok(resetEdge.includes('scope: scope.endsWith("_target")'))
 assert.ok(resetUi.includes('resetBlocked && <p'))
 assert.ok(drawerUi.includes('disabled={working || resetDisabled}'))
 assert.ok(resetEdge.includes('const resetLimit = 20;'))

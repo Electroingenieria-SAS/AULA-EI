@@ -40,6 +40,7 @@ export async function getManagedFunctionDetails(error, data, fallback = 'No fue 
   }
 
   const code = typeof payload?.code === 'string' ? payload.code : ''
+  const scope = payload?.scope === 'target' ? 'target' : payload?.scope === 'administrator' ? 'administrator' : ''
   const rawSeconds = Number(payload?.retry_after_seconds ?? response?.headers?.get?.('Retry-After'))
   const retryAfterSeconds = Number.isFinite(rawSeconds) && rawSeconds > 0
     ? Math.min(86400, Math.ceil(rawSeconds)) : 0
@@ -59,7 +60,7 @@ export async function getManagedFunctionDetails(error, data, fallback = 'No fue 
     if (raw && !/Edge Function returned a non-2xx status code/i.test(raw)) message = raw
   }
 
-  return { message, status, code, retryAfterSeconds }
+  return { message, status, code, retryAfterSeconds, scope }
 }
 
 /** Preserve the existing string helper for user creation and deletion. */

@@ -12,25 +12,43 @@ export function useManagedPasswordReset({ profile, canManage, workingId, setWork
   const [resetCooldownUntil, setResetCooldownUntil] = useState(() => {
     try { return Number(window.sessionStorage.getItem(cooldownKey)) || 0 } catch { return 0 }
   })
+  const targetCooldownKey = 'aula_ei_reset_password_target_wait:' + profile.id
+  const [targetCooldowns, setTargetCooldowns] = useState(() => {
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem(targetCooldownKey) || '{}')
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}
+    } catch { return {} }
+  })
   const [resetClock, setResetClock] = useState(Date.now())
   useEffect(() => {
-    if (resetCooldownUntil <= Date.now()) return undefined
+    if (resetCooldownUntil <= Date.now() && !Object.values(targetCooldowns).some((value) => Number(value) > Date.now())) return undefined
     const timer = window.setInterval(() => {
       const now = Date.now()
       setResetClock(now)
       if (now >= resetCooldownUntil) window.clearInterval(timer)
     }, 1000)
     return () => window.clearInterval(timer)
-  }, [resetCooldownUntil])
+  }, [resetCooldownUntil, targetCooldowns])
   const resetWaitMinutes = Math.ceil(Math.max(0, resetCooldownUntil - resetClock) / 60000)
   const resetBlocked = resetCooldownUntil > resetClock
   const resetLabel = resetBlocked
     ? 'Reintentar restablecimiento en aproximadamente ' + resetWaitMinutes + ' minuto(s).'
     : 'Restablecer contraseña'
+  const isResetBlocked = (person) =>
+    resetBlocked || Number(targetCooldowns[person?.id] || 0) > resetClock
+  const resetLabelFor = (person) => {
+    if (resetBlocked) return resetLabel
+    const minutes = Math.ceil(Math.max(0, Number(targetCooldowns[person?.id] || 0) - resetClock) / 60000)
+    return minutes > 0
+      ? 'Esta cuenta tiene un límite temporal. Reintentar en aproximadamente ' + minutes + ' minuto(s).'
+      : 'Restablecer contraseña'
+  }
   async function resetManagedPassword(person) {
     // Protect before the busy state is rendered to avoid duplicate requests.
     if (resetPendingRef.current || workingId) return
-    if (Date.now() < resetCooldownUntil) return setMessage(resetLabel)
+    if (Date.now() < resetCooldownUntil || Date.now() < Number(targetCooldowns[person?.id] || 0)) {
+      return setMessage(resetLabelFor(person))
+    }
     if (!canManage(person)) return setMessage('Solo puedes restablecer contraseñas de usuarios con un nivel inferior al tuyo.')
     if (person.is_active === false) return setMessage('Reactiva primero la cuenta antes de restablecer su contraseña.')
     if (!window.confirm('¿Restablecer la contraseña de ' + person.name + '? Se generará una contraseña temporal y deberá cambiarla en el siguiente ingreso.')) return
@@ -46,9 +64,15 @@ export function useManagedPasswordReset({ profile, canManage, workingId, setWork
         const detail = await getManagedFunctionDetails(error, data, 'No fue posible restablecer la contraseña.')
         if (detail.status === 429 || detail.code === 'RATE_LIMITED') {
           const retryUntil = Date.now() + (detail.retryAfterSeconds || 900) * 1000
-          setResetCooldownUntil(retryUntil)
           setResetClock(Date.now())
-          try { window.sessionStorage.setItem(cooldownKey, String(retryUntil)) } catch { /* optional */ }
+          if (detail.scope === 'target') {
+            const updated = { ...targetCooldowns, [person.id]: retryUntil }
+            setTargetCooldowns(updated)
+            try { window.sessionStorage.setItem(targetCooldownKey, JSON.stringify(updated)) } catch { /* optional */ }
+          } else {
+            setResetCooldownUntil(retryUntil)
+            try { window.sessionStorage.setItem(cooldownKey, String(retryUntil)) } catch { /* optional */ }
+          }
         }
         throw new Error(detail.message)
       }
@@ -65,5 +89,5 @@ export function useManagedPasswordReset({ profile, canManage, workingId, setWork
     }
   }
 
-  return { resetManagedPassword, resetBlocked, resetLabel }
+  return { resetManagedPassword, resetBlocked, resetLabel, isResetBlocked, resetLabelFor }
 }

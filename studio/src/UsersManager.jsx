@@ -21,6 +21,7 @@ import {
   UserDetailDrawer,
 } from './users/UserPanels.jsx'
 import { ROLE_OPTIONS, csvCell, formatDate, initials, getManagedFunctionError } from './users/user-utils.js'
+import { useManagedPasswordReset } from './users/useManagedPasswordReset.js'
 
 const EMPTY_FORM = { full_name: '', email: '', password: '', role: 'colaborador' }
 export default function UsersManager({ profile, profiles, enrollments = [], refresh, setMessage }) {
@@ -55,6 +56,10 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     ['admin', 'super_admin'].includes(profile.role) &&
     (ROLE_RANK[profile.role] || 0) > (ROLE_RANK[person.role] || 0)
   const canDelete = (person) => canManage(person) && !['admin', 'super_admin'].includes(person.role)
+
+  const { resetManagedPassword, resetBlocked, resetLabel, isResetBlocked, resetLabelFor } = useManagedPasswordReset({
+    profile, canManage, workingId, setWorkingId, setResetResult, setMessage,
+  })
 
   const enrollmentStats = useMemo(() => {
     const map = new Map()
@@ -169,8 +174,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
           <button className="icon-button" title="Ver detalle" onClick={() => setDetailId(person.id)}><ChevronRight size={17} /></button>
           {canManage(person) && person.is_active !== false && <button
             className="icon-button"
-            title="Restablecer contraseña"
-            disabled={workingId === person.id}
+            title={resetLabelFor(person)}
+             disabled={Boolean(workingId) || isResetBlocked(person)}
             onClick={() => resetManagedPassword(person)}
           ><KeyRound size={16} /></button>}
           {canManage(person) && <button
@@ -324,31 +329,6 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
     }
   }
 
-  async function resetManagedPassword(person) {
-    if (!canManage(person)) return setMessage('Solo puedes restablecer contraseñas de usuarios con un nivel inferior al tuyo.')
-    if (person.is_active === false) return setMessage('Reactiva primero la cuenta antes de restablecer su contraseña.')
-    if (!window.confirm('¿Restablecer la contraseña de ' + person.name + '? Se generará una contraseña temporal y deberá cambiarla en el siguiente ingreso.')) return
-
-    setWorkingId(person.id)
-    try {
-      const { data, error } = await supabase.functions.invoke('reset-managed-user-password', {
-        body: { user_id: person.id },
-      })
-      if (error) throw new Error(String(data?.error || error.message || 'No fue posible restablecer la contraseña.'))
-      if (data?.ok === false) throw new Error(String(data.error || 'No fue posible restablecer la contraseña.'))
-
-      const temporaryPassword = String(data?.temporary_password || '')
-      if (!temporaryPassword) throw new Error('El servidor no devolvió la contraseña temporal.')
-
-      setResetResult({ person, password: temporaryPassword })
-      setMessage('Contraseña temporal generada para ' + person.name + '.')
-    } catch (error) {
-      setMessage(getError(error, 'No fue posible restablecer la contraseña.'))
-    } finally {
-      setWorkingId(null)
-    }
-  }
-
   const bulkActiveState = async (active) => {
     const targets = manageableSelected.filter((person) => (person.is_active !== false) !== active)
     if (!targets.length) return setMessage('No hay usuarios gestionables en la selección que requieran ese cambio.')
@@ -428,6 +408,9 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
   return <div className="users-center">
     <section className="panel-card users-overview">
+      {resetBlocked && <p className="helper-text" role="status" aria-live="polite">
+        Por seguridad, los restablecimientos están temporalmente limitados. {resetLabel}
+      </p>}
       <div className="users-overview-head">
         <div>
           <span className="eyebrow">Usuarios y roles</span>
@@ -521,7 +504,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
             <div className="mobile-user-actions">
               <button className="secondary-button compact" onClick={() => setDetailId(person.id)}><ChevronRight size={16} /> Ver detalle</button>
-              {canManage(person) && person.is_active !== false && <button className="secondary-button compact" disabled={workingId === person.id} onClick={() => resetManagedPassword(person)}><KeyRound size={15} /> Contraseña</button>}
+              {canManage(person) && person.is_active !== false && <button className="secondary-button compact" disabled={Boolean(workingId) || isResetBlocked(person)} title={resetLabelFor(person)} onClick={() => resetManagedPassword(person)}><KeyRound size={15} /> Contraseña</button>}
               {canManage(person) && <button
                 className={person.is_active === false ? 'primary-button compact' : 'danger-button compact'}
                 disabled={workingId === person.id}
@@ -561,6 +544,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       canManage={canManage(detailPerson)}
       canChangeRole={canChangeRole}
       working={workingId === detailPerson.id}
+       resetDisabled={Boolean(workingId) || isResetBlocked(detailPerson)}
+       resetTitle={resetLabelFor(detailPerson)}
       onClose={() => setDetailId(null)}
       onToggle={() => toggleActive(detailPerson)}
       onReset={() => resetManagedPassword(detailPerson)}

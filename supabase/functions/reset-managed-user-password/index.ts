@@ -19,7 +19,8 @@ const ROLE_RANK: Record<AppRole, number> = {
   super_admin: 50,
 };
 
-const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+const reply = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
+  new Response(JSON.stringify(body), { status, headers: { ...headers, ...extraHeaders } });
 
 function decodeJwtClaims(token: string): Record<string, unknown> {
   try {
@@ -146,17 +147,7 @@ serve(async (req) => {
       return reply({ ok: false, code: "MFA_REQUIRED", error: "Tu sesión administrativa no está activa o no tiene MFA verificado. Vuelve a autenticarte." }, 403);
     }
 
-    if (!await consumeRateLimit(admin, "reset_managed_user_password", caller.id, 8, 900)) {
-      await admin.from("audit_logs").insert({
-        actor_id: caller.id,
-        action: "rate_limit_block",
-        entity_type: "security",
-        entity_id: caller.id,
-        metadata: { scope: "reset_managed_user_password" },
-      });
-      return reply({ ok: false, code: "RATE_LIMITED", error: "Demasiados restablecimientos de contraseña. Intenta nuevamente más tarde." }, 429);
-    }
-
+    // Only validated, authorized target accounts should consume reset quota.
     const body = await req.json();
     const targetId = String(body.user_id || "").trim();
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId)) {
@@ -193,6 +184,46 @@ serve(async (req) => {
     const trustedTargetRole = normalizeRole(targetUser.app_metadata?.aula_ei_role);
     if (targetUser.app_metadata?.aula_ei_active !== true || trustedTargetRole !== targetRole) {
       return reply({ ok: false, code: "TARGET_MEMBERSHIP_INVALID", error: "La cuenta tiene una membresía o rol desincronizado. Corrige esa inconsistencia antes de restablecer la contraseña." }, 409);
+    }
+
+    // Security: allow a normal administrative workload while limiting
+    // resets of any single account. Keep MFA and role checks above intact.
+    const resetWindowSeconds = 900;
+    async function blockedByRateLimit(scope: string, actorId: string, limit: number, reason: string) {
+      const { data: bucket } = await admin.from("aula_security_rate_limits")
+        .select("bucket_started_at")
+        .eq("scope", scope).eq("actor_id", actorId).maybeSingle();
+      const started = Date.parse(String(bucket?.bucket_started_at || ""));
+      const retryAfterSeconds = Number.isFinite(started)
+        ? Math.max(1, Math.ceil((started + resetWindowSeconds * 1000 - Date.now()) / 1000))
+        : resetWindowSeconds;
+
+      await admin.from("audit_logs").insert({
+        actor_id: caller.id,
+        action: "rate_limit_block",
+        entity_type: "security",
+        entity_id: caller.id,
+        metadata: { scope, limit, target_id: targetId },
+      });
+      return reply({
+        ok: false,
+        code: "RATE_LIMITED",
+        scope: scope.endsWith("_target") ? "target" : "administrator",
+        error: reason + " Podrás intentarlo nuevamente en aproximadamente " +
+          Math.ceil(retryAfterSeconds / 60) + " minuto(s).",
+        retry_after_seconds: retryAfterSeconds,
+      }, 429, { "Retry-After": String(retryAfterSeconds) });
+    }
+
+    const targetScope = "reset_managed_user_password_target";
+    if (!await consumeRateLimit(admin, targetScope, targetId, 2, resetWindowSeconds)) {
+      return await blockedByRateLimit(targetScope, targetId, 2, "Esta cuenta ya tuvo varios restablecimientos.");
+    }
+
+    const resetLimit = 20;
+    const adminScope = "reset_managed_user_password";
+    if (!await consumeRateLimit(admin, adminScope, caller.id, resetLimit, resetWindowSeconds)) {
+      return await blockedByRateLimit(adminScope, caller.id, resetLimit, "Se alcanzó el límite de restablecimientos.");
     }
 
     const temporaryPassword = generateTemporaryPassword();
@@ -260,10 +291,14 @@ serve(async (req) => {
       },
     });
   } catch (error) {
+    // Log a diagnostic type, never raw server details or credentials.
+    console.error("RESET_MANAGED_USER_PASSWORD_UNEXPECTED", {
+      error_type: error instanceof Error ? error.name : "unknown",
+    });
     return reply({
       ok: false,
       code: "UNEXPECTED_ERROR",
-      error: error instanceof Error ? error.message : "Error inesperado restableciendo la contraseña.",
+      error: "No fue posible completar el restablecimiento. Comunícate con el administrador de Aula EI.",
     }, 500);
   }
 });

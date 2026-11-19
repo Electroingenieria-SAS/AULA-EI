@@ -11,12 +11,27 @@ assert.equal(safeExternalUrl('https://example.com/resource'), 'https://example.c
 assert.equal(safeExternalUrl('/AULA-EI/#/login'), 'https://electroingenieria-sas.github.io/AULA-EI/#/login')
 assert.equal(safeExternalUrl('#section'), '#section')
 
-const { getManagedFunctionError } = await import('../studio/src/users/user-utils.js')
+const { getManagedFunctionError, getManagedFunctionDetails } = await import('../studio/src/users/user-utils.js')
 const tooMany = new Response(JSON.stringify({ok:false,code:'RATE_LIMITED',error:'Vuelve a intentarlo en 3 minutos.'}), {
   status:429, headers:{'Content-Type':'application/json'},
 })
 assert.equal(await getManagedFunctionError({message:'Edge Function returned a non-2xx status code',context:tooMany}), 'Vuelve a intentarlo en 3 minutos.')
-assert.equal(await getManagedFunctionError({message:'Edge Function returned a non-2xx status code',context:new Response('',{status:429})}), 'Demasiados intentos. Espera unos minutos antes de volver a crear usuarios.')
+assert.equal(await getManagedFunctionError({message:'Edge Function returned a non-2xx status code',context:new Response('',{status:429})}), 'Se alcanzó el límite de operaciones de seguridad. Espera el tiempo indicado antes de volver a intentarlo.')
+const limitedReset = await getManagedFunctionDetails({
+  message: 'Edge Function returned a non-2xx status code',
+  context: new Response(JSON.stringify({
+    ok: false, code: 'RATE_LIMITED', scope: 'target', error: 'Reintenta en 6 minutos.', retry_after_seconds: 311,
+  }), { status: 429, headers: { 'Retry-After': '311', 'Content-Type': 'application/json' } }),
+})
+assert.deepEqual(limitedReset, {
+  message: 'Reintenta en 6 minutos.', status: 429, code: 'RATE_LIMITED', retryAfterSeconds: 311, scope: 'target',
+})
+assert.match(
+  await getManagedFunctionError({message:'Edge Function returned a non-2xx status code',
+    context:new Response(JSON.stringify({error:'INTERNAL_SERVICE_SECRET'}),{status:500})}),
+  /El servicio no pudo completar/,
+  'HTTP 500 must not leak internal backend data',
+)
 assert.equal(await getManagedFunctionError({message:'Network connection failed'}), 'Network connection failed')
 assert.equal(await getManagedFunctionError({message:'Edge Function returned a non-2xx status code'}), 'No fue posible completar la operación.')
 
@@ -55,6 +70,25 @@ assert.doesNotMatch(await getPasswordChangeError(functionError(500, { error: 'IN
 assert.equal(await getPasswordChangeError({ message: 'Network error' }), 'Network error')
 assert.doesNotMatch(await getPasswordChangeError({ message: 'Edge Function returned a non-2xx status code' }), /non-2xx/i)
 
+const resetUi = readFileSync(new URL('../studio/src/UsersManager.jsx', import.meta.url), 'utf8')
+const resetHook = readFileSync(new URL('../studio/src/users/useManagedPasswordReset.js', import.meta.url), 'utf8')
+const resetEdge = readFileSync(new URL('../supabase/functions/reset-managed-user-password/index.ts', import.meta.url), 'utf8')
+const drawerUi = readFileSync(new URL('../studio/src/users/UserPanels.jsx', import.meta.url), 'utf8')
+assert.ok(resetHook.includes('getManagedFunctionDetails(error, data,'))
+assert.ok(resetHook.includes('resetPendingRef.current = true'))
+assert.ok(resetHook.includes('sessionStorage.setItem(cooldownKey'))
+assert.ok(resetHook.includes('sessionStorage.setItem(targetCooldownKey'))
+assert.ok(resetHook.includes("detail.scope === 'target'"))
+assert.ok(resetUi.includes('isResetBlocked(person)'))
+assert.ok(resetEdge.includes('scope: scope.endsWith("_target")'))
+assert.ok(resetUi.includes('resetBlocked && <p'))
+assert.ok(drawerUi.includes('disabled={working || resetDisabled}'))
+assert.ok(resetEdge.includes('const resetLimit = 20;'))
+assert.ok(resetEdge.includes('const targetScope = "reset_managed_user_password_target";'))
+assert.ok(resetEdge.includes('retry_after_seconds: retryAfterSeconds'))
+assert.ok(resetEdge.indexOf('const targetId = String(body.user_id') < resetEdge.indexOf('consumeRateLimit(admin, targetScope'),
+  'Invalid target requests must not consume reset quota')
+assert.ok(resetEdge.includes('RESET_MANAGED_USER_PASSWORD_UNEXPECTED'))
 const authUi = readFileSync(new URL('../src/auth/AuthScreens.jsx', import.meta.url), 'utf8')
 assert.equal((authUi.match(/await getPasswordChangeError/g) || []).length, 2,
   'El primer cambio y la recuperación deben mostrar el motivo de error')

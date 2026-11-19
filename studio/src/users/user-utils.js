@@ -22,23 +22,49 @@ export function csvCell(value) {
 }
 
 /**
- * Supabase returns a FunctionsHttpError for HTTP 429/4xx/5xx. The useful
- * Spanish error is in its Response body, not in the generic SDK message.
+ * Decode a Supabase FunctionsHttpError response without exposing raw platform
+ * errors, private backend exceptions, passwords or access tokens.
  */
-export async function getManagedFunctionError(error, data, fallback = 'No fue posible completar la operación.') {
-  if (data && typeof data.error === 'string' && data.error.trim()) return data.error
+export async function getManagedFunctionDetails(error, data, fallback = 'No fue posible completar la operación.') {
   const response = error?.context
-  if (response && typeof response.json === 'function') {
+  const status = Number(response?.status || error?.status || 0)
+  let payload = data && typeof data === 'object' ? data : null
+
+  if (!payload && response && typeof response.json === 'function') {
     try {
-      const payload = await (typeof response.clone === 'function' ? response.clone() : response).json()
-      if (payload && typeof payload.error === 'string' && payload.error.trim()) return payload.error
+      const value = await (typeof response.clone === 'function' ? response.clone() : response).json()
+      if (value && typeof value === 'object') payload = value
     } catch {
-      // A transport error can have an empty/non-JSON body; use the status.
+      // HTTP gateways do not always return a JSON body.
     }
-    if (response.status === 429) return 'Demasiados intentos. Espera unos minutos antes de volver a crear usuarios.'
-    if (response.status === 401 || response.status === 403) return 'No se pudo validar tu sesión de administrador. Cierra sesión e ingresa nuevamente.'
   }
-  const message = String(error?.message || '').trim()
-  if (message && !/Edge Function returned a non-2xx status code/i.test(message)) return message
-  return fallback
+
+  const code = typeof payload?.code === 'string' ? payload.code : ''
+  const scope = payload?.scope === 'target' ? 'target' : payload?.scope === 'administrator' ? 'administrator' : ''
+  const rawSeconds = Number(payload?.retry_after_seconds ?? response?.headers?.get?.('Retry-After'))
+  const retryAfterSeconds = Number.isFinite(rawSeconds) && rawSeconds > 0
+    ? Math.min(86400, Math.ceil(rawSeconds)) : 0
+  const serverMessage = typeof payload?.error === 'string' ? payload.error.trim().slice(0, 300) : ''
+  let message = fallback
+
+  if (status === 429 || code === 'RATE_LIMITED') {
+    message = serverMessage || 'Se alcanzó el límite de operaciones de seguridad. Espera el tiempo indicado antes de volver a intentarlo.'
+  } else if (status === 401 || status === 403) {
+    message = serverMessage || 'No se pudo validar tu sesión administrativa. Cierra sesión e ingresa nuevamente.'
+  } else if (status >= 500) {
+    message = 'El servicio no pudo completar la operación. Intenta más tarde o informa al administrador de Aula EI.'
+  } else if (serverMessage) {
+    message = serverMessage
+  } else {
+    const raw = String(error?.message || '').trim()
+    if (raw && !/Edge Function returned a non-2xx status code/i.test(raw)) message = raw
+  }
+
+  return { message, status, code, retryAfterSeconds, scope }
+}
+
+/** Preserve the existing string helper for user creation and deletion. */
+export async function getManagedFunctionError(error, data, fallback) {
+  const details = await getManagedFunctionDetails(error, data, fallback)
+  return details.message
 }

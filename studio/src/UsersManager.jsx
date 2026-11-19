@@ -20,7 +20,7 @@ import {
   RoleBadge,
   UserDetailDrawer,
 } from './users/UserPanels.jsx'
-import { ROLE_OPTIONS, csvCell, formatDate, initials, getManagedFunctionError } from './users/user-utils.js'
+import { ROLE_OPTIONS, csvCell, formatDate, initials, getManagedFunctionError, getManagedFunctionDetails } from './users/user-utils.js'
 
 const EMPTY_FORM = { full_name: '', email: '', password: '', role: 'colaborador' }
 export default function UsersManager({ profile, profiles, enrollments = [], refresh, setMessage }) {
@@ -33,6 +33,26 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const [form, setForm] = useState(EMPTY_FORM)
   const [generatedPassword, setGeneratedPassword] = useState('')
   const [resetResult, setResetResult] = useState(null)
+  const resetPendingRef = useRef(false)
+  const cooldownKey = 'aula_ei_reset_password_wait:' + profile.id
+  const [resetCooldownUntil, setResetCooldownUntil] = useState(() => {
+    try { return Number(window.sessionStorage.getItem(cooldownKey)) || 0 } catch { return 0 }
+  })
+  const [resetClock, setResetClock] = useState(Date.now())
+  useEffect(() => {
+    if (resetCooldownUntil <= Date.now()) return undefined
+    const timer = window.setInterval(() => {
+      const now = Date.now()
+      setResetClock(now)
+      if (now >= resetCooldownUntil) window.clearInterval(timer)
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [resetCooldownUntil])
+  const resetWaitMinutes = Math.ceil(Math.max(0, resetCooldownUntil - resetClock) / 60000)
+  const resetBlocked = resetCooldownUntil > resetClock
+  const resetLabel = resetBlocked
+    ? 'Reintentar restablecimiento en aproximadamente ' + resetWaitMinutes + ' minuto(s).'
+    : 'Restablecer contraseña'
   const deleteRequestRef = useRef(0)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deletePreview, setDeletePreview] = useState(null)
@@ -169,8 +189,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
           <button className="icon-button" title="Ver detalle" onClick={() => setDetailId(person.id)}><ChevronRight size={17} /></button>
           {canManage(person) && person.is_active !== false && <button
             className="icon-button"
-            title="Restablecer contraseña"
-            disabled={workingId === person.id}
+            title={resetLabel}
+             disabled={Boolean(workingId) || resetBlocked}
             onClick={() => resetManagedPassword(person)}
           ><KeyRound size={16} /></button>}
           {canManage(person) && <button
@@ -325,26 +345,39 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   }
 
   async function resetManagedPassword(person) {
+    // Protect before the busy state is rendered to avoid duplicate requests.
+    if (resetPendingRef.current || workingId) return
+    if (Date.now() < resetCooldownUntil) return setMessage(resetLabel)
     if (!canManage(person)) return setMessage('Solo puedes restablecer contraseñas de usuarios con un nivel inferior al tuyo.')
     if (person.is_active === false) return setMessage('Reactiva primero la cuenta antes de restablecer su contraseña.')
     if (!window.confirm('¿Restablecer la contraseña de ' + person.name + '? Se generará una contraseña temporal y deberá cambiarla en el siguiente ingreso.')) return
 
+    resetPendingRef.current = true
     setWorkingId(person.id)
+    setResetResult(null)
     try {
       const { data, error } = await supabase.functions.invoke('reset-managed-user-password', {
         body: { user_id: person.id },
       })
-      if (error) throw new Error(String(data?.error || error.message || 'No fue posible restablecer la contraseña.'))
+      if (error) {
+        const detail = await getManagedFunctionDetails(error, data, 'No fue posible restablecer la contraseña.')
+        if (detail.status === 429 || detail.code === 'RATE_LIMITED') {
+          const retryUntil = Date.now() + (detail.retryAfterSeconds || 900) * 1000
+          setResetCooldownUntil(retryUntil)
+          setResetClock(Date.now())
+          try { window.sessionStorage.setItem(cooldownKey, String(retryUntil)) } catch { /* optional */ }
+        }
+        throw new Error(detail.message)
+      }
       if (data?.ok === false) throw new Error(String(data.error || 'No fue posible restablecer la contraseña.'))
-
       const temporaryPassword = String(data?.temporary_password || '')
-      if (!temporaryPassword) throw new Error('El servidor no devolvió la contraseña temporal.')
-
+      if (!temporaryPassword) throw new Error('No se recibió confirmación completa. Consulta el registro antes de reintentar.')
       setResetResult({ person, password: temporaryPassword })
       setMessage('Contraseña temporal generada para ' + person.name + '.')
     } catch (error) {
       setMessage(getError(error, 'No fue posible restablecer la contraseña.'))
     } finally {
+      resetPendingRef.current = false
       setWorkingId(null)
     }
   }
@@ -428,6 +461,9 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
   return <div className="users-center">
     <section className="panel-card users-overview">
+      {resetBlocked && <p className="helper-text" role="status" aria-live="polite">
+        Por seguridad, los restablecimientos están temporalmente limitados. {resetLabel}
+      </p>}
       <div className="users-overview-head">
         <div>
           <span className="eyebrow">Usuarios y roles</span>
@@ -521,7 +557,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
 
             <div className="mobile-user-actions">
               <button className="secondary-button compact" onClick={() => setDetailId(person.id)}><ChevronRight size={16} /> Ver detalle</button>
-              {canManage(person) && person.is_active !== false && <button className="secondary-button compact" disabled={workingId === person.id} onClick={() => resetManagedPassword(person)}><KeyRound size={15} /> Contraseña</button>}
+              {canManage(person) && person.is_active !== false && <button className="secondary-button compact" disabled={Boolean(workingId) || resetBlocked} title={resetLabel} onClick={() => resetManagedPassword(person)}><KeyRound size={15} /> Contraseña</button>}
               {canManage(person) && <button
                 className={person.is_active === false ? 'primary-button compact' : 'danger-button compact'}
                 disabled={workingId === person.id}
@@ -561,6 +597,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       canManage={canManage(detailPerson)}
       canChangeRole={canChangeRole}
       working={workingId === detailPerson.id}
+       resetDisabled={Boolean(workingId) || resetBlocked}
+       resetTitle={resetLabel}
       onClose={() => setDetailId(null)}
       onToggle={() => toggleActive(detailPerson)}
       onReset={() => resetManagedPassword(detailPerson)}

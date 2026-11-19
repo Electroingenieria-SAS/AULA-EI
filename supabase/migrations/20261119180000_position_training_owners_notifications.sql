@@ -233,9 +233,12 @@ returns trigger language plpgsql security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if new.is_active = true and new.job_position_id is not null
-    and (tg_op = 'INSERT' or new.job_position_id is distinct from old.job_position_id) then
-    perform public.sync_user_training_system(new.id);
+  if new.is_active = true and new.job_position_id is not null then
+    if tg_op = 'INSERT' then
+      perform public.sync_user_training_system(new.id);
+    elsif new.job_position_id is distinct from old.job_position_id then
+      perform public.sync_user_training_system(new.id);
+    end if;
   end if;
   return new;
 end;

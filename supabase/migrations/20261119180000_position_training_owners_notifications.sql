@@ -102,9 +102,9 @@ declare
   v_completed integer;
   v_recipient record;
 begin
-  if new.status <> 'completed'
-    or (tg_op = 'UPDATE' and old.status = 'completed') then
-    return new;
+  if new.status <> 'completed' then return new; end if;
+  if tg_op = 'UPDATE' then
+    if old.status = 'completed' then return new; end if;
   end if;
   select c.responsible_id, c.title
     into v_responsible, v_title
@@ -224,3 +224,39 @@ end;
 $$;
 revoke all on function public.get_training_colleague_profile(uuid) from public, anon;
 grant execute on function public.get_training_colleague_profile(uuid) to authenticated;
+
+-- Populate position-driven training whenever a managed profile receives a new cargo.
+-- The core sync function is idempotent; keeping this on the database prevents
+-- creation flows from diverging even when a UI request is interrupted.
+create or replace function public.sync_training_on_profile_position()
+returns trigger language plpgsql security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.is_active = true and new.job_position_id is not null
+    and (tg_op = 'INSERT' or new.job_position_id is distinct from old.job_position_id) then
+    perform public.sync_user_training_system(new.id);
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.sync_training_on_profile_position() from public, anon, authenticated;
+drop trigger if exists trg_sync_training_on_profile_position on public.profiles;
+create trigger trg_sync_training_on_profile_position
+  after insert or update of job_position_id on public.profiles
+  for each row execute function public.sync_training_on_profile_position();
+
+create or replace function public.list_course_responsibles()
+returns table (id uuid, full_name text, role text)
+language sql stable security definer
+set search_path = public, pg_temp
+as $$
+  select p.id, coalesce(nullif(p.full_name,''),p.email,'Usuario EI'),p.role
+  from public.profiles p
+  where public.can_manage_courses()
+    and p.is_active = true
+    and p.role in ('creador_contenido','revisor','admin','super_admin')
+  order by p.full_name,p.email;
+$$;
+revoke all on function public.list_course_responsibles() from public, anon;
+grant execute on function public.list_course_responsibles() to authenticated;

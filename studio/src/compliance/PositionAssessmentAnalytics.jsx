@@ -62,6 +62,6 @@ export default function PositionAssessmentAnalytics({ setMessage }) {
       </div>}
     {technical.length ? <p className="a92-method"><BrainCircuit size={16} /> Mayor promedio en evaluaciones etiquetadas como técnicas: <strong>{technical[0].position_name}</strong> ({score(technical[0].technical_mean_score)}), entre los cargos con tres o más personas evaluadas en contenidos técnicos. Esta medida no determina por sí sola el conocimiento real del área.</p>
       : <p className="a92-method"><BrainCircuit size={16} /> Ranking técnico pendiente: vincula cursos con competencias clasificadas como «técnica» y alcanza al menos tres personas evaluadas por cargo antes de comparar resultados.</p>}
-    <p className="a92-method"><ShieldCheck size={16} /> Privacidad: se ocultan resultados detallados de grupos con menos de tres personas evaluadas. El histórico no se reinterpreta como evidencia de competencias aún no parametrizadas.</p>
+    <p className="a92-method"><ShieldCheck size={16} /> Privacidad: se ocultan resultados detallados de grupos con menos de tres personas evaluadas. Las evaluaciones históricas se agrupan por el cargo actual verificado, sin alterar notas ni afirmar que ese cargo se desempeñaba cuando se presentó cada examen.</p>
   </section>
 }

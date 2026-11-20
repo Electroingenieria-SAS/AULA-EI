@@ -180,7 +180,7 @@ export function UserDetailDrawer({ person, profile, canManage, canDelete, canCha
       <section className="detail-section">
         <h3>Cuenta</h3>
         <dl><div><dt>Creada</dt><dd>{formatDate(person.created_at)}</dd></div><div><dt>Estado</dt><dd>{person.is_active === false ? 'Inactivo' : 'Activo'}</dd></div><div><dt>Rol</dt><dd>{ROLE_LABELS[person.role] || person.role}</dd></div><div><dt>Cargo</dt><dd>{person.position_label || 'Sin asignar'}</dd></div></dl>
-        {!person.onboarding_methodology_started_at && <small className="helper-text">Registro histórico: el cargo se incorporará posteriormente mediante matriz, sin cambiar sus capacitaciones, certificados ni resultados.</small>}
+        {!person.onboarding_methodology_started_at && <small className="helper-text">{person.job_position_id ? 'Cargo incorporado desde matriz histórica: matrículas, certificados y notas originales conservados.' : 'Registro histórico pendiente de cotejo con la matriz; no se modifican matrículas ni certificados.'}</small>}
       </section>
 
       {person.stats.recent.length > 0 && <section className="detail-section">

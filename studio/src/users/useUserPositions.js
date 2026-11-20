@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getError, supabase } from '../shared.js'
 
 /** Job catalog and history-aware position updates, isolated from the user directory. */
-export function useUserPositions({ setMessage, refresh, setWorkingId, setForm, setBusy }) {
+export function useUserPositions({ setMessage, refresh, setWorkingId, setForm, setBusy, canChangePosition = false }) {
   const [jobPositions, setJobPositions] = useState([])
   useEffect(() => {
     let active = true
@@ -43,7 +43,10 @@ export function useUserPositions({ setMessage, refresh, setWorkingId, setForm, s
   }
 
   async function changePosition(person, positionId) {
-    if (!canChangePosition || person.is_active === false) return
+    if (!canChangePosition || !person.onboarding_methodology_started_at || person.is_active === false) {
+      setMessage('Registro anterior a la nueva metodología: el cargo se completará con la matriz histórica, sin alterar las capacitaciones.')
+      return
+    }
     setWorkingId(person.id)
     try {
       const { error } = await supabase.rpc('admin_set_user_job_position', {
@@ -52,7 +55,7 @@ export function useUserPositions({ setMessage, refresh, setWorkingId, setForm, s
         p_notes: 'Actualización de cargo desde Usuarios y roles.',
       })
       if (error) throw error
-      setMessage('Cargo actualizado y formación vinculada para ' + person.name + '.')
+      setMessage('Cargo actualizado para ' + person.name + '. La formación asignada previamente se conserva.')
       await refresh()
     } catch (error) {
       setMessage(getError(error, 'No se pudo modificar el cargo.'))

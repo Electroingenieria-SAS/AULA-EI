@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, BellRing, BookOpen, CheckCheck, Clock3, WifiOff, X } from 'lucide-react'
+import './styles/colleague-profile.css'
+import { Bell, BellRing, BookOpen, CheckCheck, Clock3, UserRound, Award, WifiOff, X } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'
 import { notificationDestination, notificationUrgency, organizeTrainingNotifications } from './notifications/notification-priority.js'
@@ -20,6 +21,9 @@ export default function NotificationCenter({ profile = null }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [networkIssue, setNetworkIssue] = useState('')
+  const [colleague, setColleague] = useState(null)
+  const [colleagueLoading, setColleagueLoading] = useState(false)
+  const [colleagueError, setColleagueError] = useState('')
   const rootRef = useRef(null)
   const requestRef = useRef(false)
 
@@ -133,6 +137,22 @@ export default function NotificationCenter({ profile = null }) {
   const openItem = async (item) => {
     await markRead(item)
     setOpen(false)
+    const colleagueId = item.metadata?.colleague_id
+    if (colleagueId && String(item.notification_type || '').startsWith('responsible_')) {
+      setColleague({ id: colleagueId })
+      setColleagueLoading(true)
+      setColleagueError('')
+      try {
+        const { data, error } = await supabase.rpc('get_training_colleague_profile', { p_user_id: colleagueId })
+        if (error) throw error
+        setColleague(data)
+      } catch {
+        setColleagueError('No fue posible abrir el perfil. Verifica que sigas siendo responsable de esta capacitación.')
+      } finally {
+        setColleagueLoading(false)
+      }
+      return
+    }
     const destination = notificationDestination(item)
     if (destination) navigateLearner(destination)
   }
@@ -207,6 +227,31 @@ export default function NotificationCenter({ profile = null }) {
         </button>
       </footer>
     </section>}
+
+    {colleague && <div className="aula-colleague-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setColleague(null) }}>
+      <section className="aula-colleague-card" role="dialog" aria-modal="true" aria-label="Perfil del colaborador">
+        <button type="button" className="aula-colleague-close" aria-label="Cerrar perfil" onClick={() => setColleague(null)}><X size={20}/></button>
+        <div className="aula-colleague-cover"><span>COMUNIDAD ELECTROINGENIERÍA</span><UserRound size={34}/></div>
+        {colleagueLoading ? <p role="status">Cargando perfil formativo…</p> : colleagueError ? <p role="alert">{colleagueError}</p> : <>
+          <div className="aula-colleague-identity">
+            <span className="aula-colleague-avatar">{String(colleague.full_name || 'EI').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</span>
+            <h2>{colleague.full_name}</h2>
+            <strong>{colleague.position}</strong>
+            {colleague.department && <small>{colleague.department}</small>}
+          </div>
+          <div className="aula-colleague-indicators">
+            <div><strong>{colleague.completion_percent || 0}%</strong><span>Formación completada</span></div>
+            <div><strong>{colleague.completed_count || 0}</strong><span>Cursos terminados</span></div>
+            <div><strong>{colleague.assigned_count || 0}</strong><span>Cursos asignados</span></div>
+          </div>
+          <h3><Award size={19}/> Capacitaciones realizadas</h3>
+          {Array.isArray(colleague.completed_courses) && colleague.completed_courses.length ? (
+            <ul className="aula-colleague-courses">{colleague.completed_courses.map((course, index) => <li key={index}><BookOpen size={16}/><span>{course.title}</span></li>)}</ul>
+          ) : <p>No hay cursos completados visibles para tu responsabilidad.</p>}
+          <small className="aula-colleague-privacy">Perfil interno de formación, visible exclusivamente para usuarios autorizados.</small>
+        </>}
+      </section>
+    </div>}
   </div>
 }
 

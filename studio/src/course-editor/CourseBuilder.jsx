@@ -23,7 +23,9 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
     status: course.status,
     passing_score: course.passing_score || 80,
     cover_path: course.cover_path || null,
+    responsible_id: course.responsible_id || null,
   })
+  const [responsibles, setResponsibles] = useState([])
   const [coverFile, setCoverFile] = useState(null)
   const [coverUrl, setCoverUrl] = useState(null)
   const [phases, setPhases] = useState([])
@@ -55,6 +57,15 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
   }
 
   useEffect(() => { load() }, [course.id])
+  useEffect(() => {
+    let current = true
+    supabase.rpc('list_course_responsibles').then(({ data, error }) => {
+      if (!current) return
+      if (error) setMessage(getError(error, 'No se pudieron cargar los responsables de formación.'))
+      else setResponsibles(data || [])
+    })
+    return () => { current = false }
+  }, [course.id])
 
   useEffect(() => {
     setConfig({
@@ -63,6 +74,7 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
       status: course.status,
       passing_score: course.passing_score || 80,
       cover_path: course.cover_path || null,
+      responsible_id: course.responsible_id || null,
     })
     setDirty(false)
   }, [course.id])
@@ -93,6 +105,7 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
   const readiness = useMemo(() => {
     const checks = [
       { id: 'title', label: 'Título definido', done: Boolean(config.title.trim()), step: 'overview' },
+      { id: 'responsible', label: 'Responsable asignado', done: Boolean(config.responsible_id), step: 'overview' },
       { id: 'description', label: 'Descripción completa', done: config.description.trim().length >= 20, step: 'overview' },
       { id: 'cover', label: 'Imagen de portada', done: Boolean(config.cover_path || coverFile), step: 'overview', optional: true },
       { id: 'phase', label: 'Al menos una fase', done: phases.length > 0, step: 'structure' },
@@ -106,7 +119,7 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
       percent: Math.round((completed / requiredChecks.length) * 100),
       ready: requiredChecks.every((item) => item.done),
     }
-  }, [config.title, config.description, config.cover_path, coverFile, phases.length, totalBlocks, questions])
+  }, [config.title, config.responsible_id, config.description, config.cover_path, coverFile, phases.length, totalBlocks, questions])
 
   const updateConfig = (patch) => {
     setConfig((current) => ({ ...current, ...patch }))
@@ -290,6 +303,7 @@ export default function CourseBuilder({ course, onBack, refresh, setMessage }) {
           <CourseOverviewStep
             config={config}
             updateConfig={updateConfig}
+            responsibles={responsibles}
             coverUrl={coverUrl}
             coverFile={coverFile}
             setCoverFile={(file) => { setCoverFile(file); setDirty(true) }}

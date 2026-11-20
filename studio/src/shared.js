@@ -3,7 +3,7 @@ import { signedAsset as cachedSignedAsset, supabase } from './supabase.js'
 export const ROLE_LABELS = {
   colaborador: 'Colaborador',
   creador_contenido: 'Creador de contenido',
-  revisor: 'Revisor',
+  revisor: 'Supervisor / Revisor',
   admin: 'Administrador',
   super_admin: 'Super Admin',
 }

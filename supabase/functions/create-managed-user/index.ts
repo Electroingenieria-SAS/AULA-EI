@@ -121,9 +121,18 @@ serve(async (req) => {
     const fullName = String(body.full_name || body.fullName || "").trim();
     const requestedPassword = String(body.password || "").trim();
     const role = normalizeRole(body.role || "colaborador");
+    const jobPositionId = String(body.job_position_id || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Correo inválido.", "INVALID_EMAIL");
     if (fullName.length < 3 || fullName.length > 160) return fail("El nombre completo debe tener entre 3 y 160 caracteres.", "INVALID_NAME");
     if (!role) return fail("Rol inválido para Aula EI.", "INVALID_ROLE");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(jobPositionId)) {
+      return fail("Selecciona un cargo activo para crear al colaborador.", "POSITION_REQUIRED");
+    }
+    const { data: position, error: positionError } = await admin.from("job_positions")
+      .select("id,name,is_active").eq("id", jobPositionId).maybeSingle();
+    if (positionError || !position || position.is_active !== true) {
+      return fail("El cargo seleccionado no existe o está inactivo.", "INVALID_POSITION");
+    }
     if (callerRole === "admin" && ["admin", "super_admin"].includes(role)) return fail("Un Admin no puede crear usuarios Admin ni Super Admin.", "ROLE_FORBIDDEN");
     if (callerRole !== "super_admin" && role === "super_admin") return fail("Solo un Super Admin puede crear otro Super Admin.", "ROLE_FORBIDDEN");
 
@@ -194,7 +203,8 @@ serve(async (req) => {
 
     const userId = created.user.id;
     const { error: upsertError } = await admin.from("profiles").upsert({
-      id: userId, email, full_name: fullName, role, is_active: true,
+      id: userId, email, full_name: fullName, role, is_active: true, job_position_id: jobPositionId,
+      onboarding_methodology_started_at: new Date().toISOString(),
       deactivated_at: null, deactivated_by: null, updated_at: new Date().toISOString(),
     }, { onConflict: "id" });
     if (upsertError) {
@@ -202,14 +212,20 @@ serve(async (req) => {
       return reply({ ok: false, code: "PROFILE_CREATE_FAILED", error: "Falló la creación del perfil: " + upsertError.message + (rollbackError ? " No fue posible revertir Authentication: " + rollbackError.message : " La cuenta de Authentication fue revertida.") }, 500);
     }
 
+    // The profile/position trigger synchronizes mandatory learning paths.
+    // The history entry is additional metadata and must never erase a created account.
+    const { error: historyError } = await admin.from("profile_position_history").insert({
+      user_id: userId, position_id: jobPositionId, assigned_by: caller.id,
+      notes: "Cargo establecido al crear el usuario en Aula EI.",
+    });
     await admin.from("audit_logs").insert({
       actor_id: caller.id,
       action: "create_managed_user",
       entity_type: "profile",
       entity_id: userId,
-      metadata: { email, full_name: fullName, role, password_change_required: true, password_reputation: breachCheck, mfa_level: "aal2", created_by_email: profile.email },
+      metadata: { email, full_name: fullName, role, job_position_id: jobPositionId, job_position_name: position.name, position_history_saved: !historyError, password_change_required: true, password_reputation: breachCheck, mfa_level: "aal2", created_by_email: profile.email },
     });
-    return reply({ ok: true, message: "Usuario creado correctamente.", temporary_password: finalPassword, user: { id: userId, email, full_name: fullName, role } });
+    return reply({ ok: true, message: historyError ? "Usuario creado con cargo; no se pudo registrar el historial del cambio." : "Usuario creado correctamente.", temporary_password: finalPassword, user: { id: userId, email, full_name: fullName, role, job_position_id: jobPositionId } });
   } catch (error) {
     return reply({ ok: false, code: "UNEXPECTED_ERROR", error: error instanceof Error ? error.message : "Error inesperado creando usuario." }, 500);
   }

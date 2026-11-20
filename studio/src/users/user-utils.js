@@ -1,3 +1,4 @@
+import { ROLE_LABELS } from '../shared.js'
 export const ROLE_OPTIONS = ['colaborador', 'creador_contenido', 'revisor', 'admin', 'super_admin']
 
 export function initials(value) {
@@ -67,4 +68,30 @@ export async function getManagedFunctionDetails(error, data, fallback = 'No fue 
 export async function getManagedFunctionError(error, data, fallback) {
   const details = await getManagedFunctionDetails(error, data, fallback)
   return details.message
+}
+
+
+/** Download only records already available to authorized administrators. */
+export function downloadUsersCsv(source) {
+    const csv = [
+      ['Nombre', 'Correo', 'Rol', 'Cargo', 'Estado', 'Capacitaciones activas', 'Completadas', 'Fecha creación'],
+      ...source.map((person) => [
+        person.name,
+        person.email || '',
+        ROLE_LABELS[person.role] || person.role,
+        person.position_label,
+        person.is_active === false ? 'Inactivo' : 'Activo',
+        person.stats.active,
+        person.stats.completed,
+        formatDate(person.created_at),
+      ]),
+    ].map((row) => row.map(csvCell).join(';')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'usuarios-aula-ei.csv'
+    anchor.click()
+    URL.revokeObjectURL(url)
+
 }

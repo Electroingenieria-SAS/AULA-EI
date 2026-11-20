@@ -15,7 +15,8 @@ export function RoleBadge({ role }) {
   return <span className={'user-role-badge role-' + role}><ShieldCheck size={13} />{ROLE_LABELS[role] || role}</span>
 }
 
-export function CreateUserModal({ form, setForm, allowedRoles, busy, generatedPassword, onSubmit, onClose }) {
+export function CreateUserModal({ form, setForm, allowedRoles, jobPositions = [], onCreatePosition, busy, generatedPassword, onSubmit, onClose }) {
+  const [newPosition, setNewPosition] = useState('')
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <section className="user-create-modal">
       <header><div><span className="eyebrow">Nuevo usuario</span><h2>Crear acceso a Aula EI</h2><p>La cuenta quedará obligada a cambiar la contraseña temporal en su primer ingreso.</p></div><button className="icon-button" onClick={onClose} disabled={busy}><X size={18} /></button></header>
@@ -24,6 +25,19 @@ export function CreateUserModal({ form, setForm, allowedRoles, busy, generatedPa
           <label className="wide">Nombre completo<input autoFocus value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} required /></label>
           <label className="wide">Correo electrónico<input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label>
           <label className="wide">Contraseña temporal<input type="text" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder="Déjala vacía para generarla automáticamente" /><small className="helper-text"><KeyRound size={12} /> Debe cumplir la política de seguridad del servidor si la escribes manualmente.</small></label>
+          <label className="wide">Cargo al que se incorpora *
+            <select required value={form.job_position_id || ''} onChange={(event) => setForm({ ...form, job_position_id: event.target.value })}>
+              <option value="">Selecciona el cargo del colaborador</option>
+              {jobPositions.map((job) => <option key={job.id} value={job.id}>{job.name}</option>)}
+            </select>
+            <small className="helper-text">Organiza los indicadores y vincula las rutas de formación configuradas para ese cargo. Si todavía no existe una ruta, la capacitación se asigna desde el panel de formación.</small>
+          </label>
+          <label className="wide">¿No aparece el cargo?
+            <div className="user-new-position-row">
+              <input value={newPosition} maxLength={120} onChange={(event) => setNewPosition(event.target.value)} placeholder="Nombre del nuevo cargo" />
+              <button type="button" className="secondary-button compact" disabled={busy || newPosition.trim().length < 3} onClick={async () => { if (await onCreatePosition?.(newPosition)) setNewPosition('') }}>Agregar cargo</button>
+            </div>
+          </label>
           <label className="wide">Rol inicial<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}>{allowedRoles.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>
         </div>
         <div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose} disabled={busy}>Cancelar</button><button className="primary-button" disabled={busy}>{busy ? <Loader2 className="spin" size={17} /> : <UserPlus size={17} />} {busy ? 'Creando…' : 'Crear usuario'}</button></div>
@@ -147,7 +161,7 @@ export function DeleteUserModal({ person, preview, checking, busy, error, onClos
   </div>
 }
 
-export function UserDetailDrawer({ person, profile, canManage, canDelete, canChangeRole, working, resetDisabled = false, resetTitle = 'Restablecer contraseña', onClose, onToggle, onReset, onDelete, onRole }) {
+export function UserDetailDrawer({ person, profile, canManage, canDelete, canChangeRole, allowedRoles = ROLE_OPTIONS, positions = [], canChangePosition = false, onPosition, working, resetDisabled = false, resetTitle = 'Restablecer contraseña', onClose, onToggle, onReset, onDelete, onRole }) {
   return <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <aside className="user-detail-drawer">
       <header><div><span className="eyebrow">Detalle del usuario</span><h2>{person.name}</h2></div><button className="icon-button" onClick={onClose}><X size={18} /></button></header>
@@ -165,7 +179,8 @@ export function UserDetailDrawer({ person, profile, canManage, canDelete, canCha
 
       <section className="detail-section">
         <h3>Cuenta</h3>
-        <dl><div><dt>Creada</dt><dd>{formatDate(person.created_at)}</dd></div><div><dt>Estado</dt><dd>{person.is_active === false ? 'Inactivo' : 'Activo'}</dd></div><div><dt>Rol</dt><dd>{ROLE_LABELS[person.role] || person.role}</dd></div></dl>
+        <dl><div><dt>Creada</dt><dd>{formatDate(person.created_at)}</dd></div><div><dt>Estado</dt><dd>{person.is_active === false ? 'Inactivo' : 'Activo'}</dd></div><div><dt>Rol</dt><dd>{ROLE_LABELS[person.role] || person.role}</dd></div><div><dt>Cargo</dt><dd>{person.position_label || 'Sin asignar'}</dd></div></dl>
+        {!person.onboarding_methodology_started_at && <small className="helper-text">{person.job_position_id ? 'Cargo incorporado desde matriz histórica: matrículas, certificados y notas originales conservados.' : 'Registro histórico pendiente de cotejo con la matriz; no se modifican matrículas ni certificados.'}</small>}
       </section>
 
       {person.stats.recent.length > 0 && <section className="detail-section">
@@ -173,9 +188,15 @@ export function UserDetailDrawer({ person, profile, canManage, canDelete, canCha
         <div className="detail-training-list">{person.stats.recent.slice(0, 6).map((item) => <article key={item.id}><div><strong>{item.course?.title || 'Capacitación'}</strong><small>{item.status === 'completed' ? 'Completada' : item.status === 'in_progress' ? 'En progreso' : item.status === 'expired' ? 'Vencida' : item.status === 'cancelled' ? 'Cancelada' : 'Asignada'}</small></div><ChevronRight size={15} /></article>)}</div>
       </section>}
 
-      {(canChangeRole || canManage) && <section className="detail-section detail-actions-section">
+      {(canChangeRole || canManage || canChangePosition) && <section className="detail-section detail-actions-section">
         <h3>Administración</h3>
-        {canChangeRole && person.id !== profile.id && <label>Rol<select value={person.role} onChange={(event) => onRole(event.target.value)}>{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>}
+        {canChangeRole && person.id !== profile.id && <label>Rol<select value={person.role} onChange={(event) => onRole(event.target.value)}>{allowedRoles.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></label>}
+        {canChangePosition && person.is_active !== false && <label>Cargo para la formación
+          <select value={person.job_position_id || ''} disabled={working} onChange={(event) => onPosition?.(event.target.value)}>
+            <option value="">Sin asignar</option>
+            {positions.map((job) => <option key={job.id} value={job.id}>{job.name}</option>)}
+          </select>
+        </label>}
         {canManage && person.is_active !== false && <button className="secondary-button" disabled={working || resetDisabled} title={resetTitle} onClick={onReset}><KeyRound size={16} /> Restablecer contraseña</button>}
         {canManage && <button className={person.is_active === false ? 'primary-button' : 'danger-button'} disabled={working} onClick={onToggle}>{working && <Loader2 className="spin" size={16} />}{person.is_active === false ? 'Reactivar usuario' : 'Desactivar usuario'}</button>}
         {canDelete && <button type="button" className="danger-button user-delete-action" disabled={working} onClick={onDelete}><Trash2 size={16} /> Eliminar usuario</button>}

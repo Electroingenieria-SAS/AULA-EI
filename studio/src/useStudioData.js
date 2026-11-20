@@ -36,7 +36,7 @@ export default function useStudioData(profile, tab) {
       const rows = canAdmin
         ? await fetchAllPages((from, to) => supabase
           .from('profiles')
-          .select('id,email,full_name,avatar_url,role,is_active,created_at,updated_at,job_position_id,supervisor_id')
+          .select('id,email,full_name,avatar_url,role,is_active,created_at,updated_at,job_position_id,supervisor_id,onboarding_methodology_started_at')
           .order('full_name')
           .range(from, to))
         : await (async () => {

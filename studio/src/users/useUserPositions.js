@@ -43,10 +43,9 @@ export function useUserPositions({ setMessage, refresh, setWorkingId, setForm, s
   }
 
   async function changePosition(person, positionId) {
-    if (!canChangePosition || !person.onboarding_methodology_started_at || person.is_active === false) {
-      setMessage('Registro anterior a la nueva metodología: el cargo se completará con la matriz histórica, sin alterar las capacitaciones.')
-      return
-    }
+    if (!canChangePosition || person.is_active === false) return
+    const legacy = !person.onboarding_methodology_started_at
+    if (legacy && !window.confirm('¿Registrar o corregir el cargo histórico de ' + person.name + '? Se conservarán sus cursos, matrículas, certificados y calificaciones sin asignación automática.')) return
     setWorkingId(person.id)
     try {
       const { error } = await supabase.rpc('admin_set_user_job_position', {
@@ -55,7 +54,7 @@ export function useUserPositions({ setMessage, refresh, setWorkingId, setForm, s
         p_notes: 'Actualización de cargo desde Usuarios y roles.',
       })
       if (error) throw error
-      setMessage('Cargo actualizado para ' + person.name + '. La formación asignada previamente se conserva.')
+      setMessage(legacy ? 'Cargo histórico actualizado sin cambiar capacitaciones ni certificados para ' + person.name + '.' : 'Cargo y formación actualizados para ' + person.name + '.')
       await refresh()
     } catch (error) {
       setMessage(getError(error, 'No se pudo modificar el cargo.'))

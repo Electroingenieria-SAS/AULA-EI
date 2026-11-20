@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 const read = (path) => readFile(new URL('../' + path, import.meta.url), 'utf8')
 const [
   users, userPanels, staffRoles, courseBuilder, coursePanels,
-  notifications, createUser, migration, positionMetrics, compliance, positionsHook, profilesLoader, pkg,
+  notifications, createUser, migration, legacyMetricsMigration, positionMetrics, compliance, positionsHook, profilesLoader, pkg,
 ] = await Promise.all([
   read('studio/src/UsersManager.jsx'),
   read('studio/src/users/UserPanels.jsx'),
@@ -13,6 +13,7 @@ const [
   read('player/src/NotificationCenter.jsx'),
   read('supabase/functions/create-managed-user/index.ts'),
   read('supabase/migrations/20261119180000_position_training_owners_notifications.sql'),
+  read('supabase/migrations/20261120194500_verified_historical_positions_metrics.sql'),
   read('studio/src/compliance/PositionAssessmentAnalytics.jsx'),
   read('studio/src/ComplianceCenter.jsx'),
   read('studio/src/users/useUserPositions.js'),
@@ -76,6 +77,10 @@ assert.doesNotMatch(migration.split('create or replace function public.get_train
 assert.match(positionMetrics, /admin_position_assessment_metrics/)
 assert.match(compliance, /<PositionAssessmentAnalytics/)
 assert.match(migration, /count\(distinct a\.user_id\) >= 3/)
+assert.match(legacyMetricsMigration, /create or replace function public\.admin_position_assessment_metrics\(\)/i)
+assert.doesNotMatch(legacyMetricsMigration, /onboarding_methodology_started_at is not null/i)
+assert.match(legacyMetricsMigration, /join public\.profiles p on p\.id = a\.user_id and p\.is_active = true/i)
+assert.match(legacyMetricsMigration, /count\(distinct a\.user_id\) >= 3/i)
 assert.match(migration, /public\.is_admin\(\)/)
 assert.match(migration, /ea\.submitted_at desc/)
 assert.match(JSON.parse(pkg).scripts.build, /npm run test:position-responsibility/)

@@ -204,6 +204,7 @@ serve(async (req) => {
     const userId = created.user.id;
     const { error: upsertError } = await admin.from("profiles").upsert({
       id: userId, email, full_name: fullName, role, is_active: true, job_position_id: jobPositionId,
+      onboarding_methodology_started_at: new Date().toISOString(),
       deactivated_at: null, deactivated_by: null, updated_at: new Date().toISOString(),
     }, { onConflict: "id" });
     if (upsertError) {

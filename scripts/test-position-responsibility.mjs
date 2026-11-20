@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 const read = (path) => readFile(new URL('../' + path, import.meta.url), 'utf8')
 const [
   users, userPanels, staffRoles, courseBuilder, coursePanels,
-  notifications, createUser, migration, positionMetrics, compliance, positionsHook, pkg,
+  notifications, createUser, migration, positionMetrics, compliance, positionsHook, profilesLoader, pkg,
 ] = await Promise.all([
   read('studio/src/UsersManager.jsx'),
   read('studio/src/users/UserPanels.jsx'),
@@ -16,6 +16,7 @@ const [
   read('studio/src/compliance/PositionAssessmentAnalytics.jsx'),
   read('studio/src/ComplianceCenter.jsx'),
   read('studio/src/users/useUserPositions.js'),
+  read('studio/src/useStudioData.js'),
   read('package.json'),
 ])
 
@@ -26,6 +27,21 @@ assert.match(createUser, /POSITION_REQUIRED/)
 assert.match(createUser, /\.from\("job_positions"\)/)
 assert.match(createUser, /job_position_id: jobPositionId/)
 assert.match(positionsHook, /admin_set_user_job_position/)
+
+// Progressive rollout: existing employee records remain untouched until a
+// later explicit historical-position matrix is provided.
+assert.match(migration, /add column if not exists onboarding_methodology_started_at timestamptz;/)
+assert.doesNotMatch(migration, /add column if not exists onboarding_methodology_started_at timestamptz\s+default/i)
+assert.match(createUser, /onboarding_methodology_started_at: new Date\(\)\.toISOString\(\)/)
+assert.match(profilesLoader, /supervisor_id,onboarding_methodology_started_at/)
+assert.match(users, /canChangePosition=\{canChangePosition && !!detailPerson\.onboarding_methodology_started_at\}/)
+assert.match(positionsHook, /!person\.onboarding_methodology_started_at/)
+assert.match(migration, /and new\.onboarding_methodology_started_at is not null/)
+assert.match(migration, /p\.onboarding_methodology_started_at is not null/)
+assert.match(migration, /if p_position_id is not null and v_is_new_methodology then/)
+assert.match(migration, /if v_is_new_methodology then\s+v_sync:=public\.admin_sync_user_training\(p_user_id\);/)
+assert.match(migration, /Registro histórico: no se modifica la formación existente/)
+assert.match(migration, /Cargo histórico registrado sin generar ni cambiar matrículas/)
 assert.match(userPanels, /onCreatePosition/)
 
 // Role changes never grant admin/super_admin to standard administrators.
@@ -61,4 +77,4 @@ assert.match(migration, /count\(distinct a\.user_id\) >= 3/)
 assert.match(migration, /public\.is_admin\(\)/)
 assert.match(migration, /ea\.submitted_at desc/)
 assert.match(JSON.parse(pkg).scripts.build, /npm run test:position-responsibility/)
-console.log('Cargo, roles delegados, notificaciones, perfil interno y métricas por cargo: contratos comprobados.')
+console.log('Nueva metodología prospectiva, historial intacto, cargos, notificaciones y métricas: contratos comprobados.')

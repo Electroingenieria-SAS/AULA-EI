@@ -1,4 +1,10 @@
 -- Aula EI: responsible trainers and position-aware onboarding notifications.
+-- PROGRESSIVE ROLLOUT: only accounts created by the NEW managed-user flow opt in.
+-- Existing 2026 profiles, courses, enrollments, certifications and grades are untouched.
+-- NULL is intentional for legacy records; no DEFAULT or bulk UPDATE is allowed.
+alter table public.profiles
+  add column if not exists onboarding_methodology_started_at timestamptz;
+
 -- Additive changes: historical courses, profiles and completions remain intact.
 alter table public.courses
   add column if not exists responsible_id uuid references public.profiles(id) on delete set null;
@@ -103,6 +109,11 @@ declare
   v_recipient record;
 begin
   if new.status <> 'completed' then return new; end if;
+  -- Never emit new-format notifications about historical employees.
+  if not exists (
+    select 1 from public.profiles p where p.id = new.user_id
+      and p.onboarding_methodology_started_at is not null
+  ) then return new; end if;
   if tg_op = 'UPDATE' then
     if old.status = 'completed' then return new; end if;
   end if;
@@ -233,7 +244,8 @@ returns trigger language plpgsql security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if new.is_active = true and new.job_position_id is not null then
+  if new.is_active = true and new.job_position_id is not null
+     and new.onboarding_methodology_started_at is not null then
     if tg_op = 'INSERT' then
       perform public.sync_user_training_system(new.id);
     elsif new.job_position_id is distinct from old.job_position_id then
@@ -303,6 +315,7 @@ begin
     from recent_attempt a
     join public.profiles p on p.id = a.user_id and p.is_active = true
       and p.job_position_id is not null
+      and p.onboarding_methodology_started_at is not null
   )
   select jp.id, jp.name,
     count(distinct p.id)::bigint,
@@ -322,6 +335,7 @@ begin
   from public.job_positions jp
   left join public.profiles p
     on p.job_position_id = jp.id and p.is_active = true
+       and p.onboarding_methodology_started_at is not null
   left join attributed a on a.user_id = p.id and a.job_position_id = jp.id
   where jp.is_active = true
   group by jp.id,jp.name
@@ -330,3 +344,81 @@ end;
 $$;
 revoke all on function public.admin_position_assessment_metrics() from public, anon;
 grant execute on function public.admin_position_assessment_metrics() to authenticated;
+
+-- Protect later manual legacy-cargo backfills: assigning a job title must NOT
+-- automatically enroll existing staff or reinterpret their academic history.
+-- New methodology accounts retain their current idempotent training sync.
+CREATE OR REPLACE FUNCTION public.admin_set_user_job_position(p_user_id uuid, p_position_id uuid, p_notes text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  v_old_position uuid;
+  v_sync jsonb;
+  v_is_new_methodology boolean;
+begin
+  if auth.uid() is null or not public.is_admin() then
+    raise exception 'Acceso denegado. Se requiere Admin o Super Admin.';
+  end if;
+
+  if p_position_id is not null and not exists(
+    select 1 from public.job_positions
+    where id=p_position_id and is_active=true
+  ) then
+    raise exception 'El cargo seleccionado no existe o está inactivo.';
+  end if;
+
+  select job_position_id, onboarding_methodology_started_at is not null
+  into v_old_position, v_is_new_methodology
+  from public.profiles
+  where id=p_user_id and is_active=true;
+
+  if not found then
+    raise exception 'Usuario activo no encontrado.';
+  end if;
+
+  if v_old_position is not distinct from p_position_id then
+    if p_position_id is not null and v_is_new_methodology then
+      v_sync:=public.admin_sync_user_training(p_user_id);
+    else
+      v_sync:=jsonb_build_object('ok',true,'processed',0,'message','Registro histórico: no se modifica la formación existente.');
+    end if;
+    return jsonb_build_object('ok',true,'changed',false,'sync',v_sync);
+  end if;
+
+  update public.profile_position_history
+  set effective_to=now()
+  where user_id=p_user_id and effective_to is null;
+
+  update public.profiles
+  set job_position_id=p_position_id,updated_at=now()
+  where id=p_user_id;
+
+  if p_position_id is not null then
+    insert into public.profile_position_history(
+      user_id,position_id,assigned_by,effective_from,notes
+    )
+    values(p_user_id,p_position_id,auth.uid(),now(),nullif(trim(coalesce(p_notes,'')),''));
+    if v_is_new_methodology then
+      v_sync:=public.admin_sync_user_training(p_user_id);
+    else
+      v_sync:=jsonb_build_object('ok',true,'processed',0,'message','Cargo histórico registrado sin generar ni cambiar matrículas.');
+    end if;
+  else
+    v_sync:=jsonb_build_object('ok',true,'processed',0,'message','Cargo retirado sin cancelar matrículas históricas.');
+  end if;
+
+  insert into public.audit_logs(actor_id,action,entity_type,entity_id,metadata)
+  values(
+    auth.uid(),
+    'set_job_position',
+    'profile',
+    p_user_id,
+    jsonb_build_object('old_position_id',v_old_position,'new_position_id',p_position_id)
+  );
+
+  return jsonb_build_object('ok',true,'changed',true,'sync',v_sync);
+end;
+$function$

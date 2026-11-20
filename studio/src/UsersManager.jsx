@@ -43,7 +43,8 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const [deleteError, setDeleteError] = useState('')
   const [busy, setBusy] = useState(false)
   const [workingId, setWorkingId] = useState(null)
-  const { jobPositions, createJobPosition, changePosition } = useUserPositions({ setMessage, refresh, setWorkingId, setForm, setBusy })
+  const canChangePosition = ['admin','super_admin'].includes(profile.role)
+  const { jobPositions, createJobPosition, changePosition } = useUserPositions({ setMessage, refresh, setWorkingId, setForm, setBusy, canChangePosition })
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -56,7 +57,6 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
   const canChangeRoleFor = (person) => canChangeRole && person.id !== profile.id &&
     (profile.role === 'super_admin' || !['admin','super_admin'].includes(person.role))
   const permittedRoleOptions = profile.role === 'super_admin' ? ROLE_OPTIONS : allowedRoles
-  const canChangePosition = ['admin','super_admin'].includes(profile.role)
   const canManage = (person) =>
     person.id !== profile.id &&
     ['admin', 'super_admin'].includes(profile.role) &&
@@ -541,7 +541,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       canChangeRole={canChangeRoleFor(detailPerson)}
       allowedRoles={permittedRoleOptions}
       positions={jobPositions}
-      canChangePosition={canChangePosition}
+      canChangePosition={canChangePosition && !!detailPerson.onboarding_methodology_started_at}
       onPosition={(positionId) => changePosition(detailPerson, positionId)}
       working={workingId === detailPerson.id}
        resetDisabled={Boolean(workingId) || isResetBlocked(detailPerson)}

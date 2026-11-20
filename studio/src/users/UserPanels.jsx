@@ -30,7 +30,7 @@ export function CreateUserModal({ form, setForm, allowedRoles, jobPositions = []
               <option value="">Selecciona el cargo del colaborador</option>
               {jobPositions.map((job) => <option key={job.id} value={job.id}>{job.name}</option>)}
             </select>
-            <small className="helper-text">Determina la formación asignada y los indicadores por cargo.</small>
+            <small className="helper-text">Organiza los indicadores y vincula las rutas de formación configuradas para ese cargo. Si todavía no existe una ruta, la capacitación se asigna desde el panel de formación.</small>
           </label>
           <label className="wide">¿No aparece el cargo?
             <div className="user-new-position-row">

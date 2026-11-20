@@ -28,14 +28,16 @@ assert.match(createUser, /\.from\("job_positions"\)/)
 assert.match(createUser, /job_position_id: jobPositionId/)
 assert.match(positionsHook, /admin_set_user_job_position/)
 
-// Progressive rollout: existing employee records remain untouched until a
-// later explicit historical-position matrix is provided.
+// Historical employees retain their academic records; verified job positions
+// may be incorporated manually without creating new enrollments.
 assert.match(migration, /add column if not exists onboarding_methodology_started_at timestamptz;/)
 assert.doesNotMatch(migration, /add column if not exists onboarding_methodology_started_at timestamptz\s+default/i)
 assert.match(createUser, /onboarding_methodology_started_at: new Date\(\)\.toISOString\(\)/)
 assert.match(profilesLoader, /supervisor_id,onboarding_methodology_started_at/)
-assert.match(users, /canChangePosition=\{canChangePosition && !!detailPerson\.onboarding_methodology_started_at\}/)
-assert.match(positionsHook, /!person\.onboarding_methodology_started_at/)
+assert.match(users, /canChangePosition=\{canChangePosition\}/)
+assert.match(positionsHook, /const legacy = !person\.onboarding_methodology_started_at/)
+assert.match(positionsHook, /window\.confirm/)
+assert.match(positionsHook, /Cargo histórico actualizado sin cambiar capacitaciones/)
 assert.match(migration, /and new\.onboarding_methodology_started_at is not null/)
 assert.match(migration, /p\.onboarding_methodology_started_at is not null/)
 assert.match(migration, /if p_position_id is not null and v_is_new_methodology then/)

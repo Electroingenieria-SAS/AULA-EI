@@ -541,7 +541,7 @@ export default function UsersManager({ profile, profiles, enrollments = [], refr
       canChangeRole={canChangeRoleFor(detailPerson)}
       allowedRoles={permittedRoleOptions}
       positions={jobPositions}
-      canChangePosition={canChangePosition && !!detailPerson.onboarding_methodology_started_at}
+      canChangePosition={canChangePosition}
       onPosition={(positionId) => changePosition(detailPerson, positionId)}
       working={workingId === detailPerson.id}
        resetDisabled={Boolean(workingId) || isResetBlocked(detailPerson)}

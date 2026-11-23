@@ -7,7 +7,7 @@ select
   has_function_privilege('PUBLIC',p.oid,'EXECUTE') as public_may_execute,
   has_function_privilege('authenticated',p.oid,'EXECUTE') as authenticated_may_execute,
   p.proconfig::text like '%search_path%' as has_explicit_search_path,
-  pg_get_functiondef(p.oid) ~* '\\mEXECUTE\\M' as uses_dynamic_sql,
+  pg_get_functiondef(p.oid) ~* 'execute[[:space:]]' as uses_dynamic_sql,
   case
     when p.proname='erp_x_paco_snapshot' then 'Delegates actor verification to erp_supply.require_profile'
     when pg_get_functiondef(p.oid) ~* '(auth[.]uid|is_admin|is_super_admin|is_aula_active|can_manage_|creator_assignment_allowed)'

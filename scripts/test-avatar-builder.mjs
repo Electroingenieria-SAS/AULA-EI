@@ -87,7 +87,6 @@ const sidebarProfileCss = await read('player/src/styles/sidebar-profile.css')
 const floatingCompanionCss = await read('player/src/styles/floating-companion.css')
 const avatarFigure = await read('player/src/avatar/AvatarFigure.jsx')
 const companion = await read('player/src/avatar/FloatingAvatarCompanion.jsx')
-const entry = await read('src/main.jsx')
 
 for (const id of ids) assert.ok(migration.includes("'" + id + "'"), 'Falta ID en validación SQL: ' + id)
 for (const bg of catalog.fondos) assert.ok(migration.includes("'" + bg.id + "'"), 'Falta fondo en SQL: ' + bg.id)
@@ -135,8 +134,8 @@ for (const route of ['home', 'catalog', 'development', 'plan']) {
 for (const blocked of ["'course'","'preview'","'studio'","'games'","'coach'","'privacy'","'avatar'"]) {
   assert.equal(companion.match(new RegExp(blocked, 'g'))?.length || 0, 0, 'Compañero debe estar ausente de ' + blocked)
 }
-assert.match(entry, /import '\.\.\/player\/src\/styles\/sidebar-profile\.css'/)
-assert.match(entry, /import '\.\.\/player\/src\/styles\/floating-companion\.css'/)
+assert.match(shell, /import '\.\/styles\/sidebar-profile\.css'/)
+assert.match(shell, /import '\.\/styles\/floating-companion\.css'/)
 
 
 const sessionKey = avatarWelcomeStorageKey('u-123')

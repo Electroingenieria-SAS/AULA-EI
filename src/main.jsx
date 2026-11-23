@@ -28,9 +28,6 @@ import './legal/legal.css'
 import './global-experience.css'
 import './responsive-foundation.css'
 import './responsive-controls.css'
-// Last desktop paint layer: the profile hero overrides the legacy sidebar design.
-import '../player/src/styles/sidebar-profile.css'
-import '../player/src/styles/floating-companion.css'
 
 installRuntimeDiagnostics()
 const RELEASE_ID = __AULA_EI_RELEASE__

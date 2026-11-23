@@ -1,15 +1,16 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { ArrowLeft, BookOpen, Code2, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles, TrendingUp, BrainCircuit, ClipboardList, Palette } from 'lucide-react'
 import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
 import AvatarBadge from './avatar/AvatarBadge.jsx'
-import { avatarImageUrl, DEFAULT_AVATAR_ID, profileAvatarImage } from '../../src/avatar/avatar-utils.js'
+import { profileAvatarImage } from '../../src/avatar/avatar-utils.js'
+import AvatarFigure from './avatar/AvatarFigure.jsx'
+import FloatingAvatarCompanion from './avatar/FloatingAvatarCompanion.jsx'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
 import { supabase } from './supabase.js'
 import '../../src/branding/developer-signature.css'
-import './styles/sidebar-profile.css'
 
-export default function LearnerShell({ children, activeRoute = 'catalog', profile = null }) {
+export default function LearnerShell({ children, activeRoute = 'catalog', profile = null, companionSuppressed = false }) {
   const displayName = profile?.full_name || 'Colaborador EI'
   const role = roleLabel(profile?.role)
   const initials = useMemo(() => {
@@ -42,7 +43,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         aria-label={`Personalizar mi personaje. Perfil de ${displayName}, ${role}`}
       >
         <span className="learner-profile-card__details">
-          <small className="learner-profile-card__eyebrow">MI ESPACIO</small>
+          <small className="learner-profile-card__eyebrow"><span className="learner-profile-card__status" aria-hidden="true" /> MI PERFIL</small>
           <strong className="learner-profile-card__name">{displayName}</strong>
           <span className="learner-profile-card__role">{role}</span>
           <span className="learner-profile-card__action">
@@ -50,7 +51,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
             {profileAvatarImage(profile?.avatar_url) ? 'Editar personaje' : 'Crear personaje'}
           </span>
         </span>
-        <SidebarProfileCharacter avatarUrl={profile?.avatar_url} fallback={initials}/>
+        <AvatarFigure avatarUrl={profile?.avatar_url} fallback={initials} className="learner-profile-card__figure"/>
       </button>
 
 
@@ -110,6 +111,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
     </header>
 
     <div className="learner-shell-main">{children}</div>
+    <FloatingAvatarCompanion profile={profile} route={activeRoute} suppressed={companionSuppressed}/>
 
     <nav
       className="learner-mobile-global-nav"
@@ -123,27 +125,6 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
       {canManage && <MobileLink icon={ShieldCheck} label="Gestión" active={activeRoute === 'studio'} onClick={() => navigateLearner('/studio')} />}
     </nav>
   </div>
-}
-
-// A quiet idle animation uses the user's original full-body asset, not a reassembled illustration.
-function SidebarProfileCharacter({ avatarUrl, fallback }) {
-  const [failedSources, setFailedSources] = useState([])
-  const selectedSource = profileAvatarImage(avatarUrl)
-  const genericSource = avatarImageUrl(DEFAULT_AVATAR_ID)
-  const source = [selectedSource, genericSource].find((candidate) => candidate && !failedSources.includes(candidate))
-
-  return <span className="learner-profile-card__art" aria-hidden="true">
-    {source
-      ? <img
-          className="learner-profile-card__character"
-          src={source}
-          alt=""
-          loading="eager"
-          decoding="async"
-          onError={() => setFailedSources((current) => current.includes(source) ? current : [...current, source])}
-        />
-      : <span className="learner-profile-card__fallback">{fallback}</span>}
-  </span>
 }
 
 function SidebarLink({ icon: Icon, label, active = false, onClick }) {

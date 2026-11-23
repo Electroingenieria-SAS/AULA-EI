@@ -9,6 +9,8 @@ import FloatingAvatarCompanion from './avatar/FloatingAvatarCompanion.jsx'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
 import { supabase } from './supabase.js'
 import '../../src/branding/developer-signature.css'
+import './styles/sidebar-profile.css'
+import './styles/floating-companion.css'
 
 export default function LearnerShell({ children, activeRoute = 'catalog', profile = null, companionSuppressed = false }) {
   const displayName = profile?.full_name || 'Colaborador EI'

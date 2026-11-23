@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
-import { readFile, mkdir, stat, access } from 'node:fs/promises'
+import { readFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
 // The original ZIP is intentionally NOT served to clients. This committed,
@@ -9,7 +9,7 @@ import path from 'node:path'
 const root = process.cwd()
 const archive = path.join(root, 'avatars/media/aula-ei-avatar-assets-34.tgz')
 const publicDir = path.join(root, 'public')
-const digest = '2ea272fa97b898ea9597333f62ae2f268c5be165155679990fc7cbede6dbc0fc'
+const digest = 'bdfad989a2dee28965a5f5005171b0ac1c580b8dabb4e23053be4b9bbbdba64f'
 const body = await readFile(archive)
 if (createHash('sha256').update(body).digest('hex') !== digest) {
   throw new Error('El paquete institucional de avatares no supera la verificación de integridad.')
@@ -25,13 +25,24 @@ if (catalog.avatares?.length !== 34 || catalog.fondos?.length !== 8 ||
     new Set(catalog.avatares.map((item) => item.id)).size !== 34) {
   throw new Error('El catálogo debe contener 34 personajes originales y 8 fondos.')
 }
+function verifyAvifDimension(contents, expected, name) {
+  const marker = contents.indexOf(Buffer.from('ispe'))
+  if (marker < 4 || marker + 16 > contents.length) throw new Error('Cabecera AVIF inválida: ' + name)
+  const width = contents.readUInt32BE(marker + 8)
+  const height = contents.readUInt32BE(marker + 12)
+  if (width !== expected || height !== expected) {
+    throw new Error('Resolución insuficiente en ' + name + ': ' + width + '×' + height)
+  }
+}
 for (const person of catalog.avatares) {
   if (!/^EI-(LOGISTICO|CONTRATISTA|ANALISTA|LIDER|JEFE)-[MF]-\d{2}$/.test(person.id)) {
     throw new Error('ID no autorizado en catálogo: ' + person.id)
   }
-  await access(path.join(publicDir, 'avatars/characters', person.id.toLowerCase() + '.avif'))
+  const filename = path.join(publicDir, 'avatars/characters', person.id.toLowerCase() + '.avif')
+  verifyAvifDimension(await readFile(filename), 768, person.id)
 }
 for (const background of catalog.fondos) {
-  await access(path.join(publicDir, 'avatars/backgrounds', background.id.toLowerCase() + '.avif'))
+  const filename = path.join(publicDir, 'avatars/backgrounds', background.id.toLowerCase() + '.avif')
+  verifyAvifDimension(await readFile(filename), 960, background.id)
 }
-console.log('Aula EI: 34 avatares completos y 8 fondos preparados; SHA-256 verificado.')
+console.log('Aula EI: 34 avatares 768px y 8 fondos 960px, calidad alta y SHA-256 verificado.')

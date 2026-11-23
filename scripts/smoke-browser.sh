@@ -44,7 +44,8 @@ for viewport in "${VIEWPORTS[@]}"; do
   # A transient Chrome failure gets retried; no DOM assertion is skipped.
   for attempt in 1 2 3; do
     profile_dir="$(mktemp -d "/tmp/aula-ei-chrome-${label}-XXXXXX")"
-    if "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --disable-extensions --disable-background-networking --user-data-dir="$profile_dir" --window-size="$viewport" --virtual-time-budget=5000 --dump-dom "$BASE_URL" >"$dom" 2>"$errors" &&
+    # Kill transient headless Chrome hangs; retries keep all DOM assertions mandatory.
+    if timeout --signal=TERM --kill-after=3s 20s "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --disable-extensions --disable-background-networking --user-data-dir="$profile_dir" --window-size="$viewport" --virtual-time-budget=5000 --dump-dom "$BASE_URL" >"$dom" 2>"$errors" &&
       grep -q "Aula EI" "$dom" &&
       grep -q 'name="aula-ei-release"' "$dom" &&
       grep -Eq "Iniciar sesión|Acceso seguro|Correo" "$dom" &&

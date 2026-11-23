@@ -7,6 +7,7 @@ import { avatarImageUrl, DEFAULT_AVATAR_ID, profileAvatarImage } from '../../src
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
 import { supabase } from './supabase.js'
 import '../../src/branding/developer-signature.css'
+import './styles/sidebar-profile.css'
 
 export default function LearnerShell({ children, activeRoute = 'catalog', profile = null }) {
   const displayName = profile?.full_name || 'Colaborador EI'

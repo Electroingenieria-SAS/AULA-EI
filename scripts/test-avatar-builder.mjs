@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { shouldOfferAvatarWelcome, avatarWelcomeStorageKey, clearAvatarWelcomeSession } from '../src/avatar/avatar-welcome-policy.js'
 import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { saveMyAvatar } from '../src/avatar/avatar-service.js'
@@ -10,6 +11,12 @@ import {
 const read = (file) => readFile(path.join(process.cwd(), file), 'utf8')
 const catalog = JSON.parse(await read('public/avatars/catalogo.json'))
 const ids = catalog.avatares.map((item) => item.id)
+function avifDimensions(buffer) {
+  const pos = buffer.indexOf(Buffer.from('ispe'))
+  assert.ok(pos > 0 && pos + 16 <= buffer.length, 'Cabecera AVIF inválida')
+  return [buffer.readUInt32BE(pos + 8), buffer.readUInt32BE(pos + 12)]
+}
+assert.equal(catalog.schema_version, 3)
 assert.equal(ids.length, 34)
 assert.equal(new Set(ids).size, 34)
 assert.equal(catalog.fondos.length, 8)
@@ -23,13 +30,15 @@ assert.equal(ids.filter((id) => id.startsWith('EI-LIDER-F-')).length, 3)
 assert.equal(ids.filter((id) => id.startsWith('EI-ANALISTA-F-')).length, 5)
 for (const id of ids) {
   const file = path.join(process.cwd(), 'public/avatars/characters', id.toLowerCase() + '.avif')
-  assert.ok((await stat(file)).size > 1500, id + ' debe tener imagen completa real')
+  assert.ok((await stat(file)).size > 30000, id + ' debe conservar calidad visual')
   const header = await readFile(file)
   assert.equal(header.toString('ascii', 4, 12).includes('ftypavif'), true, id)
+  assert.deepEqual(avifDimensions(header), [768, 768], id)
 }
 for (const bg of catalog.fondos) {
   const file = path.join(process.cwd(), 'public/avatars/backgrounds', bg.id.toLowerCase() + '.avif')
-  assert.ok((await stat(file)).size > 1500)
+  assert.ok((await stat(file)).size > 22000)
+  assert.deepEqual(avifDimensions(await readFile(file)), [960, 960], bg.id)
 }
 assert.ok(isAllowedAvatarId(DEFAULT_AVATAR_ID))
 assert.ok(isAllowedBackgroundId(DEFAULT_BACKGROUND_ID))
@@ -84,13 +93,45 @@ assert.match(migration, /grant execute on function public\.set_my_aula_avatar\(t
 assert.doesNotMatch(migration, /grant update on public\.profiles/i)
 assert.match(createAvatar, /saveMyAvatar\(finalId, backgroundId\)/)
 assert.match(createAvatar, /variants\.map\(/)
+assert.match(createAvatar, /showBackgroundOnly/)
+assert.match(createAvatar, /Ver solo fondo/)
+assert.match(createAvatar, /selectedBackground\.nombre/)
 assert.match(createAvatar, /prefers-reduced-motion|useEffect/)
 assert.match(welcome, /¡Crea tu avatar!/)
 assert.match(welcome, /Ahora no/)
 assert.match(app, /onAvatarChange/)
 assert.match(learner, /sessionStorage/)
-assert.match(learner, /route\.type !== 'home' && route\.type !== 'catalog'/)
+assert.match(learner, /shouldOfferAvatarWelcome/)
+assert.match(learner, /openAvatarWelcome/)
+assert.match(learner, /document\.visibilityState/)
+assert.match(welcome, /createPortal/)
+assert.match(welcome, /document\.body\.style\.overflow/)
 assert.match(learner, /'avatar'/)
 assert.match(shell, /AvatarBadge/)
 assert.match(pwa, /staleWhileRevalidate/)
-console.log('Editor de avatares: 34 imágenes reales, 8 fondos, validación, selección, guardado, sesión y PWA verificados.')
+
+const sessionKey = avatarWelcomeStorageKey('u-123')
+assert.equal(sessionKey, 'aula-ei-avatar-prompt:v2:u-123')
+for (const routeType of ['home', 'catalog', 'development', 'plan']) {
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType }), true)
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType, dismissed: true }), false)
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType, avatarUrl: encodeAvatarSelection('EI-ANALISTA-M-01', 'FON-01') }), false)
+}
+for (const routeType of ['course', 'games', 'coach', 'studio', 'privacy', 'avatar', 'preview']) {
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType }), false)
+}
+assert.equal(shouldOfferAvatarWelcome({ routeType: 'home' }), false)
+const testSession = new Map([
+  [sessionKey, '1'], ['aula-ei-avatar-prompt:v2:u-456', '1'],
+  ['another-feature', 'keep'],
+])
+const storageMock = {
+  get length() { return testSession.size },
+  key(index) { return [...testSession.keys()][index] || null },
+  removeItem(key) { testSession.delete(key) },
+}
+clearAvatarWelcomeSession(storageMock)
+assert.equal(testSession.has(sessionKey), false)
+assert.deepEqual([...testSession], [['another-feature', 'keep']])
+
+console.log('Editor de avatares: 34 personajes 768px, 8 fondos 960px, bienvenida post-login y pruebas de sesión/PWA aprobadas.')

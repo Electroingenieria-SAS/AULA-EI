@@ -35,6 +35,7 @@ export default function AvatarStudio({ profile, onSaved }) {
   const [success, setSuccess] = useState(false)
   const [selectedId, setSelectedId] = useState(saved?.id || initial.id)
   const [backgroundId, setBackgroundId] = useState(saved?.backgroundId || initial.backgroundId)
+  const [showBackgroundOnly, setShowBackgroundOnly] = useState(false)
   const [group, setGroup] = useState(null)
   const [gender, setGender] = useState(null)
 
@@ -55,6 +56,7 @@ export default function AvatarStudio({ profile, onSaved }) {
   }, [profile?.avatar_url])
 
   const selected = catalog?.avatares.find((item) => item.id === selectedId) || null
+  const selectedBackground = catalog?.fondos.find((item) => item.id === backgroundId) || null
   const activeGroup = group || selected?.cargo || 'analista'
   const availableGenders = useMemo(() => [...new Set((catalog?.avatares || [])
     .filter((item) => item.cargo === activeGroup).map((item) => item.genero))], [catalog, activeGroup])
@@ -90,7 +92,7 @@ export default function AvatarStudio({ profile, onSaved }) {
     if (!nextPerson) return
     setGender(next); setSelectedId(nextPerson.id); setSuccess(false); setError('')
   }
-  function chooseVariant(id) { setSelectedId(id); setSuccess(false); setError('') }
+  function chooseVariant(id) { setSelectedId(id); setShowBackgroundOnly(false); setSuccess(false); setError('') }
   async function save() {
     if (!finalId || !hasChanges || saving) return
     setSaving(true); setError(''); setSuccess(false)
@@ -117,9 +119,21 @@ export default function AvatarStudio({ profile, onSaved }) {
     </header>
     <div className="ei-avatar-studio-grid">
       <section className="ei-avatar-preview-panel" aria-label="Vista previa del personaje seleccionado">
-        <div className="ei-avatar-preview-heading"><span>VISTA PREVIA EN VIVO</span><span className="ei-avatar-preview-counter">{catalog.avatares.length} personajes</span></div>
-        <div className="ei-avatar-stage" style={{backgroundImage: 'linear-gradient(145deg,rgba(0,34,86,.10),rgba(0,48,119,.15)),url(' + avatarBackgroundUrl(backgroundId) + ')'}}>
-          {visibleSelected && <CharacterImage id={finalId} label={'Personaje: ' + visibleSelected.nombre} className="ei-avatar-hero-art" eager />}
+        <div className="ei-avatar-preview-heading">
+          <span>VISTA PREVIA EN VIVO</span>
+          <div className="ei-avatar-preview-tools">
+            <button type="button" className="ei-avatar-see-background" aria-pressed={showBackgroundOnly}
+              onClick={() => setShowBackgroundOnly((value) => !value)}>
+              {showBackgroundOnly ? 'Ver personaje' : 'Ver solo fondo'}
+            </button>
+            <span className="ei-avatar-preview-counter">{catalog.avatares.length} personajes</span>
+          </div>
+        </div>
+        <div className={'ei-avatar-stage' + (showBackgroundOnly ? ' is-background-only' : '')}
+          style={{backgroundImage: 'linear-gradient(180deg,rgba(1,23,52,.02) 0%,rgba(1,23,52,.02) 69%,rgba(1,23,52,.20) 100%),url("' + avatarBackgroundUrl(backgroundId) + '")'}}>
+          {selectedBackground && <span className="ei-avatar-scene-tag">{selectedBackground.nombre}</span>}
+          {!showBackgroundOnly && visibleSelected && <CharacterImage key={finalId} id={finalId}
+            label={'Personaje: ' + visibleSelected.nombre} className="ei-avatar-hero-art" eager />}
           <span className="ei-avatar-stage-brand">ELECTROINGENIERÍA <strong>· AULA EI</strong></span>
         </div>
         <div className="ei-avatar-preview-bottom">
@@ -156,7 +170,7 @@ export default function AvatarStudio({ profile, onSaved }) {
         <div className="ei-avatar-backgrounds" role="group" aria-label="Fondos institucionales">
           {catalog.fondos.map((bg) => <button type="button" key={bg.id} className={backgroundId === bg.id ? 'selected' : ''} aria-pressed={backgroundId === bg.id}
             onClick={() => { setBackgroundId(bg.id); setSuccess(false) }} aria-label={bg.nombre}>
-            <img src={avatarBackgroundUrl(bg.id)} alt="" loading="lazy" decoding="async" width={90} height={66}/>
+            <img src={avatarBackgroundUrl(bg.id)} alt="" loading="lazy" decoding="async" width={180} height={135}/>
             <span>{bg.nombre}</span>{backgroundId === bg.id && <Check aria-hidden="true" size={16}/>}</button>)}
         </div>
         <div className="ei-avatar-save-row">

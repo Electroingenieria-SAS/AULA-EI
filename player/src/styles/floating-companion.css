@@ -1,0 +1,266 @@
+/* Compañero visual de Aula EI. Los elementos decorativos nunca interceptan el contenido. */
+.learner-app-shell .ei-companion-dock{
+  position:fixed;
+  z-index:86;
+  right:clamp(12px,2vw,25px);
+  bottom:24px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  width:max-content;
+  max-width:calc(100vw - 32px);
+  font-family:"Century Gothic","Segoe UI",sans-serif;
+  pointer-events:none;
+}
+.ei-companion-dock__stage{
+  position:relative;
+  width:124px;
+  height:151px;
+  pointer-events:none;
+}
+.ei-companion-dock__stage::before{
+  content:"";
+  position:absolute;
+  right:5px;
+  bottom:2px;
+  width:107px;
+  height:26px;
+  border-radius:50%;
+  background:rgba(14,54,102,.17);
+  filter:blur(10px);
+}
+.ei-companion-dock__portrait{
+  position:absolute;
+  right:0;
+  bottom:0;
+  display:block;
+  width:117px;
+  height:148px;
+  padding:0;
+  border:none;
+  border-radius:28px;
+  background:transparent;
+  pointer-events:auto;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.ei-companion-dock__portrait:focus-visible,
+.ei-companion-dock__minimize:focus-visible,
+.ei-companion-dock__bubble button:focus-visible{
+  outline:3px solid #f2ba2b;
+  outline-offset:3px;
+}
+.ei-companion-dock__portrait .ei-companion-figure{
+  display:block;
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  transform-origin:50% 85%;
+  animation:eiCompanionBreath 5.6s ease-in-out infinite;
+}
+.ei-companion-dock__portrait .ei-companion-figure__image{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center bottom;
+  filter:drop-shadow(0 9px 10px rgba(0,33,76,.28));
+}
+.ei-companion-dock__portrait .ei-companion-figure__fallback{
+  display:grid;
+  place-items:center;
+  position:absolute;
+  left:19px;
+  bottom:25px;
+  width:76px;
+  height:76px;
+  border-radius:24px;
+  background:linear-gradient(135deg,#08468f,#1b73c3);
+  border:2px solid rgba(255,255,255,.85);
+  color:white;
+  font-size:1.4rem;
+  font-weight:900;
+}
+.ei-companion-dock__portrait:hover .ei-companion-figure,
+.ei-companion-dock__portrait:focus-visible .ei-companion-figure{
+  animation:eiCompanionHello .9s ease-in-out 2;
+}
+.ei-companion-dock__wave{
+  position:absolute;
+  z-index:2;
+  right:-5px;
+  top:-10px;
+  display:grid;
+  place-items:center;
+  width:39px;
+  height:39px;
+  border-radius:15px;
+  border:1px solid #d4e8fd;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 7px 22px rgba(19,57,100,.17);
+  font-size:23px;
+  transform-origin:75% 82%;
+  animation:eiCompanionWave 7.5s ease-in-out infinite;
+  pointer-events:none;
+}
+.ei-companion-dock__minimize{
+  position:absolute;
+  top:34px;
+  left:-12px;
+  z-index:4;
+  display:grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border:1px solid #d6e6f6;
+  border-radius:9px;
+  background:#fff;
+  color:#38638d;
+  box-shadow:0 4px 15px rgba(6,42,88,.14);
+  opacity:.65;
+  pointer-events:auto;
+}
+.ei-companion-dock:hover .ei-companion-dock__minimize,
+.ei-companion-dock__minimize:focus-visible{opacity:1}
+.ei-companion-dock__bubble{
+  position:absolute;
+  z-index:5;
+  right:110px;
+  bottom:103px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  width:205px;
+  max-width:calc(100vw - 155px);
+  padding:13px 29px 14px 15px;
+  border:1px solid #d6e8f9;
+  border-radius:17px 17px 5px 17px;
+  background:rgba(255,255,255,.98);
+  box-shadow:0 12px 34px rgba(10,52,102,.14);
+  color:#25496c;
+  font-size:.68rem;
+  line-height:1.4;
+  pointer-events:auto;
+  animation:eiCompanionBubbleIn .26s ease-out both;
+}
+.ei-companion-dock__bubble strong{
+  font-size:.79rem;
+  color:#0b478c;
+  line-height:1.35;
+}
+.ei-companion-dock__bubble button{
+  display:grid;
+  place-items:center;
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:21px;
+  height:21px;
+  padding:0;
+  border:0;
+  border-radius:7px;
+  background:#f0f5fd;
+  color:#537292;
+  pointer-events:auto;
+}
+.ei-companion-dock.is-compact .ei-companion-dock__stage{
+  width:57px;
+  height:57px;
+}
+.ei-companion-dock.is-compact .ei-companion-dock__stage::before{display:none}
+.ei-companion-dock.is-compact .ei-companion-dock__portrait{
+  display:grid;
+  place-items:center;
+  width:55px;
+  height:55px;
+  border:2px solid #fff;
+  border-radius:18px;
+  background:linear-gradient(145deg,#d9ecff,#f4f9ff);
+  box-shadow:0 7px 22px rgba(11,65,124,.22);
+  overflow:hidden;
+}
+.ei-companion-dock.is-compact .ei-companion-figure__image{
+  width:100%;
+  height:65px;
+}
+.ei-companion-dock.is-compact .ei-companion-figure__fallback{
+  left:8px;
+  bottom:7px;
+  width:35px;
+  height:35px;
+  border-radius:12px;
+  font-size:.8rem;
+}
+.ei-companion-dock__mini-icon{
+  position:absolute;
+  z-index:2;
+  top:0;
+  right:0;
+  padding:2px;
+  border-radius:7px;
+  background:#125dae;
+  color:#fff;
+  box-sizing:content-box;
+}
+@keyframes eiCompanionBreath{
+  0%,100%{transform:translateY(0) rotate(-.7deg)}
+  50%{transform:translateY(-5px) rotate(.7deg)}
+}
+@keyframes eiCompanionWave{
+  0%,18%,26%,100%{transform:rotate(0deg)}
+  20%,24%{transform:rotate(21deg)}
+  22%{transform:rotate(-13deg)}
+}
+@keyframes eiCompanionHello{
+  0%,100%{transform:translateY(0) rotate(0)}
+  30%{transform:translateY(-7px) rotate(4deg)}
+  65%{transform:translateY(-3px) rotate(-3deg)}
+}
+@keyframes eiCompanionBubbleIn{
+  from{opacity:0;transform:translateY(8px) scale(.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@media(max-width:900px){
+  .learner-app-shell .ei-companion-dock{
+    right:max(11px,env(safe-area-inset-right,0px));
+    bottom:calc(88px + env(safe-area-inset-bottom,0px));
+    z-index:65;
+  }
+  .ei-companion-dock__stage{width:74px;height:90px}
+  .ei-companion-dock__portrait{width:74px;height:90px}
+  .ei-companion-dock__wave{
+    top:1px;
+    right:-5px;
+    width:27px;
+    height:27px;
+    border-radius:10px;
+    font-size:15px;
+  }
+  .ei-companion-dock__minimize{
+    left:-10px;
+    top:25px;
+    width:23px;
+    height:23px;
+  }
+  .ei-companion-dock__bubble{
+    right:69px;
+    bottom:65px;
+    width:169px;
+    max-width:calc(100vw - 112px);
+    padding:10px 28px 11px 12px;
+    font-size:.61rem;
+  }
+  .ei-companion-dock__bubble strong{font-size:.68rem}
+  .ei-companion-dock.is-compact .ei-companion-dock__stage{width:48px;height:48px}
+  .ei-companion-dock.is-compact .ei-companion-dock__portrait{
+    width:47px;height:47px;border-radius:16px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .ei-companion-dock *,
+  .ei-companion-dock *::before,
+  .ei-companion-dock *::after{
+    animation:none!important;
+    transition:none!important;
+  }
+}

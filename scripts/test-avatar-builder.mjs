@@ -83,6 +83,11 @@ const app = await read('src/App.jsx')
 const learner = await read('player/src/LearnerApp.jsx')
 const shell = await read('player/src/LearnerShell.jsx')
 const pwa = await read('public/sw.js')
+const sidebarProfileCss = await read('player/src/styles/sidebar-profile.css')
+const floatingCompanionCss = await read('player/src/styles/floating-companion.css')
+const avatarFigure = await read('player/src/avatar/AvatarFigure.jsx')
+const companion = await read('player/src/avatar/FloatingAvatarCompanion.jsx')
+
 for (const id of ids) assert.ok(migration.includes("'" + id + "'"), 'Falta ID en validación SQL: ' + id)
 for (const bg of catalog.fondos) assert.ok(migration.includes("'" + bg.id + "'"), 'Falta fondo en SQL: ' + bg.id)
 assert.match(migration, /auth\.uid\(\) is null or not public\.is_aula_active\(\)/)
@@ -109,6 +114,29 @@ assert.match(welcome, /document\.body\.style\.overflow/)
 assert.match(learner, /'avatar'/)
 assert.match(shell, /AvatarBadge/)
 assert.match(pwa, /staleWhileRevalidate/)
+// The updated profile must be visually distinct from the old navy badge.
+assert.match(shell, /learner-profile-card__figure/)
+assert.match(shell, /FloatingAvatarCompanion/)
+assert.match(avatarFigure, /profileAvatarImage\(avatarUrl\)/)
+assert.match(avatarFigure, /avatarImageUrl\(DEFAULT_AVATAR_ID\)/)
+assert.match(sidebarProfileCss, /min-height:184px/)
+assert.match(sidebarProfileCss, /background:linear-gradient\(133deg,#ffffff/)
+assert.match(sidebarProfileCss, /eiProfileHeroFloat/)
+assert.match(floatingCompanionCss, /eiCompanionWave/)
+assert.match(floatingCompanionCss, /prefers-reduced-motion:reduce/)
+assert.match(companion, /sessionStorage/)
+assert.match(companion, /suppressed/)
+assert.match(companion, /setCompact\(true\)/)
+assert.match(companion, /COMPANION_ROUTES/)
+for (const route of ['home', 'catalog', 'development', 'plan']) {
+  assert.match(companion, new RegExp("'"+route+"'"))
+}
+for (const blocked of ["'course'","'preview'","'studio'","'games'","'coach'","'privacy'","'avatar'"]) {
+  assert.equal(companion.match(new RegExp(blocked, 'g'))?.length || 0, 0, 'Compañero debe estar ausente de ' + blocked)
+}
+assert.match(shell, /import '\.\/styles\/sidebar-profile\.css'/)
+assert.match(shell, /import '\.\/styles\/floating-companion\.css'/)
+
 
 const sessionKey = avatarWelcomeStorageKey('u-123')
 assert.equal(sessionKey, 'aula-ei-avatar-prompt:v2:u-123')

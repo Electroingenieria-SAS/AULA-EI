@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './styles/colleague-profile.css'
+import AvatarBadge from './avatar/AvatarBadge.jsx'
 import { Bell, BellRing, BookOpen, CheckCheck, Clock3, UserRound, Award, WifiOff, X } from 'lucide-react'
 import { navigateLearner } from './navigation.js'
 import { supabase } from './supabase.js'
@@ -234,7 +235,7 @@ export default function NotificationCenter({ profile = null }) {
         <div className="aula-colleague-cover"><span>COMUNIDAD ELECTROINGENIERÍA</span><UserRound size={34}/></div>
         {colleagueLoading ? <p role="status">Cargando perfil formativo…</p> : colleagueError ? <p role="alert">{colleagueError}</p> : <>
           <div className="aula-colleague-identity">
-            <span className="aula-colleague-avatar">{String(colleague.full_name || 'EI').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</span>
+            <AvatarBadge avatarUrl={colleague.avatar_url} fallback={String(colleague.full_name || 'EI').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()} size="medium" className="aula-colleague-avatar"/>
             <h2>{colleague.full_name}</h2>
             <strong>{colleague.position}</strong>
             {colleague.department && <small>{colleague.department}</small>}

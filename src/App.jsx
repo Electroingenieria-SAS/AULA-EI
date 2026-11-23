@@ -164,7 +164,9 @@ export default function App() {
     if (mustChangePassword) return <PasswordGate profile={profile} />
     const securedContent = route.isCertificate
       ? <CertificateApp sessionUser={session.user} />
-      : <LearnerApp key={session.user.id} profile={profile} sessionUser={session.user} />
+      : <LearnerApp key={session.user.id} profile={profile} sessionUser={session.user}
+          onAvatarChange={(avatarUrl) => setProfile((current) => current?.id === session.user.id
+            ? { ...current, avatar_url: avatarUrl } : current)} />
     return <LegalGate profile={profile} sessionUser={session.user}>
       <AdminMfaGate profile={profile}>
         <Suspense fallback={<Startup title="Cargando módulo…" />}>

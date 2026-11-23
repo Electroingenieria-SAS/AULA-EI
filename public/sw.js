@@ -117,4 +117,9 @@ self.addEventListener('fetch', (event) => {
   if (isCacheableMedia(request)) {
     event.respondWith(staleWhileRevalidate(request))
   }
+
+  // The public avatar manifest is tiny and must remain available to the PWA.
+  if (url.pathname.endsWith('/avatars/catalogo.json')) {
+    event.respondWith(staleWhileRevalidate(request))
+  }
 })

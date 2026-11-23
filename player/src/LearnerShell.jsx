@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react'
-import { ArrowLeft, BookOpen, Code2, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles, TrendingUp, BrainCircuit, ClipboardList } from 'lucide-react'
+import { ArrowLeft, BookOpen, Code2, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles, TrendingUp, BrainCircuit, ClipboardList, Palette } from 'lucide-react'
 import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
+import AvatarBadge from './avatar/AvatarBadge.jsx'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
 import { supabase } from './supabase.js'
 import '../../src/branding/developer-signature.css'
@@ -15,7 +16,7 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
   }, [displayName])
   const canManage = ['creador_contenido', 'revisor', 'admin', 'super_admin'].includes(String(profile?.role || ''))
   const isCourse = activeRoute === 'course'
-  const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'development' ? 'Mi desarrollo' : activeRoute === 'plan' ? 'Mi plan de formación' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'coach' ? 'Mi entrenador' : activeRoute === 'privacy' ? 'Privacidad y legal' : activeRoute === 'credits' ? 'Créditos' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
+  const mobileTitle = activeRoute === 'home' ? 'Inicio' : activeRoute === 'catalog' ? 'Mis capacitaciones' : activeRoute === 'development' ? 'Mi desarrollo' : activeRoute === 'plan' ? 'Mi plan de formación' : activeRoute === 'course' ? 'Capacitación' : activeRoute === 'games' ? 'Juegos EI' : activeRoute === 'coach' ? 'Mi entrenador' : activeRoute === 'privacy' ? 'Privacidad y legal' : activeRoute === 'credits' ? 'Créditos' : activeRoute === 'avatar' ? 'Mi personaje' : activeRoute === 'studio' ? 'Gestión Aula EI' : 'Aula EI'
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -33,13 +34,13 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
       </button>
 
       <div className="learner-sidebar-user">
-        <div className="learner-sidebar-avatar">{initials}</div>
+        <AvatarBadge avatarUrl={profile?.avatar_url} fallback={initials} className="learner-sidebar-avatar" size="medium"/>
         <div><strong>{displayName}</strong><span>{role}</span></div>
       </div>
 
 
       <nav className="learner-sidebar-nav" aria-label="Navegación principal">
-        <SidebarLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} />
+        <SidebarLink icon={Home} label="Inicio" active={activeRoute === 'home'} onClick={() => navigateLearner('/')} /><SidebarLink icon={Palette} label="Mi personaje" active={activeRoute === 'avatar'} onClick={() => navigateLearner('/mi-personaje')} />
         <SidebarLink icon={BookOpen} label="Mis capacitaciones" active={activeRoute === 'catalog' || activeRoute === 'course'} onClick={() => navigateLearner('/catalog')} />
         <SidebarLink icon={TrendingUp} label="Mi desarrollo" active={activeRoute === 'development'} onClick={() => navigateLearner('/development')} />
         <SidebarLink icon={ClipboardList} label="Mi plan" active={activeRoute === 'plan'} onClick={() => navigateLearner('/plan')} />
@@ -87,7 +88,9 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         title="Créditos de desarrollo">
         <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt="" width="31" height="39"/>
       </button>}
-      <NotificationCenter profile={profile} />
+      <NotificationCenter profile={profile} />      {!isCourse && <button type="button" className="ei-avatar-header-action" onClick={() => navigateLearner('/mi-personaje')} title="Mi personaje" aria-label="Abrir editor de mi personaje">
+        <AvatarBadge avatarUrl={profile?.avatar_url} fallback={initials}/>
+      </button>}
     </header>
 
     <div className="learner-shell-main">{children}</div>

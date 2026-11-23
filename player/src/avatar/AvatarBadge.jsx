@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import './avatar.css'
 import { profileAvatarImage } from '../../../src/avatar/avatar-utils.js'
 
 export default function AvatarBadge({ avatarUrl, fallback = 'EI', className = '', size = 'small' }) {

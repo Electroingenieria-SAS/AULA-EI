@@ -3,6 +3,9 @@ node_modules/
 
 # Build artifacts
 dist/
+
+# Generated, SHA-256-verified avatar images extracted at build time
+public/avatars/
 coverage/
 playwright-report/
 test-results/

@@ -4,6 +4,8 @@ import { navigateLearner, openLearnerCourse, appUrl } from './navigation.js'
 import { signedAsset, supabase } from './supabase.js'
 import { cachedQuery } from '../../src/data-cache.js'
 import { learningPriorities } from './learning-priorities.js'
+import AvatarBadge from './avatar/AvatarBadge.jsx'
+import { decodeAvatarSelection } from '../../src/avatar/avatar-utils.js'
 
 export default function HomePage({ profile, sessionUser }) {
   const [enrollments, setEnrollments] = useState([])
@@ -75,7 +77,16 @@ export default function HomePage({ profile, sessionUser }) {
       <div className="home-hero-metric"><strong>{certificates.length}</strong><span>Certificados obtenidos</span></div>
     </section>
 
-    {error && <div className="home-warning" role="alert">No fue posible actualizar la información de Aula EI. <button type="button" onClick={() => setRevision((value) => value + 1)}>Reintentar</button></div>}
+    {error && <div className="home-warning" role="alert">    <section className="ei-avatar-home-card" aria-label="Tu personaje de Aula EI">
+      <AvatarBadge avatarUrl={profile?.avatar_url} fallback={firstName.slice(0,2)} size="large"/>
+      <div><strong>{decodeAvatarSelection(profile?.avatar_url) ? 'Mi personaje me acompaña en Aula EI' : 'Tu personaje te está esperando'}</strong>
+        <span>{decodeAvatarSelection(profile?.avatar_url) ? 'Tu identidad visual está lista para tu próxima aventura de aprendizaje.' : 'Elige entre 34 personajes institucionales y personaliza tu identidad.'}</span></div>
+      <button type="button" onClick={() => navigateLearner('/mi-personaje')}>
+        {decodeAvatarSelection(profile?.avatar_url) ? 'Editar avatar' : 'Crear mi avatar'} <ArrowRight size={16}/>
+      </button>
+    </section>
+
+No fue posible actualizar la información de Aula EI. <button type="button" onClick={() => setRevision((value) => value + 1)}>Reintentar</button></div>}
 
     {hiddenCount > 0 && <div className="home-warning">Hay {hiddenCount} asignación(es) que todavía no están visibles porque la capacitación no está publicada o no tiene permisos activos.</div>}
 

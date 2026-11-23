@@ -1,6 +1,8 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import LearnerShell from './LearnerShell.jsx'
 import HomePage from './HomePage.jsx'
+import { decodeAvatarSelection } from '../../src/avatar/avatar-utils.js'
+import { navigateLearner } from './navigation.js'
 
 const loadStudioApp = () => import('../../studio/src/App.jsx')
 const loadCatalogPage = () => import('./CatalogPage.jsx')
@@ -12,6 +14,8 @@ const loadTrainingPlanPage = () => import('./TrainingPlanPage.jsx')
 const loadIntelligencePage = () => import('./IntelligencePage.jsx')
 const loadPrivacyCenter = () => import('./PrivacyCenter.jsx')
 const loadDeveloperCredits = () => import('./DeveloperCreditsPage.jsx')
+const loadAvatarStudio = () => import('./avatar/AvatarStudio.jsx')
+const loadAvatarWelcome = () => import('./avatar/AvatarWelcome.jsx')
 
 const StudioApp = lazy(loadStudioApp)
 const CatalogPage = lazy(loadCatalogPage)
@@ -23,6 +27,8 @@ const TrainingPlanPage = lazy(loadTrainingPlanPage)
 const IntelligencePage = lazy(loadIntelligencePage)
 const PrivacyCenter = lazy(loadPrivacyCenter)
 const DeveloperCreditsPage = lazy(loadDeveloperCredits)
+const AvatarStudio = lazy(loadAvatarStudio)
+const AvatarWelcome = lazy(loadAvatarWelcome)
 
 function readRoute() {
   const hash = window.location.hash || '#/'
@@ -40,11 +46,30 @@ function readRoute() {
   if (/^#\/studio(?:\/|$)/.test(hash)) return { key: 'studio', type: 'studio' }
   if (/^#\/privacy(?:\/|$)/.test(hash)) return { key: 'privacy', type: 'privacy' }
   if (/^#\/credits(?:\/|$)/.test(hash)) return { key: 'credits', type: 'credits' }
+  if (/^#\/mi-personaje(?:\/|$)/.test(hash)) return { key: 'avatar', type: 'avatar' }
   return { key: 'home', type: 'home' }
 }
 
-export default function LearnerApp({ profile, sessionUser }) {
+export default function LearnerApp({ profile, sessionUser, onAvatarChange }) {
   const [route, setRoute] = useState(() => readRoute())
+
+  const [showAvatarWelcome, setShowAvatarWelcome] = useState(false)
+  useEffect(() => {
+    setShowAvatarWelcome(false)
+    if (!sessionUser?.id || decodeAvatarSelection(profile?.avatar_url)) return
+    // Only after legal/MFA gates have mounted the learner; never while studying.
+    if (route.type !== 'home' && route.type !== 'catalog') return
+    try {
+      if (sessionStorage.getItem('aula-ei-avatar-later:' + sessionUser.id)) return
+    } catch {}
+    const timer = window.setTimeout(() => setShowAvatarWelcome(true), 1100)
+    return () => window.clearTimeout(timer)
+  }, [sessionUser?.id, profile?.avatar_url, route.type])
+
+  const dismissAvatarWelcome = () => {
+    try { sessionStorage.setItem('aula-ei-avatar-later:' + sessionUser.id, '1') } catch {}
+    setShowAvatarWelcome(false)
+  }
 
   useEffect(() => {
     const sync = () => setRoute(readRoute())
@@ -87,6 +112,7 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'studio') void loadStudioApp()
     if (route.type === 'privacy') void loadPrivacyCenter()
     if (route.type === 'credits') void loadDeveloperCredits()
+    if (route.type === 'avatar') void loadAvatarStudio()
   }, [route.type])
 
   const content = useMemo(() => {
@@ -102,15 +128,24 @@ export default function LearnerApp({ profile, sessionUser }) {
     if (route.type === 'studio') return <StudioApp embedded initialProfile={profile} />
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
     if (route.type === 'credits') return <DeveloperCreditsPage />
+    if (route.type === 'avatar') return <AvatarStudio profile={profile} onSaved={onAvatarChange}/>
     return <HomePage profile={profile} sessionUser={sessionUser} />
-  }, [route.key, route.type, route.courseId, profile, sessionUser])
+  }, [route.key, route.type, route.courseId, profile, sessionUser, onAvatarChange])
 
-  return <LearnerShell activeRoute={route.type} profile={profile}>
-    <div className="learner-route-transition" key={route.key}>
-      <span className="experience-route-progress" aria-hidden="true" />
-      <Suspense fallback={<RouteLoading route={route.type} />}>{content}</Suspense>
-    </div>
-  </LearnerShell>
+  return <>
+    <LearnerShell activeRoute={route.type} profile={profile}>
+      <div className="learner-route-transition" key={route.key}>
+        <span className="experience-route-progress" aria-hidden="true" />
+        <Suspense fallback={<RouteLoading route={route.type} />}>{content}</Suspense>
+      </div>
+    </LearnerShell>
+    {showAvatarWelcome && <Suspense fallback={null}>
+      <AvatarWelcome onLater={dismissAvatarWelcome} onCreate={() => {
+        dismissAvatarWelcome()
+        navigateLearner('/mi-personaje')
+      }}/>
+    </Suspense>}
+  </>
 }
 
 function RouteLoading({ route }) {
@@ -120,6 +155,8 @@ function RouteLoading({ route }) {
       ? 'Preparando la vista previa…'
     : route === 'credits'
       ? 'Abriendo créditos de desarrollo…'
+    : route === 'avatar'
+      ? 'Preparando tu personaje…'
     : route === 'coach'
       ? 'Preparando Mi entrenador…'
     : route === 'plan'

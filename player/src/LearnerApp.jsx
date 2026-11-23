@@ -154,7 +154,7 @@ export default function LearnerApp({ profile, sessionUser, onAvatarChange }) {
   }, [route.key, route.type, route.courseId, profile, sessionUser, onAvatarChange])
 
   return <>
-    <LearnerShell activeRoute={route.type} profile={profile}>
+    <LearnerShell activeRoute={route.type} profile={profile} companionSuppressed={showAvatarWelcome}>
       <div className="learner-route-transition" key={route.key}>
         <span className="experience-route-progress" aria-hidden="true" />
         <Suspense fallback={<RouteLoading route={route.type} />}>{content}</Suspense>

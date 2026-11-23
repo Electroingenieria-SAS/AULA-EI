@@ -106,3 +106,87 @@
 .ei-avatar-header-action .ei-avatar-badge{width:34px;height:34px;font-size:.75rem}
 .ei-avatar-header-action:focus-visible{outline:3px solid #dfab00;outline-offset:3px}
 @media(max-width:480px){.ei-avatar-header-action{min-width:35px;width:35px;height:35px}.ei-avatar-header-action .ei-avatar-badge{width:30px;height:30px}.learner-mobile-appbar .training-notification-trigger span:not(.training-notification-count){display:none}}
+
+
+/* Avatar Studio v2 · sharper images, less tint, clearer institutional backgrounds */
+.ei-avatar-studio .ei-avatar-stage{
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-color:#dfeefa;
+  border:1px solid rgba(207,225,244,.9);
+  box-shadow:0 18px 38px rgba(10,44,86,.12),inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.ei-avatar-studio .ei-avatar-stage::before{
+  content:"";position:absolute;z-index:0;pointer-events:none;
+  width:55%;height:12%;left:22.5%;bottom:3%;
+  background:radial-gradient(ellipse,rgba(5,33,68,.25),transparent 72%);
+  filter:blur(6px);
+}
+.ei-avatar-studio .ei-avatar-stage.is-background-only::before{display:none}
+.ei-avatar-studio .ei-avatar-stage::after{
+  height:18%;background:linear-gradient(transparent,rgba(0,30,71,.28))
+}
+.ei-avatar-studio .ei-avatar-hero-art{
+  position:relative;z-index:1;align-self:end;
+  max-height:91%;height:91%;width:91%;
+  object-fit:contain;object-position:bottom center;
+  filter:drop-shadow(0 14px 13px rgba(11,32,60,.20));
+}
+.ei-avatar-studio .ei-avatar-stage-brand{z-index:3}
+.ei-avatar-scene-tag{
+  position:absolute;z-index:3;top:14px;left:14px;
+  padding:8px 11px;max-width:calc(100% - 28px);
+  font-size:.68rem;font-weight:850;line-height:1.25;letter-spacing:.025em;
+  border-radius:999px;background:rgba(255,255,255,.92);
+  color:#174675;box-shadow:0 4px 16px rgba(2,31,63,.1);
+}
+.ei-avatar-preview-tools{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap
+}
+.ei-avatar-see-background{
+  min-height:34px;border:1px solid #bfd5e8;background:#f4f9ff;
+  padding:6px 10px;border-radius:999px;color:#11589b;font:inherit;
+  font-size:.68rem;font-weight:850;letter-spacing:0;cursor:pointer;
+}
+.ei-avatar-see-background:hover,.ei-avatar-see-background[aria-pressed="true"]{
+  border-color:#4f96d5;background:#dceeff;color:#063e7a;
+}
+.ei-avatar-studio .ei-avatar-backgrounds button{
+  overflow:hidden;padding:5px 5px 9px;gap:9px;
+  border-radius:17px;border-color:#d4e1ee;background:#fcfdff;
+  box-shadow:0 4px 13px rgba(14,50,90,.04);
+}
+.ei-avatar-studio .ei-avatar-backgrounds button:hover{
+  border-color:#6aa7e3;box-shadow:0 9px 22px rgba(10,61,119,.12);
+}
+.ei-avatar-studio .ei-avatar-backgrounds button.selected{
+  border-color:#005cb4;background:#f0f7ff;
+  box-shadow:0 0 0 2px rgba(0,92,180,.13);
+}
+.ei-avatar-studio .ei-avatar-backgrounds img{
+  display:block;width:100%;height:108px;object-fit:cover;
+  border-radius:11px;border:1px solid rgba(203,223,240,.7);
+}
+.ei-avatar-studio .ei-avatar-backgrounds span{
+  font-size:.70rem;line-height:1.3;min-height:22px
+}
+.ei-avatar-studio .ei-avatar-variant img{mix-blend-mode:normal}
+.ei-avatar-backdrop{z-index:2147483000;background:rgba(1,20,49,.68)}
+.ei-avatar-welcome{
+  box-shadow:0 36px 120px rgba(0,18,60,.44);
+  border:1px solid rgba(255,255,255,.45);
+}
+.ei-avatar-welcome-art{background-size:cover;background-position:center}
+@media(max-width:700px){
+  .ei-avatar-preview-tools{gap:5px}
+  .ei-avatar-see-background{min-height:40px}
+  .ei-avatar-studio .ei-avatar-backgrounds img{height:116px}
+}
+@media(max-width:420px){
+  .ei-avatar-preview-heading{align-items:flex-start}
+  .ei-avatar-preview-tools{max-width:70%}
+  .ei-avatar-preview-counter{display:none}
+  .ei-avatar-studio .ei-avatar-backgrounds img{height:102px}
+  .ei-avatar-scene-tag{top:10px;left:10px;font-size:.64rem}
+}

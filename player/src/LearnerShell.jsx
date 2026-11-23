@@ -88,7 +88,8 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         title="Créditos de desarrollo">
         <img src={assetUrl('brand/developer/juan-perez-secondary-blue.webp')} alt="" width="31" height="39"/>
       </button>}
-      <NotificationCenter profile={profile} />      {!isCourse && <button type="button" className="ei-avatar-header-action" onClick={() => navigateLearner('/mi-personaje')} title="Mi personaje" aria-label="Abrir editor de mi personaje">
+      <NotificationCenter profile={profile} />
+      {!isCourse && <button type="button" className="ei-avatar-header-action" onClick={() => navigateLearner('/mi-personaje')} title="Mi personaje" aria-label="Abrir editor de mi personaje">
         <AvatarBadge avatarUrl={profile?.avatar_url} fallback={initials}/>
       </button>}
     </header>

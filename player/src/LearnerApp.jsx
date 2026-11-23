@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import LearnerShell from './LearnerShell.jsx'
 import HomePage from './HomePage.jsx'
 import { decodeAvatarSelection } from '../../src/avatar/avatar-utils.js'
+import { avatarWelcomeStorageKey, shouldOfferAvatarWelcome } from '../../src/avatar/avatar-welcome-policy.js'
 import { navigateLearner } from './navigation.js'
 
 const loadStudioApp = () => import('../../studio/src/App.jsx')
@@ -56,19 +57,39 @@ export default function LearnerApp({ profile, sessionUser, onAvatarChange }) {
   const [showAvatarWelcome, setShowAvatarWelcome] = useState(false)
   useEffect(() => {
     setShowAvatarWelcome(false)
-    if (!sessionUser?.id || decodeAvatarSelection(profile?.avatar_url)) return
-    // Only after legal/MFA gates have mounted the learner; never while studying.
-    if (route.type !== 'home' && route.type !== 'catalog') return
-    try {
-      if (sessionStorage.getItem('aula-ei-avatar-later:' + sessionUser.id)) return
-    } catch {}
-    const timer = window.setTimeout(() => setShowAvatarWelcome(true), 1100)
-    return () => window.clearTimeout(timer)
-  }, [sessionUser?.id, profile?.avatar_url, route.type])
+    // LearnerApp mounts only after LegalGate and AdminMfaGate finish.
+    // An explicitly dismissed invitation is respected until the user signs out.
+    let dismissed = false
+    try { dismissed = sessionStorage.getItem(avatarWelcomeStorageKey(sessionUser?.id)) === '1' } catch {}
+    if (profile?.id !== sessionUser?.id || !shouldOfferAvatarWelcome({
+      userId: sessionUser?.id, avatarUrl: profile?.avatar_url,
+      routeType: route.type, dismissed,
+    })) return
+
+    // Never interrupt exams, game sessions, coaching or legal documents.
+    // If the page loaded in a background tab, reveal the popup on return.
+    const reveal = () => {
+      if (document.visibilityState === 'hidden') return
+      document.removeEventListener('visibilitychange', reveal)
+      setShowAvatarWelcome(true)
+    }
+    const timer = window.setTimeout(() => {
+      if (document.visibilityState === 'hidden') document.addEventListener('visibilitychange', reveal)
+      else reveal()
+    }, 850)
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('visibilitychange', reveal)
+    }
+  }, [sessionUser?.id, profile?.id, profile?.avatar_url, route.type])
 
   const dismissAvatarWelcome = () => {
-    try { sessionStorage.setItem('aula-ei-avatar-later:' + sessionUser.id, '1') } catch {}
+    try { sessionStorage.setItem(avatarWelcomeStorageKey(sessionUser?.id), '1') } catch {}
     setShowAvatarWelcome(false)
+  }
+  const openAvatarWelcome = () => {
+    if (decodeAvatarSelection(profile?.avatar_url)) navigateLearner('/mi-personaje')
+    else setShowAvatarWelcome(true)
   }
 
   useEffect(() => {
@@ -129,7 +150,7 @@ export default function LearnerApp({ profile, sessionUser, onAvatarChange }) {
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
     if (route.type === 'credits') return <DeveloperCreditsPage />
     if (route.type === 'avatar') return <AvatarStudio profile={profile} onSaved={onAvatarChange}/>
-    return <HomePage profile={profile} sessionUser={sessionUser} />
+    return <HomePage profile={profile} sessionUser={sessionUser} onAvatarIntro={openAvatarWelcome} />
   }, [route.key, route.type, route.courseId, profile, sessionUser, onAvatarChange])
 
   return <>

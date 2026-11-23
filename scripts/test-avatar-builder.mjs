@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { shouldOfferAvatarWelcome, avatarWelcomeStorageKey, clearAvatarWelcomeSession } from '../src/avatar/avatar-welcome-policy.js'
 import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { saveMyAvatar } from '../src/avatar/avatar-service.js'
@@ -89,8 +90,37 @@ assert.match(welcome, /¡Crea tu avatar!/)
 assert.match(welcome, /Ahora no/)
 assert.match(app, /onAvatarChange/)
 assert.match(learner, /sessionStorage/)
-assert.match(learner, /route\.type !== 'home' && route\.type !== 'catalog'/)
+assert.match(learner, /shouldOfferAvatarWelcome/)
+assert.match(learner, /openAvatarWelcome/)
+assert.match(learner, /document\.visibilityState/)
+assert.match(welcome, /createPortal/)
+assert.match(welcome, /document\.body\.style\.overflow/)
 assert.match(learner, /'avatar'/)
 assert.match(shell, /AvatarBadge/)
 assert.match(pwa, /staleWhileRevalidate/)
+
+const sessionKey = avatarWelcomeStorageKey('u-123')
+assert.equal(sessionKey, 'aula-ei-avatar-prompt:v2:u-123')
+for (const routeType of ['home', 'catalog', 'development', 'plan']) {
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType }), true)
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType, dismissed: true }), false)
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType, avatarUrl: encodeAvatarSelection('EI-ANALISTA-M-01', 'FON-01') }), false)
+}
+for (const routeType of ['course', 'games', 'coach', 'studio', 'privacy', 'avatar', 'preview']) {
+  assert.equal(shouldOfferAvatarWelcome({ userId: 'u-123', routeType }), false)
+}
+assert.equal(shouldOfferAvatarWelcome({ routeType: 'home' }), false)
+const testSession = new Map([
+  [sessionKey, '1'], ['aula-ei-avatar-prompt:v2:u-456', '1'],
+  ['another-feature', 'keep'],
+])
+const storageMock = {
+  get length() { return testSession.size },
+  key(index) { return [...testSession.keys()][index] || null },
+  removeItem(key) { testSession.delete(key) },
+}
+clearAvatarWelcomeSession(storageMock)
+assert.equal(testSession.has(sessionKey), false)
+assert.deepEqual([...testSession], [['another-feature', 'keep']])
+
 console.log('Editor de avatares: 34 imágenes reales, 8 fondos, validación, selección, guardado, sesión y PWA verificados.')

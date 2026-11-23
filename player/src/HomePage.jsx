@@ -7,7 +7,7 @@ import { learningPriorities } from './learning-priorities.js'
 import AvatarBadge from './avatar/AvatarBadge.jsx'
 import { decodeAvatarSelection } from '../../src/avatar/avatar-utils.js'
 
-export default function HomePage({ profile, sessionUser }) {
+export default function HomePage({ profile, sessionUser, onAvatarIntro }) {
   const [enrollments, setEnrollments] = useState([])
   const [certificates, setCertificates] = useState([])
   const [hiddenCount, setHiddenCount] = useState(0)
@@ -81,7 +81,7 @@ export default function HomePage({ profile, sessionUser }) {
       <AvatarBadge avatarUrl={profile?.avatar_url} fallback={firstName.slice(0,2)} size="large"/>
       <div><strong>{decodeAvatarSelection(profile?.avatar_url) ? 'Mi personaje me acompaña en Aula EI' : 'Tu personaje te está esperando'}</strong>
         <span>{decodeAvatarSelection(profile?.avatar_url) ? 'Tu identidad visual está lista para tu próxima aventura de aprendizaje.' : 'Elige entre 34 personajes institucionales y personaliza tu identidad.'}</span></div>
-      <button type="button" onClick={() => navigateLearner('/mi-personaje')}>
+      <button type="button" onClick={() => decodeAvatarSelection(profile?.avatar_url) ? navigateLearner('/mi-personaje') : onAvatarIntro?.()}>
         {decodeAvatarSelection(profile?.avatar_url) ? 'Editar avatar' : 'Crear mi avatar'} <ArrowRight size={16}/>
       </button>
     </section>

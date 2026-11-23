@@ -7,6 +7,7 @@ import { clearLegalRequirementsPrefetch, prefetchLegalRequirements } from './leg
 import { appUrl } from './paths.js'
 import { clearDataCache } from './data-cache.js'
 import { withTimeout } from './async-utils.js'
+import { clearAvatarWelcomeSession } from './avatar/avatar-welcome-policy.js'
 import { AccessError, LoginPage, PasswordGate, Startup } from './auth/AuthScreens.jsx'
 import { supabase } from './supabase.js'
 
@@ -67,7 +68,10 @@ export default function App() {
         clearDataCache()
         clearLegalRequirementsPrefetch()
       }
-      if (event === 'SIGNED_OUT') setIntroComplete(false)
+      if (event === 'SIGNED_OUT') {
+        setIntroComplete(false)
+        try { clearAvatarWelcomeSession(sessionStorage) } catch {}
+      }
       if (!nextSession) { setProfile(null); setProfileUserId(null) }
       setAuthError('')
       setSessionReady(true)

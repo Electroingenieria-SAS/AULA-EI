@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { ArrowRight, Sparkles, X } from 'lucide-react'
 import { avatarImageUrl, DEFAULT_AVATAR_ID, DEFAULT_BACKGROUND_ID, avatarBackgroundUrl } from '../../../src/avatar/avatar-utils.js'
 import './avatar.css'
@@ -6,11 +7,16 @@ import './avatar.css'
 export default function AvatarWelcome({ onCreate, onLater }) {
   const dialog = useRef(null)
   const createButton = useRef(null)
+  const onLaterRef = useRef(onLater)
+  onLaterRef.current = onLater
+
   useEffect(() => {
     const previous = document.activeElement
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     createButton.current?.focus()
     const onKey = (event) => {
-      if (event.key === 'Escape') { event.preventDefault(); onLater(); return }
+      if (event.key === 'Escape') { event.preventDefault(); onLaterRef.current?.(); return }
       if (event.key !== 'Tab') return
       const buttons = Array.from(dialog.current?.querySelectorAll('button:not(:disabled)') || [])
       const first = buttons[0], last = buttons[buttons.length - 1]
@@ -18,10 +24,16 @@ export default function AvatarWelcome({ onCreate, onLater }) {
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
     }
     document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('keydown', onKey); previous?.focus?.() }
-  }, [onLater])
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previousOverflow
+      previous?.focus?.()
+    }
+  }, [])
 
-  return <div className="ei-avatar-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onLater() }}>
+  // A body portal guarantees the dialog is above the learner shell and avoids
+  // clipping caused by stacking contexts on mobile/PWA transitions.
+  return createPortal(<div className="ei-avatar-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onLater() }}>
     <section ref={dialog} className="ei-avatar-welcome" role="dialog" aria-modal="true" aria-labelledby="avatar-welcome-title" aria-describedby="avatar-welcome-copy">
       <button type="button" className="ei-avatar-close" aria-label="Cerrar bienvenida de avatar" onClick={onLater}><X size={19}/></button>
       <div className="ei-avatar-welcome-art" style={{ backgroundImage: 'linear-gradient(145deg,rgba(0,38,103,.05),rgba(2,52,141,.3)),url(' + avatarBackgroundUrl(DEFAULT_BACKGROUND_ID) + ')' }}>
@@ -38,5 +50,5 @@ export default function AvatarWelcome({ onCreate, onLater }) {
         <button type="button" className="ei-avatar-subtle" onClick={onLater}>Ahora no</button>
       </div>
     </section>
-  </div>
+  </div>, document.body)
 }

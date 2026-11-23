@@ -4,6 +4,8 @@ import {
   ShieldCheck, Sparkles, Users, X,
 } from 'lucide-react'
 import { STAFF_ROLES } from './shared.js'
+// Loaded only in the authenticated Studio route, not during login or learner home.
+import './styles/courses.css'
 import {
   AssignmentsCenter,
   CertificatesManager,

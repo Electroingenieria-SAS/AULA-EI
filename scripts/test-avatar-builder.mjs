@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
+import { saveMyAvatar } from '../src/avatar/avatar-service.js'
 import {
   DEFAULT_AVATAR_ID, DEFAULT_BACKGROUND_ID, isAllowedAvatarId,
   isAllowedBackgroundId, encodeAvatarSelection, decodeAvatarSelection,
@@ -47,6 +48,24 @@ for (const id of ids) for (const bg of catalog.fondos) {
 assert.equal(decodeAvatarSelection('https://other-site/user-avatar.png'), null)
 assert.equal(decodeAvatarSelection('aula-ei-avatar:EI-JEFE-M-04:FON-01'), null)
 assert.equal(decodeAvatarSelection('aula-ei-avatar:EI-JEFE-M-01:FON-99'), null)
+const observedCalls = []
+const mockClient = {
+  rpc: async (name, payload) => {
+    observedCalls.push({ name, payload })
+    return { data: encodeAvatarSelection(payload.p_avatar_id, payload.p_background_id), error: null }
+  },
+}
+const firstSaved = await saveMyAvatar('EI-ANALISTA-F-03', 'FON-02', mockClient)
+assert.deepEqual(decodeAvatarSelection(firstSaved), { id: 'EI-ANALISTA-F-03', backgroundId: 'FON-02' })
+const edited = await saveMyAvatar('EI-JEFE-F-01', 'FON-08', mockClient)
+assert.deepEqual(decodeAvatarSelection(edited), { id: 'EI-JEFE-F-01', backgroundId: 'FON-08' })
+assert.equal(observedCalls.length, 2)
+assert.deepEqual(observedCalls[0], { name:'set_my_aula_avatar', payload:{ p_avatar_id:'EI-ANALISTA-F-03', p_background_id:'FON-02' } })
+assert.ok(observedCalls.every((call) => !('user_id' in call.payload)))
+await assert.rejects(() => saveMyAvatar('EI-LOGISTICO-F-01', 'FON-01', mockClient), /no pertenece/)
+await assert.rejects(() => saveMyAvatar('EI-ANALISTA-F-03', 'FON-99', mockClient), /no pertenece/)
+await assert.rejects(() => saveMyAvatar('EI-ANALISTA-F-03', 'FON-02', { rpc: async () => ({ data:null, error:{ message:'offline' } }) }), /No se pudo guardar|Sin conexión/)
+await assert.rejects(() => saveMyAvatar('EI-ANALISTA-F-03', 'FON-02', { rpc: async () => ({ data:'otro valor', error:null }) }), /no confirmó/)
 
 const migration = await read('supabase/migrations/20261123160000_self_service_avatar_catalog.sql')
 const createAvatar = await read('player/src/avatar/AvatarStudio.jsx')

@@ -9,7 +9,6 @@ const visualOrder = [
   "import '../studio/src/styles/core.css'",
   "import '../studio/src/styles/users.css'",
   "import '../studio/src/styles/certificates.css'",
-  "import '../studio/src/styles/courses.css'",
   "import '../studio/src/styles/compliance.css'",
   "import '../player/src/styles/core.css'",
   "import '../player/src/styles/course.css'",
@@ -84,6 +83,13 @@ const studio = await read('studio/src/App.jsx')
 const studioModules = await read('studio/src/studio-modules.js')
 const studioData = await read('studio/src/useStudioData.js')
 if (studio.includes("import './styles.css'")) throw new Error('Studio no debe reinyectar CSS dinámicamente.')
+// The authoring stylesheet is no longer part of the public entry point.
+if (!studio.includes("import './styles/courses.css'")) {
+  throw new Error('El CSS de capacitaciones debe cargarse en la ruta protegida Studio.')
+}
+if (main.includes("import '../studio/src/styles/courses.css'")) {
+  throw new Error('La ruta de inicio no debe descargar los estilos de creación de cursos.')
+}
 for (const required of [
   "import('./CoursesManager.jsx')",
   "import('./AssignmentsCenter.jsx')",

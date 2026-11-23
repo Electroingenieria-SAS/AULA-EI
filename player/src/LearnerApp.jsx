@@ -1,7 +1,6 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import LearnerShell from './LearnerShell.jsx'
 import HomePage from './HomePage.jsx'
-import { decodeAvatarSelection } from '../../src/avatar/avatar-utils.js'
 import { avatarWelcomeStorageKey, shouldOfferAvatarWelcome } from '../../src/avatar/avatar-welcome-policy.js'
 import { navigateLearner } from './navigation.js'
 
@@ -87,10 +86,6 @@ export default function LearnerApp({ profile, sessionUser, onAvatarChange }) {
     try { sessionStorage.setItem(avatarWelcomeStorageKey(sessionUser?.id), '1') } catch {}
     setShowAvatarWelcome(false)
   }
-  const openAvatarWelcome = () => {
-    if (decodeAvatarSelection(profile?.avatar_url)) navigateLearner('/mi-personaje')
-    else setShowAvatarWelcome(true)
-  }
 
   useEffect(() => {
     const sync = () => setRoute(readRoute())
@@ -150,7 +145,7 @@ export default function LearnerApp({ profile, sessionUser, onAvatarChange }) {
     if (route.type === 'privacy') return <PrivacyCenter profile={profile} />
     if (route.type === 'credits') return <DeveloperCreditsPage />
     if (route.type === 'avatar') return <AvatarStudio profile={profile} onSaved={onAvatarChange}/>
-    return <HomePage profile={profile} sessionUser={sessionUser} onAvatarIntro={openAvatarWelcome} />
+    return <HomePage profile={profile} sessionUser={sessionUser} />
   }, [route.key, route.type, route.courseId, profile, sessionUser, onAvatarChange])
 
   return <>

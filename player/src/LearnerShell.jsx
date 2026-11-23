@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { ArrowLeft, BookOpen, Code2, FileText, Gamepad2, Home, LogOut, ShieldCheck, Sparkles, TrendingUp, BrainCircuit, ClipboardList, Palette } from 'lucide-react'
 import { assetUrl, navigateLearner } from './navigation.js'
 import NotificationCenter from './NotificationCenter.jsx'
 import AvatarBadge from './avatar/AvatarBadge.jsx'
+import { avatarImageUrl, DEFAULT_AVATAR_ID, profileAvatarImage } from '../../src/avatar/avatar-utils.js'
 import { mobileHaptic } from '../../src/MobileViewportSync.jsx'
 import { supabase } from './supabase.js'
 import '../../src/branding/developer-signature.css'
@@ -33,10 +34,23 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
         <small>ACADEMIA INTERNA</small>
       </button>
 
-      <div className="learner-sidebar-user">
-        <AvatarBadge avatarUrl={profile?.avatar_url} fallback={initials} className="learner-sidebar-avatar" size="medium"/>
-        <div><strong>{displayName}</strong><span>{role}</span></div>
-      </div>
+      <button
+        type="button"
+        className="learner-sidebar-user learner-profile-card"
+        onClick={() => navigateLearner('/mi-personaje')}
+        aria-label={`Personalizar mi personaje. Perfil de ${displayName}, ${role}`}
+      >
+        <span className="learner-profile-card__details">
+          <small className="learner-profile-card__eyebrow">MI ESPACIO</small>
+          <strong className="learner-profile-card__name">{displayName}</strong>
+          <span className="learner-profile-card__role">{role}</span>
+          <span className="learner-profile-card__action">
+            <Palette size={12} aria-hidden="true" />
+            {profileAvatarImage(profile?.avatar_url) ? 'Editar personaje' : 'Crear personaje'}
+          </span>
+        </span>
+        <SidebarProfileCharacter avatarUrl={profile?.avatar_url} fallback={initials}/>
+      </button>
 
 
       <nav className="learner-sidebar-nav" aria-label="Navegación principal">
@@ -108,6 +122,27 @@ export default function LearnerShell({ children, activeRoute = 'catalog', profil
       {canManage && <MobileLink icon={ShieldCheck} label="Gestión" active={activeRoute === 'studio'} onClick={() => navigateLearner('/studio')} />}
     </nav>
   </div>
+}
+
+// A quiet idle animation uses the user's original full-body asset, not a reassembled illustration.
+function SidebarProfileCharacter({ avatarUrl, fallback }) {
+  const [failedSources, setFailedSources] = useState([])
+  const selectedSource = profileAvatarImage(avatarUrl)
+  const genericSource = avatarImageUrl(DEFAULT_AVATAR_ID)
+  const source = [selectedSource, genericSource].find((candidate) => candidate && !failedSources.includes(candidate))
+
+  return <span className="learner-profile-card__art" aria-hidden="true">
+    {source
+      ? <img
+          className="learner-profile-card__character"
+          src={source}
+          alt=""
+          loading="eager"
+          decoding="async"
+          onError={() => setFailedSources((current) => current.includes(source) ? current : [...current, source])}
+        />
+      : <span className="learner-profile-card__fallback">{fallback}</span>}
+  </span>
 }
 
 function SidebarLink({ icon: Icon, label, active = false, onClick }) {
